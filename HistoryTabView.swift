@@ -270,11 +270,26 @@ struct SnapshotCard: View {
         // Read code
         guard let code = try? String(contentsOfFile: snapshot.codePath, encoding: .utf8) else { return }
         // Write uniforms.json if snapshot meta has uniforms (optional)
-        if let uniforms = (try? Data(contentsOf: URL(fileURLWithPath: snapshot.jsonPath))).flatMap({ try? JSONSerialization.jsonObject(with: $0) as? [String: Any] })?["uniforms"] as? [String: Any] {
-            let obj: [String: Any] = ["uniforms": uniforms, "timestamp": Date().timeIntervalSince1970]
-            if let data = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted]) {
-                try? data.write(to: URL(fileURLWithPath: "Resources/communication/uniforms.json"))
+        // Stepwise optional unwrapping with error handling
+        if let jsonData = try? Data(contentsOf: URL(fileURLWithPath: snapshot.jsonPath)) {
+            do {
+                if let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+                    if let uniforms = jsonObject["uniforms"] as? [String: Any] {
+                        let obj: [String: Any] = ["uniforms": uniforms, "timestamp": Date().timeIntervalSince1970]
+                        if let data = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted]) {
+                            try? data.write(to: URL(fileURLWithPath: "Resources/communication/uniforms.json"))
+                        }
+                    } else {
+                        print("Warning: 'uniforms' key not found or not a dictionary in \(snapshot.jsonPath)")
+                    }
+                } else {
+                    print("Warning: JSON root is not a dictionary in \(snapshot.jsonPath)")
+                }
+            } catch {
+                print("Error parsing JSON from \(snapshot.jsonPath): \(error)")
             }
+        } else {
+            print("Warning: Could not read data from \(snapshot.jsonPath)")
         }
         // Send set_shader command via bridge
         let cmd: [String: Any] = [
