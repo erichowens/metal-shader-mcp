@@ -170,7 +170,7 @@ struct MetalRenderingView: NSViewRepresentable {
 // MARK: - Shader Editor (from original)
 struct ShaderEditorView: View {
     @EnvironmentObject var workspace: WorkspaceManager
-    // Use workspace selectedTabIndex directly instead of local state
+    @State private var selectedTab = 0
     
     var body: some View {
         VStack(spacing: 0) {
@@ -179,10 +179,9 @@ struct ShaderEditorView: View {
                 ForEach(workspace.shaderTabs.indices, id: \.self) { index in
                     ShaderTabView(
                         title: workspace.shaderTabs[index].title,
-                        isSelected: workspace.selectedTabIndex == index
+                        isSelected: selectedTab == index
                     ) {
-                        workspace.selectedTabIndex = index
-                        workspace.scheduleCompilation()
+                        selectedTab = index
                     }
                 }
                 
@@ -191,7 +190,6 @@ struct ShaderEditorView: View {
                 Button(action: workspace.addShaderTab) {
                     Image(systemName: "plus")
                         .font(.system(size: 11))
-                        .foregroundColor(.white)
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, 8)
@@ -199,28 +197,20 @@ struct ShaderEditorView: View {
             .frame(height: 30)
             .background(Color(red: 0.13, green: 0.13, blue: 0.14))
             
-            // Code editor - properly synchronized with WorkspaceManager
+            // Code editor
             MetalCodeEditor(
                 text: Binding(
-                    get: { 
-                        return workspace.shaderTabs[safe: workspace.selectedTabIndex]?.content ?? "" 
-                    },
-                    set: { newContent in
-                        if workspace.selectedTabIndex < workspace.shaderTabs.count {
-                            workspace.shaderTabs[workspace.selectedTabIndex].content = newContent
+                    get: { workspace.shaderTabs[safe: selectedTab]?.content ?? "" },
+                    set: { 
+                        if selectedTab < workspace.shaderTabs.count {
+                            workspace.shaderTabs[selectedTab].content = $0
                         }
                         workspace.markAsModified()
-                        // Auto-compile on text change
-                        workspace.scheduleCompilation()
                     }
                 ),
                 language: .metal,
                 theme: .professional,
-                onTextChange: { 
-                    workspace.markAsModified() 
-                    // Auto-compile on typing
-                    workspace.scheduleCompilation()
-                }
+                onTextChange: { workspace.markAsModified() }
             )
             
             // Status bar
@@ -723,13 +713,9 @@ struct ConsoleView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(workspace.compilationErrors, id: \.message) { error in
                         HStack(alignment: .top, spacing: 8) {
-                            let isError = error.severity == .error
-                            let iconName = isError ? "xmark.circle.fill" : "exclamationmark.triangle.fill"
-                            let iconColor = isError ? Color.red : Color.orange
-                            
-                            Image(systemName: iconName)
+                            Image(systemName: error.type == .error ? "xmark.circle.fill" : "exclamationmark.triangle.fill")
                                 .font(.system(size: 11))
-                                .foregroundColor(iconColor)
+                                .foregroundColor(error.type == .error ? .red : .orange)
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(error.message)

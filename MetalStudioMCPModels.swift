@@ -194,61 +194,10 @@ struct CompilationError: Identifiable {
     let column: Int
     let message: String
     let type: ErrorType
-    let severity: ErrorSeverity
-    let code: String?
-    let suggestion: String?
-    let context: ErrorContext?
     
     enum ErrorType {
-        case syntaxError
-        case typeError
-        case undeclaredVariable
-        case invalidFunction
-        case missingReturn
-        case compilationError
+        case error
         case warning
-        case info
-    }
-    
-    enum ErrorSeverity: Int, CaseIterable {
-        case error = 3
-        case warning = 2
-        case info = 1
-        
-        var color: NSColor {
-            switch self {
-            case .error: return NSColor.systemRed
-            case .warning: return NSColor.systemOrange
-            case .info: return NSColor.systemBlue
-            }
-        }
-        
-        var icon: String {
-            switch self {
-            case .error: return "xmark.circle.fill"
-            case .warning: return "exclamationmark.triangle.fill"
-            case .info: return "info.circle.fill"
-            }
-        }
-    }
-    
-    struct ErrorContext {
-        let startLine: Int
-        let endLine: Int
-        let startColumn: Int
-        let endColumn: Int
-        let affectedText: String
-    }
-    
-    init(line: Int, column: Int, message: String, type: ErrorType, severity: ErrorSeverity? = nil, code: String? = nil, suggestion: String? = nil, context: ErrorContext? = nil) {
-        self.line = line
-        self.column = column
-        self.message = message
-        self.type = type
-        self.severity = severity ?? (type == .warning ? .warning : .error)
-        self.code = code
-        self.suggestion = suggestion
-        self.context = context
     }
 }
 

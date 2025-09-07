@@ -379,3 +379,35 @@ class MetalShaderMCPServer {
 // Start the server
 const server = new MetalShaderMCPServer();
 server.run().catch(console.error);
+
+// Keep the process alive and handle stdio properly
+process.stdin.resume();
+
+// Handle parent process termination (for when launched from Swift)
+if (process.argv.includes('--stdio')) {
+  // Monitor stdin for EOF (parent process terminated)
+  process.stdin.on('end', () => {
+    console.error('Parent process terminated, shutting down...');
+    process.exit(0);
+  });
+  
+  // Handle SIGINT and SIGTERM gracefully
+  process.on('SIGINT', () => {
+    console.error('Received SIGINT, shutting down gracefully...');
+    process.exit(0);
+  });
+  
+  process.on('SIGTERM', () => {
+    console.error('Received SIGTERM, shutting down gracefully...');
+    process.exit(0);
+  });
+  
+  // Prevent uncaught exceptions from crashing
+  process.on('uncaughtException', (err) => {
+    console.error('Uncaught exception:', err);
+  });
+  
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled rejection at:', promise, 'reason:', reason);
+  });
+}

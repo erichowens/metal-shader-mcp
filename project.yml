@@ -1,0 +1,41 @@
+name: MetalShaderStudioMCP
+options:
+  developmentLanguage: en
+settings:
+  base:
+    SWIFT_VERSION: 5.9
+    MACOSX_DEPLOYMENT_TARGET: '13.0'
+    CODE_SIGN_IDENTITY: '-'
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_HARDENED_RUNTIME: NO
+packages: []
+targets:
+  MetalShaderStudioMCP:
+    type: application
+    platform: macOS
+    deploymentTarget: '13.0'
+    sources:
+      - MetalStudioMain.swift
+      - MetalStudioMCPComponents.swift
+      - MetalStudioMCPCore.swift
+      - MetalStudioMCPEnhanced.swift
+      - MetalStudioMCPModels.swift
+    settings:
+      base:
+        PRODUCT_NAME: Metal Shader MCP
+        PRODUCT_BUNDLE_IDENTIFIER: dev.erichowens.MetalShaderMCP
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 1.0.0
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_NSHighResolutionCapable: YES
+    info:
+      properties:
+        CFBundleName: Metal Shader MCP
+        CFBundleDisplayName: Metal Shader MCP
+        CFBundleIdentifier: dev.erichowens.MetalShaderMCP
+        CFBundleShortVersionString: '1.0.0'
+        CFBundleVersion: '1'
+        LSApplicationCategoryType: 'public.app-category.developer-tools'
+        NSHighResolutionCapable: true
+        NSPrincipalClass: NSApplication
+

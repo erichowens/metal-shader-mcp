@@ -1,0 +1,26 @@
+name: MetalShaderStudioMCP
+options:
+  developmentLanguage: en
+targets:
+  MetalShaderStudioMCP:
+    type: application
+    platform: macOS
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: dev.erichowens.MetalShaderMCP
+        MARKETING_VERSION: 1.0.0
+        CURRENT_PROJECT_VERSION: 1
+    info:
+      properties:
+        CFBundleName: Metal Shader MCP
+        CFBundleDisplayName: Metal Shader MCP
+        LSApplicationCategoryType: 'public.app-category.developer-tools'
+        NSHighResolutionCapable: true
+    sources:
+      - MetalStudioMain.swift
+      - MetalStudioMCPComponents.swift
+      - MetalStudioMCPCore.swift
+      - MetalStudioMCPEnhanced.swift
+      - MetalStudioMCPModels.swift
+

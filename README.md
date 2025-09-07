@@ -140,9 +140,49 @@ The profiler measures:
 - Memory usage
 - Power consumption estimate
 
+## Development Workflow
+
+### After-Action Requirements
+Every significant development action must complete these steps:
+
+1. **Update BUGS.md** - Document any issues discovered
+2. **Update CHANGELOG.md** - Record what was accomplished  
+3. **Capture Visual Evidence** - Screenshots for UI/shader changes
+4. **Run Tests** - Ensure no regressions introduced
+5. **Git Operations** - Commit with descriptive messages
+
+See `WARP.md` for detailed workflow documentation.
+
+### Visual Testing
+This project uses visual evidence collection for shader development:
+
+```bash
+# Capture screenshots of current state
+./scripts/screenshot_app.sh "feature_description"
+
+# Debug window capture issues
+python3 scripts/debug_window.py
+
+# Run visual tests (when implemented)
+swift test --filter VisualRegressionTests
+```
+
+### Documentation Files
+- **WARP.md** - Agent workflow requirements
+- **CLAUDE.md** - Creative vision and AI interaction patterns
+- **VISUAL_TESTING.md** - Visual testing framework
+- **BUGS.md** - Current issues and solutions
+- **CHANGELOG.md** - Project evolution history
+
 ## Contributing
 
-Contributions are welcome! Please submit pull requests or open issues for bugs and feature requests.
+Contributions are welcome! Please follow the workflow requirements in `WARP.md`:
+
+1. Create feature branch from main
+2. Implement changes with visual evidence
+3. Update relevant documentation
+4. Run visual regression tests
+5. Submit pull request with screenshots
 
 ## License
 

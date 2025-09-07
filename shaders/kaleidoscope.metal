@@ -186,7 +186,7 @@ fragment float4 fragmentShader(
     float4 finalColor = mix(blockColor, originalColor, dissolveMask);
     
     // Add touch interaction ripple
-    float2 touchDist = length(uv - uniforms.touchPoint);
+    float touchDist = length(uv - uniforms.touchPoint);
     float ripple = sin(touchDist * 20.0 - uniforms.time * 10.0) * 0.5 + 0.5;
     ripple *= exp(-touchDist * 3.0);
     finalColor.rgb += ripple * 0.1;

@@ -101,101 +101,93 @@ struct ContentView: View {
                     Divider()
                         .background(Color.black.opacity(0.5))
                     
-                    // Main content area - ADAPTIVE LAYOUT
-                    let availableWidth = max(900, geometry.size.width)
-                    let availableHeight = max(600, geometry.size.height - 44)
-                    let editorWidth = max(300, availableWidth * 0.33)
-                    let rightPanelWidth = (showInspector || showMCPPanel) ? max(280, min(400, availableWidth * 0.25)) : 0
-                    let previewWidth = max(300, availableWidth - editorWidth - rightPanelWidth)
-                    
-                    VStack(spacing: 0) {
+                    // Main content area - new layout
+                    VSplitView {
                         // Top section: Editor (left) and Preview (right)
-                        let mainHeight = showLibrary ? max(300, availableHeight * 0.6) : availableHeight
-                        
-                        HStack(spacing: 0) {
-                            // Shader Editor - ADAPTIVE WIDTH
+                        HSplitView {
+                            // Top Left - Shader Editor (always visible)
                             ShaderEditorView()
-                                .frame(width: editorWidth, height: mainHeight)
+                                .frame(
+                                    minWidth: 350,
+                                    idealWidth: editorWidth,
+                                    maxWidth: 800
+                                )
                             
-                            Divider()
-                                .background(Color.black.opacity(0.5))
-                            
-                            // Preview area - ADAPTIVE WIDTH
-                            VStack(spacing: 0) {
-                                let previewHeight = (showConsole && !showLibrary) ? max(200, mainHeight * 0.65) : mainHeight
+                            // Top Right - Preview and panels
+                            HStack(spacing: 0) {
+                                VStack(spacing: 0) {
+                                    // Preview (moved up slightly)
+                                    MetalPreviewView()
+                                        .padding(.top, 8)
+                                        .frame(maxHeight: .infinity)
+                                    
+                                    // Console below preview if enabled
+                                    if showConsole && !showLibrary {
+                                        Divider()
+                                            .background(Color.black.opacity(0.5))
+                                        ConsoleView()
+                                            .frame(height: 150)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
                                 
-                                MetalPreviewView()
-                                    .padding(.top, 8)
-                                    .frame(width: previewWidth, height: previewHeight - 8)
-                                
-                                // Console below preview if enabled
-                                if showConsole && !showLibrary {
+                                // Right Panel - Inspector/MCP (if shown)
+                                if showInspector || showMCPPanel {
                                     Divider()
                                         .background(Color.black.opacity(0.5))
-                                    ConsoleView()
-                                        .frame(width: previewWidth, height: max(100, mainHeight - previewHeight))
-                                }
-                            }
-                            
-                            // Right Panel - Inspector/MCP - ADAPTIVE WIDTH
-                            if showInspector || showMCPPanel {
-                                Divider()
-                                    .background(Color.black.opacity(0.5))
-                                
-                                VStack(spacing: 0) {
-                                    if showMCPPanel {
-                                        let mcpHeight = showInspector ? max(150, mainHeight * 0.5) : mainHeight
-                                        MCPControlPanel()
-                                            .frame(width: rightPanelWidth, height: mcpHeight)
+                                    
+                                    VStack(spacing: 0) {
+                                        if showMCPPanel {
+                                            MCPControlPanel()
+                                                .frame(height: showInspector ? 300 : .infinity)
+                                            
+                                            if showInspector {
+                                                Divider()
+                                                    .background(Color.black.opacity(0.5))
+                                            }
+                                        }
                                         
                                         if showInspector {
-                                            Divider()
-                                                .background(Color.black.opacity(0.5))
+                                            InspectorView()
+                                                .frame(maxHeight: showMCPPanel ? .infinity : nil)
                                         }
                                     }
-                                    
-                                    if showInspector {
-                                        let inspectorHeight = showMCPPanel ? max(150, mainHeight * 0.5) : mainHeight
-                                        InspectorView()
-                                            .frame(width: rightPanelWidth, height: inspectorHeight)
-                                    }
+                                    .frame(width: 320)
                                 }
                             }
                         }
+                        .frame(minHeight: showLibrary ? 400 : .infinity)
                         
-                        // Bottom section: Library
+                        // Bottom section: Library (2/3 width) and Console (1/3 width)
                         if showLibrary {
-                            Divider()
-                                .background(Color.black.opacity(0.5))
-                            
-                            let libraryHeight = max(200, availableHeight * 0.4)
-                            
                             HStack(spacing: 0) {
-                                // Library - ADAPTIVE DIMENSIONS
-                                let libraryWidth = showConsole ? max(400, availableWidth * 0.65) : availableWidth
+                                // Library takes 2/3 of width
                                 ShaderLibraryView(showLibrary: $showLibrary)
-                                    .frame(width: libraryWidth, height: libraryHeight)
+                                    .frame(maxWidth: .infinity)
+                                    .frame(minWidth: 400)
+                                    .layoutPriority(2)
                                 
-                                // Console - ADAPTIVE DIMENSIONS
+                                // Console takes remaining 1/3
                                 if showConsole {
                                     Divider()
                                         .background(Color.black.opacity(0.5))
                                     
-                                    let consoleWidth = max(250, availableWidth - libraryWidth)
                                     ConsoleView()
-                                        .frame(width: consoleWidth, height: libraryHeight)
+                                        .frame(minWidth: 250, maxWidth: 400)
+                                        .layoutPriority(1)
                                 }
                             }
+                            .frame(height: 250)
                         }
                     }
-                    
-                    // Guide Overlay - only show when explicitly requested
-                    if showGuide {
-                        GuideOverlay(isShowing: $showGuide)
-                            .onDisappear {
-                                hasSeenWelcome = true
-                            }
-                    }
+                }
+                
+                // Guide Overlay - only show when explicitly requested
+                if showGuide {
+                    GuideOverlay(isShowing: $showGuide)
+                        .onDisappear {
+                            hasSeenWelcome = true
+                        }
                 }
             }
         }
@@ -1266,96 +1258,94 @@ struct MetalPreviewView: View {
     @State private var mouseDown = false
     
     var body: some View {
-        ZStack {
-            // Checkerboard background
-            CheckerboardBackground()
-            
-            // Metal rendering view
-            MetalRenderingView()
-                .aspectRatio(1.0, contentMode: .fit)
-                .frame(width: min(viewportSize.width * 0.9, viewportSize.height * 0.9))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 2)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                )
-                .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
-                .position(x: viewportSize.width / 2, y: viewportSize.height / 2)
-                .onHover { hovering in
-                    isHovering = hovering
-                }
-                .onContinuousHover { phase in
-                    switch phase {
-                    case .active(let location):
-                        hoveredPosition = location
-                        workspace.updateMousePosition(location, in: viewportSize)
-                    case .ended:
-                        break
+        GeometryReader { geometry in
+            ZStack {
+                // Checkerboard background
+                CheckerboardBackground()
+                
+                // Metal rendering view
+                MetalRenderingView()
+                    .aspectRatio(1.0, contentMode: .fit)
+                    .frame(maxWidth: min(geometry.size.width * 0.9, geometry.size.height * 0.9))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 2)
+                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    )
+                    .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
+                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                    .onHover { hovering in
+                        isHovering = hovering
                     }
-                }
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { value in
-                            mouseDown = true
-                            hoveredPosition = value.location
-                            workspace.updateMousePosition(value.location, in: viewportSize)
+                    .onContinuousHover { phase in
+                        switch phase {
+                        case .active(let location):
+                            hoveredPosition = location
+                            workspace.updateMousePosition(location, in: geometry.size)
+                        case .ended:
+                            break
                         }
-                        .onEnded { _ in
-                            mouseDown = false
-                        }
-                )
-            
-            // Mouse visualization overlay
-            if isHovering || mouseDown {
-                MouseVisualizationOverlay(
-                    position: hoveredPosition,
-                    isPressed: mouseDown,
-                    viewportSize: viewportSize
-                )
-                .allowsHitTesting(false)
-            }
-            
-            // Overlays
-            VStack {
-                HStack {
-                    // Performance overlay
-                    PerformanceOverlay()
-                        .padding(12)
-                    
-                    Spacer()
-                    
-                    // Mouse coordinates
-                    if isHovering {
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Text("Mouse: \(String(format: "%.3f, %.3f", hoveredPosition.x / viewportSize.width, hoveredPosition.y / viewportSize.height))")
-                            Text("UV: \(String(format: "%.3f, %.3f", hoveredPosition.x / viewportSize.width, 1.0 - hoveredPosition.y / viewportSize.height))")
-                            Text("Viewport: \(Int(viewportSize.width))×\(Int(viewportSize.height))")
-                            if mouseDown {
-                                Text("PRESSED")
-                                    .foregroundColor(.orange)
-                                    .font(.system(size: 10, weight: .bold))
+                    }
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { value in
+                                mouseDown = true
+                                hoveredPosition = value.location
+                                workspace.updateMousePosition(value.location, in: geometry.size)
                             }
-                        }
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundColor(.white)
-                        .padding(8)
-                        .background(Color.black.opacity(0.7))
-                        .cornerRadius(6)
-                        .padding(12)
-                    }
+                            .onEnded { _ in
+                                mouseDown = false
+                            }
+                    )
+                
+                // Mouse visualization overlay
+                if isHovering || mouseDown {
+                    MouseVisualizationOverlay(
+                        position: hoveredPosition,
+                        isPressed: mouseDown,
+                        viewportSize: geometry.size
+                    )
+                    .allowsHitTesting(false)
                 }
                 
-                Spacer()
+                // Overlays
+                VStack {
+                    HStack {
+                        // Performance overlay
+                        PerformanceOverlay()
+                            .padding(12)
+                        
+                        Spacer()
+                        
+                        // Mouse coordinates
+                        if isHovering {
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text("Mouse: \(String(format: "%.3f, %.3f", hoveredPosition.x / geometry.size.width, hoveredPosition.y / geometry.size.height))")
+                                Text("UV: \(String(format: "%.3f, %.3f", hoveredPosition.x / geometry.size.width, 1.0 - hoveredPosition.y / geometry.size.height))")
+                                Text("Viewport: \(Int(geometry.size.width))×\(Int(geometry.size.height))")
+                                if mouseDown {
+                                    Text("PRESSED")
+                                        .foregroundColor(.orange)
+                                        .font(.system(size: 10, weight: .bold))
+                                }
+                            }
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundColor(.white)
+                            .padding(8)
+                            .background(Color.black.opacity(0.7))
+                            .cornerRadius(6)
+                            .padding(12)
+                        }
+                    }
+                    
+                    Spacer()
+                }
             }
-        }
-        .background(Color(red: 0.08, green: 0.08, blue: 0.09))
-        .onAppear {
-            // Use adaptive size based on available space
-            viewportSize = CGSize(width: max(400, 480), height: max(300, 400))
-        }
-        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResizeNotification)) { _ in
-            // Update viewport size when window resizes
-            DispatchQueue.main.async {
-                viewportSize = CGSize(width: max(400, 480), height: max(300, 400))
+            .background(Color(red: 0.08, green: 0.08, blue: 0.09))
+            .onAppear {
+                viewportSize = geometry.size
+            }
+            .onChange(of: geometry.size) { _, newSize in
+                viewportSize = newSize
             }
         }
     }

@@ -1,0 +1,10 @@
+name: TestApp
+options:
+  developmentLanguage: en
+targets:
+  TestApp:
+    type: application
+    platform: macOS
+    sources:
+      - MetalStudioMain.swift
+

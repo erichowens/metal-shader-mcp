@@ -9,7 +9,6 @@ class WorkspaceManager: ObservableObject {
     static let shared = WorkspaceManager()
     
     @Published var shaderTabs: [ShaderTabModel] = []
-    // Index of the currently selected tab in the UI
     @Published var selectedTabIndex = 0
     @Published var hasUnsavedChanges = false
     @Published var compilationStatus: CompilationStatus = .idle
@@ -28,11 +27,6 @@ class WorkspaceManager: ObservableObject {
     @Published var shaderPresets: [ShaderPreset] = []
     @Published var shaderLibrary: [ShaderLibraryItem] = []
     @Published var mcpFunctions: [MCPFunction] = []
-    
-    // Error detection system
-    @Published var errorDetectionEngine = ErrorDetectionEngine()
-    @Published var realTimeErrors: [CompilationError] = []
-    @Published var showErrorPanel = true
     
     // Video export settings
     @Published var videoDuration: Double = 5.0  // seconds
@@ -115,7 +109,6 @@ class WorkspaceManager: ObservableObject {
             content: defaultFragmentShader
         )
         shaderTabs.append(defaultShader)
-        selectedTabIndex = 0
         
         compileCurrentShader()
     }
@@ -127,45 +120,27 @@ class WorkspaceManager: ObservableObject {
             content: defaultFragmentShader
         )
         shaderTabs.append(newShader)
-        selectedTabIndex = max(0, shaderTabs.count - 1)
     }
     
     func compileCurrentShader() {
         compilationStatus = .compiling
         
-        guard shaderTabs.indices.contains(selectedTabIndex) else { return }
-        let currentTab = shaderTabs[selectedTabIndex]
+        guard let currentTab = shaderTabs.first else { return }
         
         // Auto-extract parameters before compilation
         extractParametersFromShader()
         
-        // Perform real-time syntax validation first
-        let syntaxErrors = errorDetectionEngine.validateShaderSyntax(currentTab.content)
-        let warnings = errorDetectionEngine.generateWarningsAndSuggestions(currentTab.content)
-        
         renderer.compileShader(currentTab.content) { [weak self] result in
             DispatchQueue.main.async {
-                guard let self = self else { return }
-                
                 switch result {
                 case .success:
-                    self.compilationStatus = .success
-                    self.compilationErrors = syntaxErrors + warnings
-                    self.realTimeErrors = syntaxErrors + warnings
-                    self.addMCPLog(level: "info", message: "Shader compiled successfully")
-                    
-                    if !syntaxErrors.isEmpty || !warnings.isEmpty {
-                        let errorCount = syntaxErrors.filter { $0.severity == .error }.count
-                        let warningCount = warnings.filter { $0.severity == .warning }.count
-                        self.addMCPLog(level: "info", message: "Compilation succeeded with \(errorCount) errors and \(warningCount) warnings")
-                    }
-                    
+                    self?.compilationStatus = .success
+                    self?.compilationErrors = []
+                    self?.addMCPLog(level: "info", message: "Shader compiled successfully")
                 case .failure(let error):
-                    self.compilationStatus = .error
-                    let enhancedErrors = self.errorDetectionEngine.analyzeSemanticErrors(currentTab.content, compilationResult: .failure(error))
-                    self.compilationErrors = enhancedErrors + syntaxErrors + warnings
-                    self.realTimeErrors = enhancedErrors + syntaxErrors + warnings
-                    self.addMCPLog(level: "error", message: "Shader compilation failed with \(enhancedErrors.count + syntaxErrors.count) errors")
+                    self?.compilationStatus = .error
+                    self?.compilationErrors = error.errors
+                    self?.addMCPLog(level: "error", message: "Shader compilation failed with \(error.errors.count) errors")
                 }
             }
         }
@@ -195,7 +170,6 @@ class WorkspaceManager: ObservableObject {
             content: defaultShaderContent
         )
         shaderTabs.append(newTab)
-        selectedTabIndex = max(0, shaderTabs.count - 1)
     }
     
     func markAsModified() {
@@ -223,93 +197,6 @@ class WorkspaceManager: ObservableObject {
     
     private var compilationTimer: Timer?
     
-    // MARK: - Error Handling Methods
-    
-    func navigateToError(_ error: CompilationError) {
-        cursorPosition = (line: error.line, column: error.column)
-        addMCPLog(level: "info", message: "Navigated to line \(error.line), column \(error.column)")
-    }
-    
-    func applyErrorFix(_ error: CompilationError) {
-        guard let suggestion = error.suggestion,
-              let currentTab = shaderTabs.first else { return }
-        
-        let lines = currentTab.content.components(separatedBy: .newlines)
-        guard error.line > 0 && error.line <= lines.count else { return }
-        
-        var modifiedLines = lines
-        let lineIndex = error.line - 1
-        let originalLine = lines[lineIndex]
-        
-        // Apply simple fixes based on error type
-        switch error.type {
-        case .syntaxError:
-            if error.message.contains("Missing semicolon") {
-                if !originalLine.hasSuffix(";") {
-                    modifiedLines[lineIndex] = originalLine + ";"
-                }
-            } else if error.message.contains("expected") && suggestion.contains("Add") {
-                // Extract what needs to be added from suggestion
-                if suggestion.contains("semicolon") {
-                    modifiedLines[lineIndex] = originalLine + ";"
-                } else if suggestion.contains("closing brace") {
-                    modifiedLines[lineIndex] = originalLine + " }"
-                }
-            }
-            
-        case .warning:
-            if suggestion.contains("Use camelCase") {
-                // Extract the suggested variable name from the suggestion
-                let pattern = "'([^']+)'"
-                if let regex = try? NSRegularExpression(pattern: pattern),
-                   let match = regex.firstMatch(in: suggestion, range: NSRange(suggestion.startIndex..., in: suggestion)),
-                   let range = Range(match.range(at: 1), in: suggestion) {
-                    
-                    let suggestedName = String(suggestion[range])
-                    // Replace the first occurrence of uppercase variable with suggested name
-                    let uppercasePattern = "\\b[A-Z][a-zA-Z]*\\b"
-                    if let upperRegex = try? NSRegularExpression(pattern: uppercasePattern) {
-                        modifiedLines[lineIndex] = upperRegex.stringByReplacingMatches(
-                            in: originalLine,
-                            range: NSRange(originalLine.startIndex..., in: originalLine),
-                            withTemplate: suggestedName
-                        )
-                    }
-                }
-            }
-            
-        case .info:
-            if suggestion.contains("Replace pow(x, 2.0) with x*x") {
-                modifiedLines[lineIndex] = originalLine.replacingOccurrences(of: "pow(\\([^,]+\\), 2\\.0)", with: "($1)*($1)", options: .regularExpression)
-            } else if suggestion.contains("Replace '/ 2.0' with '* 0.5'") {
-                modifiedLines[lineIndex] = originalLine.replacingOccurrences(of: "/ 2\\.0", with: "* 0.5", options: .regularExpression)
-            }
-            
-        default:
-            break
-        }
-        
-        // Apply the fix
-        let modifiedContent = modifiedLines.joined(separator: "\n")
-        if modifiedContent != currentTab.content {
-            currentTab.content = modifiedContent
-            markAsModified()
-            addMCPLog(level: "info", message: "Applied fix for: \(error.message)")
-            
-            // Re-compile to see if fix worked
-            scheduleCompilation()
-        }
-    }
-    
-    func performRealTimeValidation() {
-        guard let currentTab = shaderTabs.first else { return }
-        
-        let syntaxErrors = errorDetectionEngine.validateShaderSyntax(currentTab.content)
-        let warnings = errorDetectionEngine.generateWarningsAndSuggestions(currentTab.content)
-        
-        realTimeErrors = syntaxErrors + warnings
-    }
-    
     func scheduleCompilation() {
         compilationTimer?.invalidate()
         compilationTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
@@ -328,8 +215,7 @@ class WorkspaceManager: ObservableObject {
     }
     
     var currentShader: ShaderTabModel? {
-        guard shaderTabs.indices.contains(selectedTabIndex) else { return nil }
-        return shaderTabs[selectedTabIndex]
+        shaderTabs.first
     }
     
     func resetParameters() {
@@ -688,17 +574,14 @@ class WorkspaceManager: ObservableObject {
         if shaderTabs.isEmpty {
             addShaderTab()
         }
-        if shaderTabs.indices.contains(selectedTabIndex) {
-            shaderTabs[selectedTabIndex].content = preset.code
-            shaderTabs[selectedTabIndex].title = preset.name
+        if let currentTab = shaderTabs.first {
+            currentTab.content = preset.code
+            currentTab.title = preset.name
             markAsModified()
         }
         
         // Load the preset's parameters
         customParameters = preset.parameters
-        
-        // Recompile after loading preset
-        scheduleCompilation()
         
         addMCPLog(level: "info", message: "Loaded preset: \(preset.name)")
     }
@@ -892,15 +775,8 @@ class WorkspaceManager: ObservableObject {
         
         if shaderTabs.isEmpty {
             shaderTabs.append(newTab)
-            selectedTabIndex = 0
         } else {
-            // Replace current tab instead of always the first
-            if shaderTabs.indices.contains(selectedTabIndex) {
-                shaderTabs[selectedTabIndex] = newTab
-            } else {
-                shaderTabs[0] = newTab
-                selectedTabIndex = 0
-            }
+            shaderTabs[0] = newTab
         }
         
         hasUnsavedChanges = true
@@ -909,7 +785,7 @@ class WorkspaceManager: ObservableObject {
         timeParameter.value = .float(0)
         
         // Compile and auto-extract parameters
-        scheduleCompilation()
+        compileCurrentShader()
         
         addMCPLog(level: "info", message: "Loaded shader: \(shader.name)")
     }
@@ -1485,7 +1361,7 @@ class MetalRenderer: NSObject, ObservableObject {
                     line: 0, 
                     column: 0, 
                     message: "Failed to find vertex or fragment shader functions", 
-                    type: .compilationError
+                    type: .error
                 )
                 completion(.failure(ShaderCompilationError(errors: [error])))
                 return
@@ -1518,7 +1394,7 @@ class MetalRenderer: NSObject, ObservableObject {
                             line: lineNum,
                             column: 0,
                             message: message.isEmpty ? line : message,
-                            type: .compilationError
+                            type: .error
                         ))
                         continue
                     }
@@ -1530,7 +1406,7 @@ class MetalRenderer: NSObject, ObservableObject {
                         line: 0,
                         column: 0,
                         message: line,
-                        type: .compilationError
+                        type: .error
                     ))
                 }
             }
@@ -1541,7 +1417,7 @@ class MetalRenderer: NSObject, ObservableObject {
                     line: 0,
                     column: 0,
                     message: errorMessage,
-                    type: .compilationError
+                    type: .error
                 ))
             }
             
