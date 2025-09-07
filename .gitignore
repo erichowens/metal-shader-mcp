@@ -56,3 +56,19 @@ test-results/
 
 # Generated files
 shaders/compiled/
+
+# Archive folder with old versions
+archive/
+old-versions/
+
+# Compiled Swift executables
+MetalStudioMCPEnhanced
+MetalStudio*
+!MetalStudioMCP*.swift
+*.dSYM/
+# Swift build artifacts
+.build/
+.swiftpm/
+*.xcodeproj
+DerivedData/
+*.dSYM/
