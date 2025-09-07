@@ -7,8 +7,8 @@ import UniformTypeIdentifiers
 struct ShaderPlaygroundApp: App {
     var body: some Scene {
         WindowGroup("Claude's Shader Playground") {
-            ContentView()
-                .frame(minWidth: 800, minHeight: 600)
+            AppShellView()
+                .frame(minWidth: 1000, minHeight: 700)
         }
     }
 }

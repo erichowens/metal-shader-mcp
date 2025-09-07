@@ -145,6 +145,41 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['type'],
         },
       },
+
+      // ---- Next set of REPL tools (schemas only; handlers stubbed below) ----
+      {
+        name: 'run_frame',
+        description: 'Render a single frame deterministically and return image',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            time: { type: 'number', description: 'Time in seconds' },
+            uniforms: { type: 'object', description: 'Key-value uniforms' },
+            resolution: {
+              type: 'object',
+              properties: { w: { type: 'number' }, h: { type: 'number' } },
+              required: ['w','h']
+            },
+            seed: { type: 'number', description: 'Random seed' },
+            colorspace: { type: 'string', enum: ['sRGB','P3'] }
+          },
+          required: ['time','resolution']
+        }
+      },
+      { name: 'set_time', description: 'Set the current timeline time', inputSchema: { type: 'object', properties: { time: { type: 'number' } }, required: ['time'] } },
+      { name: 'play', description: 'Start timeline playback', inputSchema: { type: 'object', properties: {} } },
+      { name: 'pause', description: 'Pause timeline playback', inputSchema: { type: 'object', properties: {} } },
+      { name: 'set_playback_speed', description: 'Set timeline speed multiplier', inputSchema: { type: 'object', properties: { speed: { type: 'number' } }, required: ['speed'] } },
+
+      { name: 'set_resolution', description: 'Set render resolution via preset or explicit', inputSchema: { type: 'object', properties: { preset: { type:'string', enum: ['720p','1080p','4k','square','vertical'] }, w: { type:'number' }, h: { type:'number' } } } },
+      { name: 'set_aspect', description: 'Set aspect ratio', inputSchema: { type: 'object', properties: { aspect: { type: 'string', enum: ['16:9','9:16','1:1','4:3','3:4','3:2','2:3'] } }, required: ['aspect'] } },
+      { name: 'set_device_profile', description: 'Apply device-specific defaults', inputSchema: { type: 'object', properties: { device: { type: 'string', enum: ['macOS','iPhone','iPad'] } }, required: ['device'] } },
+
+      { name: 'set_seed', description: 'Set deterministic random seed', inputSchema: { type: 'object', properties: { seed: { type: 'number' } }, required: ['seed'] } },
+      { name: 'randomize_seed', description: 'Randomize seed', inputSchema: { type: 'object', properties: {} } },
+
+      { name: 'set_mouse', description: 'Set mouse position (normalized or px depending on app)', inputSchema: { type: 'object', properties: { x: { type:'number' }, y: { type:'number' } }, required: ['x','y'] } },
+      { name: 'simulate_touch_path', description: 'Drive interaction along a path', inputSchema: { type: 'object', properties: { path: { type:'array', items: { type:'array', items:{ type:'number' } } } }, required: ['path'] } },
     ],
   };
 });
@@ -602,6 +637,27 @@ fragment float4 fragmentShader(float4 position [[position]],
               text: `Here's a ${type} shader example:\n\n\`\`\`metal\n${shaderCode}\n\`\`\`\n\nTo see this shader in action:\n1. Copy this code\n2. Paste it into the ShaderPlayground app\n3. Use the take_screenshot tool to capture the result`,
             },
           ],
+        };
+      }
+
+      // ---- Stub handlers for newly-added tools ----
+      case 'run_frame':
+      case 'set_time':
+      case 'play':
+      case 'pause':
+      case 'set_playback_speed':
+      case 'set_resolution':
+      case 'set_aspect':
+      case 'set_device_profile':
+      case 'set_seed':
+      case 'randomize_seed':
+      case 'set_mouse':
+      case 'simulate_touch_path': {
+        return {
+          content: [{
+            type: 'text',
+            text: `🧪 Tool '${name}' acknowledged (schema ready). Implementation pending.`
+          }]
         };
       }
 
