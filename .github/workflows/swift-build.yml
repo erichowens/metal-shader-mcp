@@ -1,0 +1,104 @@
+name: Swift/Metal Build and Validation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  swift-metal-build:
+    name: Swift/Metal Compilation
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+    
+    - name: Cache Swift dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          .build
+          .swiftpm
+          ~/Library/Caches/org.swift.swiftpm
+        key: ${{ runner.os }}-swift-${{ hashFiles('Package.swift', 'Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-swift-
+    
+    - name: Check Swift version
+      run: swift --version
+    
+    - name: Verify Metal framework availability
+      run: |
+        xcrun -sdk macosx metal --version
+        echo "Metal compiler available"
+    
+    - name: Compile ShaderPlayground.swift
+      run: |
+        echo "Compiling ShaderPlayground.swift with Metal framework..."
+        swiftc -o MetalShaderStudio ShaderPlayground.swift \
+          -framework SwiftUI \
+          -framework MetalKit \
+          -framework AppKit \
+          -framework UniformTypeIdentifiers \
+          -parse-as-library
+        echo "✅ ShaderPlayground.swift compiled successfully"
+    
+    - name: Validate Metal shader files
+      run: |
+        echo "Validating Metal shader files..."
+        SHADER_ERRORS=0
+        
+        for shader in shaders/*.metal Resources/communication/*.metal; do
+          if [ -f "$shader" ]; then
+            echo "Validating $shader..."
+            if xcrun -sdk macosx metal -c "$shader" -o /tmp/$(basename "$shader" .metal).air; then
+              echo "✅ $shader compiled successfully"
+            else
+              echo "❌ $shader failed to compile"
+              SHADER_ERRORS=$((SHADER_ERRORS + 1))
+            fi
+          fi
+        done
+        
+        if [ $SHADER_ERRORS -gt 0 ]; then
+          echo "❌ $SHADER_ERRORS shader(s) failed to compile"
+          exit 1
+        else
+          echo "✅ All Metal shader files compiled successfully"
+        fi
+    
+    - name: Test shader playground executable
+      run: |
+        echo "Testing compiled MetalShaderStudio executable..."
+        if [ -x "./MetalShaderStudio" ]; then
+          echo "✅ MetalShaderStudio executable created successfully"
+          file ./MetalShaderStudio
+        else
+          echo "❌ MetalShaderStudio executable not found or not executable"
+          exit 1
+        fi
+    
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: metal-shader-studio-build
+        path: |
+          MetalShaderStudio
+          **/*.air
+        retention-days: 7
+    
+    - name: Build summary
+      run: |
+        echo "## 🏗️ Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Swift compilation successful" >> $GITHUB_STEP_SUMMARY  
+        echo "- ✅ Metal shaders validated" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ MetalShaderStudio executable created" >> $GITHUB_STEP_SUMMARY
+        echo "- 📦 Build artifacts uploaded" >> $GITHUB_STEP_SUMMARY

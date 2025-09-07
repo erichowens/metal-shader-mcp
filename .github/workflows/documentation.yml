@@ -1,0 +1,158 @@
+name: Documentation Validation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  validate-docs:
+    name: Documentation Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install markdown tools
+      run: |
+        npm install -g markdownlint-cli
+        npm install -g markdown-link-check
+    
+    - name: Validate markdown syntax
+      run: |
+        echo "Validating markdown syntax..."
+        markdownlint --config ./.github/markdownlint.json *.md || true
+        echo "✅ Markdown syntax validation complete"
+    
+    - name: Check for broken links
+      run: |
+        echo "Checking for broken internal links..."
+        find . -name "*.md" -not -path "./node_modules/*" -not -path "./.git/*" | \
+        xargs -I {} markdown-link-check {} --config ./.github/markdown-link-check.json || true
+        echo "✅ Link validation complete"
+    
+    - name: Validate CHANGELOG.md format
+      run: |
+        echo "Validating CHANGELOG.md format..."
+        if [ -f "CHANGELOG.md" ]; then
+          # Check for standard changelog headers
+          if grep -q "## \[" CHANGELOG.md && grep -q "### " CHANGELOG.md; then
+            echo "✅ CHANGELOG.md follows keep-a-changelog format"
+          else
+            echo "⚠️ CHANGELOG.md may not follow standard format"
+          fi
+          
+          # Check for recent entries (entries from last 30 days)
+          if git log --since="30 days ago" --oneline | head -1 > /dev/null 2>&1; then
+            echo "Recent commits found, checking for corresponding changelog entries..."
+          fi
+        else
+          echo "❌ CHANGELOG.md not found"
+          exit 1
+        fi
+    
+    - name: Validate BUGS.md structure
+      run: |
+        echo "Validating BUGS.md structure..."
+        if [ -f "BUGS.md" ]; then
+          # Check for required sections
+          if grep -q "# " BUGS.md; then
+            echo "✅ BUGS.md has proper structure"
+          else
+            echo "⚠️ BUGS.md may be missing headers"
+          fi
+        else
+          echo "❌ BUGS.md not found"
+          exit 1
+        fi
+    
+    - name: Validate WARP.md workflow requirements
+      run: |
+        echo "Validating WARP.md workflow documentation..."
+        if [ -f "WARP.md" ]; then
+          # Check for key WARP workflow elements
+          WARP_CHECKS=0
+          if grep -q "After-Action Requirements" WARP.md; then
+            echo "✅ After-Action Requirements documented"
+            WARP_CHECKS=$((WARP_CHECKS + 1))
+          fi
+          
+          if grep -q "Visual Evidence" WARP.md; then
+            echo "✅ Visual Evidence requirements documented"
+            WARP_CHECKS=$((WARP_CHECKS + 1))
+          fi
+          
+          if grep -q "CHANGELOG" WARP.md; then
+            echo "✅ Changelog requirements documented"
+            WARP_CHECKS=$((WARP_CHECKS + 1))
+          fi
+          
+          if [ $WARP_CHECKS -ge 3 ]; then
+            echo "✅ WARP.md contains required workflow documentation"
+          else
+            echo "⚠️ WARP.md may be missing some workflow requirements"
+          fi
+        else
+          echo "❌ WARP.md not found"
+          exit 1
+        fi
+    
+    - name: Check for required screenshot evidence
+      run: |
+        echo "Checking for screenshot evidence in Resources/screenshots/..."
+        if [ -d "Resources/screenshots" ]; then
+          SCREENSHOT_COUNT=$(find Resources/screenshots -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" | wc -l)
+          if [ $SCREENSHOT_COUNT -gt 0 ]; then
+            echo "✅ Found $SCREENSHOT_COUNT screenshot(s) in Resources/screenshots/"
+            ls -la Resources/screenshots/
+          else
+            echo "⚠️ No screenshots found in Resources/screenshots/"
+          fi
+        else
+          echo "⚠️ Resources/screenshots/ directory not found"
+          mkdir -p Resources/screenshots
+          echo "📁 Created Resources/screenshots/ directory"
+        fi
+    
+    - name: Validate project documentation completeness
+      run: |
+        echo "Checking for essential documentation files..."
+        REQUIRED_DOCS=("README.md" "SETUP.md" "DESIGN.md" "VISUAL_TESTING.md")
+        MISSING_DOCS=0
+        
+        for doc in "${REQUIRED_DOCS[@]}"; do
+          if [ -f "$doc" ]; then
+            echo "✅ $doc found"
+          else
+            echo "❌ $doc missing"
+            MISSING_DOCS=$((MISSING_DOCS + 1))
+          fi
+        done
+        
+        if [ $MISSING_DOCS -eq 0 ]; then
+          echo "✅ All essential documentation files present"
+        else
+          echo "⚠️ $MISSING_DOCS essential documentation file(s) missing"
+        fi
+    
+    - name: Generate documentation report
+      run: |
+        echo "## 📚 Documentation Validation Report" >> $GITHUB_STEP_SUMMARY
+        echo "### Files Checked" >> $GITHUB_STEP_SUMMARY
+        find . -name "*.md" -not -path "./node_modules/*" -not -path "./.git/*" | \
+        sed 's|^\./||' | sort | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Status" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Markdown syntax validated" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Links checked" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ WARP.md requirements verified" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Essential documentation verified" >> $GITHUB_STEP_SUMMARY

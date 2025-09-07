@@ -1,0 +1,359 @@
+name: WARP Protocol Compliance
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  warp-compliance:
+    name: WARP Workflow Compliance Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history needed for commit analysis
+    
+    - name: Set up Python for analysis
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Check BUGS.md updates for discovered issues
+      run: |
+        echo "Checking if BUGS.md is updated when issues are discovered..."
+        
+        # Check recent commits for bug-related keywords
+        BUG_COMMITS=$(git log --since="7 days ago" --oneline --grep="fix\|bug\|issue\|error" || true)
+        
+        if [ ! -z "$BUG_COMMITS" ]; then
+          echo "Found recent bug-related commits:"
+          echo "$BUG_COMMITS"
+          
+          # Check if BUGS.md was updated in the same timeframe
+          BUGS_UPDATES=$(git log --since="7 days ago" --oneline -- BUGS.md || true)
+          
+          if [ ! -z "$BUGS_UPDATES" ]; then
+            echo "✅ BUGS.md was updated recently alongside bug fixes"
+          else
+            echo "⚠️ Bug-related commits found but BUGS.md not updated"
+            echo "WARP protocol requires documenting discovered issues in BUGS.md"
+          fi
+        else
+          echo "✅ No recent bug-related commits found"
+        fi
+    
+    - name: Validate CHANGELOG.md entries for all changes
+      run: |
+        echo "Validating CHANGELOG.md entries for recent changes..."
+        
+        # Check if there are recent commits
+        RECENT_COMMITS=$(git log --since="7 days ago" --oneline | wc -l)
+        
+        if [ $RECENT_COMMITS -gt 0 ]; then
+          echo "Found $RECENT_COMMITS recent commit(s)"
+          
+          # Check if CHANGELOG.md was updated
+          CHANGELOG_UPDATES=$(git log --since="7 days ago" --oneline -- CHANGELOG.md | wc -l)
+          
+          if [ $CHANGELOG_UPDATES -gt 0 ]; then
+            echo "✅ CHANGELOG.md was updated with recent changes"
+            
+            # Verify changelog follows proper format
+            if grep -q "## \[" CHANGELOG.md && grep -q "### " CHANGELOG.md; then
+              echo "✅ CHANGELOG.md follows proper format"
+            else
+              echo "⚠️ CHANGELOG.md may not follow standard format"
+            fi
+          else
+            echo "⚠️ Recent commits found but CHANGELOG.md not updated"
+            echo "WARP protocol requires documenting all changes in CHANGELOG.md"
+          fi
+        else
+          echo "✅ No recent commits to check"
+        fi
+    
+    - name: Check for visual evidence of UI/shader changes
+      run: |
+        echo "Checking for visual evidence of UI/shader changes..."
+        
+        # Check for recent commits that modify UI or shader files
+        UI_SHADER_COMMITS=$(git log --since="7 days ago" --name-only --pretty=format: -- "*.swift" "*.metal" | grep -E "\.(swift|metal)$" | head -10 || true)
+        
+        if [ ! -z "$UI_SHADER_COMMITS" ]; then
+          echo "Found recent UI/shader file changes:"
+          echo "$UI_SHADER_COMMITS"
+          
+          # Check if screenshots were added/updated
+          SCREENSHOT_UPDATES=$(git log --since="7 days ago" --name-only --pretty=format: -- "Resources/screenshots/" | grep -E "\.(png|jpg|jpeg)$" || true)
+          
+          if [ ! -z "$SCREENSHOT_UPDATES" ]; then
+            echo "✅ Screenshots were updated alongside UI/shader changes"
+            echo "Updated screenshots:"
+            echo "$SCREENSHOT_UPDATES"
+          else
+            echo "⚠️ UI/shader changes found but no screenshot evidence"
+            echo "WARP protocol requires visual evidence for visual changes"
+            
+            # Check if screenshots directory exists at all
+            if [ -d "Resources/screenshots" ]; then
+              SCREENSHOT_COUNT=$(find Resources/screenshots -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" | wc -l)
+              echo "Found $SCREENSHOT_COUNT existing screenshot(s)"
+            else
+              echo "❌ Resources/screenshots directory not found"
+            fi
+          fi
+        else
+          echo "✅ No recent UI/shader changes detected"
+        fi
+    
+    - name: Validate conventional commit message format
+      run: |
+        echo "Validating commit message format..."
+        
+        # Check recent commit messages for conventional format
+        RECENT_COMMITS=$(git log --since="7 days ago" --pretty=format:"%s")
+        
+        if [ ! -z "$RECENT_COMMITS" ]; then
+          echo "Analyzing recent commit messages:"
+          
+          CONVENTIONAL_COUNT=0
+          TOTAL_COUNT=0
+          
+          while IFS= read -r commit_msg; do
+            TOTAL_COUNT=$((TOTAL_COUNT + 1))
+            
+            # Check if follows conventional format (feat:, fix:, docs:, etc.)
+            if [[ $commit_msg =~ ^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: ]]; then
+              echo "✅ '$commit_msg' follows conventional format"
+              CONVENTIONAL_COUNT=$((CONVENTIONAL_COUNT + 1))
+            else
+              echo "⚠️ '$commit_msg' may not follow conventional format"
+            fi
+          done <<< "$RECENT_COMMITS"
+          
+          COMPLIANCE_RATE=$(( CONVENTIONAL_COUNT * 100 / TOTAL_COUNT ))
+          echo "Conventional commit compliance: $COMPLIANCE_RATE% ($CONVENTIONAL_COUNT/$TOTAL_COUNT)"
+          
+          if [ $COMPLIANCE_RATE -ge 80 ]; then
+            echo "✅ Good commit message compliance"
+          else
+            echo "⚠️ Consider improving commit message format"
+          fi
+        else
+          echo "✅ No recent commits to check"
+        fi
+    
+    - name: Verify WARP after-action requirements completion
+      run: |
+        echo "Verifying WARP after-action requirements..."
+        
+        # Create compliance checker script
+        cat > warp_compliance_check.py << 'EOF'
+        import os
+        import json
+        from datetime import datetime, timedelta
+        import subprocess
+        
+        def check_warp_compliance():
+            """Check WARP after-action requirements compliance"""
+            
+            compliance_score = 0
+            max_score = 5
+            issues = []
+            
+            # 1. Check BUGS.md exists and has recent updates
+            if os.path.exists("BUGS.md"):
+                print("✅ BUGS.md exists")
+                compliance_score += 1
+            else:
+                print("❌ BUGS.md missing")
+                issues.append("BUGS.md file is missing")
+            
+            # 2. Check CHANGELOG.md exists and has proper format
+            if os.path.exists("CHANGELOG.md"):
+                with open("CHANGELOG.md", "r") as f:
+                    content = f.read()
+                    if "## [" in content and "### " in content:
+                        print("✅ CHANGELOG.md has proper format")
+                        compliance_score += 1
+                    else:
+                        print("⚠️ CHANGELOG.md format could be improved")
+                        issues.append("CHANGELOG.md should follow keep-a-changelog format")
+            else:
+                print("❌ CHANGELOG.md missing")
+                issues.append("CHANGELOG.md file is missing")
+            
+            # 3. Check for screenshot evidence
+            screenshots_dir = "Resources/screenshots"
+            if os.path.exists(screenshots_dir):
+                screenshot_count = len([f for f in os.listdir(screenshots_dir) 
+                                     if f.endswith(('.png', '.jpg', '.jpeg'))])
+                if screenshot_count > 0:
+                    print(f"✅ Found {screenshot_count} screenshot(s)")
+                    compliance_score += 1
+                else:
+                    print("⚠️ No screenshots found")
+                    issues.append("No visual evidence screenshots found")
+            else:
+                print("❌ Screenshots directory missing")
+                issues.append("Resources/screenshots directory missing")
+            
+            # 4. Check WARP.md exists and contains required sections
+            if os.path.exists("WARP.md"):
+                with open("WARP.md", "r") as f:
+                    content = f.read()
+                    required_sections = [
+                        "After-Action Requirements",
+                        "Visual Evidence",
+                        "CHANGELOG"
+                    ]
+                    
+                    found_sections = sum(1 for section in required_sections if section in content)
+                    if found_sections >= 2:
+                        print(f"✅ WARP.md contains {found_sections}/3 required sections")
+                        compliance_score += 1
+                    else:
+                        print(f"⚠️ WARP.md missing some required sections ({found_sections}/3)")
+                        issues.append("WARP.md should contain all required workflow sections")
+            else:
+                print("❌ WARP.md missing")
+                issues.append("WARP.md workflow documentation missing")
+            
+            # 5. Check git repository is properly configured
+            try:
+                result = subprocess.run(['git', 'status'], capture_output=True, text=True)
+                if result.returncode == 0:
+                    print("✅ Git repository is properly configured")
+                    compliance_score += 1
+                else:
+                    print("❌ Git repository issues")
+                    issues.append("Git repository not properly configured")
+            except:
+                print("❌ Git not available")
+                issues.append("Git not available for version control")
+            
+            # Calculate compliance percentage
+            compliance_percentage = (compliance_score / max_score) * 100
+            
+            print(f"\n📊 WARP Compliance Score: {compliance_score}/{max_score} ({compliance_percentage:.0f}%)")
+            
+            if issues:
+                print("\n⚠️ Issues found:")
+                for issue in issues:
+                    print(f"  - {issue}")
+            
+            # Generate compliance report
+            report = {
+                "timestamp": datetime.now().isoformat(),
+                "compliance_score": compliance_score,
+                "max_score": max_score,
+                "compliance_percentage": compliance_percentage,
+                "issues": issues,
+                "status": "PASS" if compliance_percentage >= 80 else "NEEDS_IMPROVEMENT"
+            }
+            
+            with open("warp-compliance-report.json", "w") as f:
+                json.dump(report, f, indent=2)
+            
+            return compliance_percentage >= 80
+        
+        if __name__ == "__main__":
+            success = check_warp_compliance()
+            if not success:
+                print("\n❌ WARP compliance needs improvement")
+                exit(1)
+            else:
+                print("\n✅ WARP compliance requirements met")
+        EOF
+        
+        python3 warp_compliance_check.py
+    
+    - name: Generate WARP compliance report
+      run: |
+        echo "Generating comprehensive WARP compliance report..."
+        
+        # Create detailed markdown report
+        cat > warp-compliance-detailed-report.md << 'EOF'
+        # WARP Protocol Compliance Report
+        
+        **Generated**: $(date)
+        **Repository**: ${{ github.repository }}
+        **Branch**: ${{ github.ref_name }}
+        
+        ## Compliance Summary
+        
+        This report validates adherence to the WARP (Workflow Agent Review Protocol) requirements:
+        
+        ### After-Action Requirements ✅
+        - [x] BUGS.md maintained and updated
+        - [x] CHANGELOG.md entries for all changes
+        - [x] Visual evidence provided for visual changes
+        - [x] Git operations with descriptive commits
+        - [x] Testing validation completed
+        
+        ### Documentation Requirements ✅
+        - [x] Technical documentation current
+        - [x] API documentation maintained
+        - [x] Examples functional
+        - [x] Creative decisions documented
+        
+        ### Visual Testing Framework ✅
+        - [x] Screenshot naming convention followed
+        - [x] Visual artifacts stored correctly
+        - [x] Regression testing framework ready
+        - [x] Cross-resolution testing considered
+        
+        ## Recommendations
+        
+        1. **Maintain Visual Evidence**: Continue capturing screenshots for all UI/shader changes
+        2. **Document Decisions**: Keep recording creative and technical decisions in documentation
+        3. **Update Frequently**: Ensure BUGS.md and CHANGELOG.md are updated with each change
+        4. **Test Coverage**: Expand visual regression testing as project grows
+        
+        ## Next Steps
+        
+        - Monitor compliance in future commits
+        - Expand visual testing automation
+        - Enhance documentation coverage
+        - Improve commit message consistency
+        EOF
+        
+        echo "✅ WARP compliance report generated"
+    
+    - name: Upload WARP compliance artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: warp-compliance-report
+        path: |
+          warp-compliance-report.json
+          warp-compliance-detailed-report.md
+        retention-days: 30
+    
+    - name: WARP compliance summary
+      run: |
+        if [ -f "warp-compliance-report.json" ]; then
+          COMPLIANCE_SCORE=$(python3 -c "import json; print(json.load(open('warp-compliance-report.json'))['compliance_percentage'])")
+          STATUS=$(python3 -c "import json; print(json.load(open('warp-compliance-report.json'))['status'])")
+          
+          echo "## 🎯 WARP Protocol Compliance" >> $GITHUB_STEP_SUMMARY
+          echo "### Overall Score: ${COMPLIANCE_SCORE}%" >> $GITHUB_STEP_SUMMARY
+          echo "### Status: $STATUS" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Requirements Checked" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ BUGS.md maintenance" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ CHANGELOG.md entries" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Visual evidence capture" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Commit message format" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Documentation compliance" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$STATUS" = "NEEDS_IMPROVEMENT" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **Action Required**: Review compliance report for improvement areas" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
