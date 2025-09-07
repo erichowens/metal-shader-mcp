@@ -1,0 +1,14 @@
+{
+  "epics": [
+    { "title": "REPL Core (MVP) MCP tools", "number": 1 },
+    { "title": "Environment & Interaction controls", "number": 2 },
+    { "title": "Performance & Regression", "number": 3 },
+    { "title": "Exploration & Comparison", "number": 4 },
+    { "title": "Debug & Inspection", "number": 5 },
+    { "title": "Library & Assets", "number": 6 },
+    { "title": "State & Workflow (Sessions, Snapshots, History)", "number": 7 },
+    { "title": "SwiftUI App UI/UX + Educational Library", "number": 8 },
+    { "title": "Nice-to-haves (post-MVP)", "number": 9 }
+  ]
+}
+

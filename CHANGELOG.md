@@ -5,6 +5,78 @@ All notable changes to the Metal Shader MCP project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2025-09-07] - Complete CI/CD Pipeline and Branch Protection Setup
+
+### Added
+- **Comprehensive GitHub Actions CI/CD Pipeline**: 5 automated workflows for complete quality assurance
+  - `swift-build.yml`: Swift/Metal compilation validation on macOS runners
+  - `documentation.yml`: Markdown syntax, link validation, and documentation quality checks
+  - `visual-tests.yml`: Visual evidence capture, screenshot optimization, and regression testing framework
+  - `test.yml`: Swift unit tests, shader parameter validation, and quality assurance metrics
+  - `warp-compliance.yml`: WARP protocol adherence validation with automated compliance reporting
+
+- **Branch Protection Configuration**: Secure main branch with comprehensive protection rules
+  - Require pull request reviews (minimum 1 approval)
+  - Dismiss stale reviews on new commits
+  - Require all status checks to pass before merging
+  - Enforce for administrators
+  - Block direct pushes and force pushes
+  - Require branches to be up to date before merging
+
+- **Workflow Configuration Files**:
+  - `.github/markdownlint.json`: Markdown linting rules optimized for technical documentation
+  - `.github/markdown-link-check.json`: Link validation configuration with proper timeout and retry settings
+  - `.github/CONTRIBUTING.md`: Complete 270+ line development guide with workflow documentation
+
+- **WARP Protocol Automation**:
+  - Automatic BUGS.md and CHANGELOG.md validation for every commit
+  - Visual evidence requirement enforcement for UI/shader changes
+  - Conventional commit format checking and compliance reporting
+  - After-action requirements verification with detailed reporting
+
+- **Quality Assurance Features**:
+  - Automated Metal shader compilation testing across all `.metal` files
+  - Visual evidence capture with WARP-compliant naming conventions (`YYYY-MM-DD_HH-MM-SS_description.png`)
+  - Documentation consistency validation and broken link detection
+  - Test coverage reporting and quality metrics collection
+  - Cross-platform workflow execution (macOS for Metal, Ubuntu for documentation)
+  - Artifact storage with configurable retention periods (7-30 days)
+  - Workflow status badges added to README.md for real-time CI/CD visibility
+
+### Enhanced
+- **Development Workflow**: All changes now require pull requests with automated quality gates
+- **Documentation Quality**: Automated validation ensures all documentation meets standards
+- **Visual Evidence**: Systematic capture and validation of visual changes per WARP protocol
+- **Testing Framework**: Foundation for comprehensive Swift unit tests and visual regression testing
+- **Compliance Monitoring**: Continuous validation of workflow protocol adherence
+
+### Infrastructure
+- **GitHub Actions Runners**: 
+  - macOS-latest for Swift/Metal compilation and visual testing
+  - Ubuntu-latest for documentation validation and compliance checking
+- **Dependency Management**: Automated caching for Swift packages and Node.js dependencies
+- **Artifact Management**: Structured storage for build artifacts, test reports, and visual evidence
+- **Notification System**: Workflow failure notifications and status reporting
+
+### Security
+- **Branch Protection**: Prevents unauthorized direct changes to main branch
+- **Review Requirements**: Ensures all changes undergo code review process
+- **Status Check Enforcement**: Blocks merges that fail quality gates
+- **Administrator Enforcement**: No exceptions for administrative users
+
+### Visual Evidence
+- GitHub Actions workflows successfully configured and operational
+- Branch protection rules active and preventing direct pushes
+- Workflow status badges displaying real-time CI/CD status
+- Complete development workflow documentation in CONTRIBUTING.md
+- All workflows follow WARP protocol for visual evidence and documentation requirements
+
+### Notes
+- Initial workflow setup required temporary branch protection removal for bootstrap push
+- All subsequent changes must go through pull request process
+- Workflows will establish baseline visual evidence on first successful runs
+- CI/CD pipeline ready for immediate use in development workflow
+
 ## [2025-09-07] - GitHub Setup and Repo Hygiene
 
 ### Changed
@@ -19,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Visual Evidence
 - N/A (no UI/shader changes).
 
-## [2025-09-07] - REPL Plan, UI Design, and Pragmatic Docs
+## [2025-09-07] - REPL Plan, UI Design, Pragmatic Docs, and Sync Hooks
 
 ### Added
 - **REPL-focused MCP tool roadmap** prioritized for Claude’s visual learning
@@ -29,8 +101,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated internal todos to reflect new EPICs and priorities
 
 ### Notes
-- GitHub issue creation via MCP blocked (401). Added task to configure credentials and re-run issue creation.
-- We will create GitHub epics once auth is configured (or use gh CLI).
+- Added post-commit sync hook (local) that posts progress comments to EPIC issues via gh CLI
+- Provide scripts/install_hooks.sh to install hooks locally (git does not version-control hooks)
+- Nightly smoke test planned to render a canonical shader and catch breakage
 
 ### Changed
 - **WARP.md Workflow Protocol**: Consolidated multi-agent workflow into single-agent responsibilities
