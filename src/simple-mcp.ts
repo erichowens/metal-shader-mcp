@@ -661,6 +661,31 @@ fragment float4 fragmentShader(float4 position [[position]],
         };
       }
 
+      case 'save_snapshot': {
+        // Bridge to app via command file
+        try {
+          const description = (args && (args as any).description) || 'snapshot';
+          const fs = await import('fs');
+          await fs.promises.mkdir('Resources/communication', { recursive: true });
+          await fs.promises.writeFile('Resources/communication/commands.json', JSON.stringify({ action: 'save_snapshot', description, timestamp: Date.now() }, null, 2));
+          return { content: [{ type: 'text', text: '🖼️ Snapshot requested. App will capture code+image+meta.' }] };
+        } catch (e: any) {
+          return { content: [{ type: 'text', text: `❌ Failed to request snapshot: ${e.message}` }], isError: true };
+        }
+      }
+
+      // Session & snapshots
+      {
+        name: 'save_snapshot',
+        description: 'Ask the app to capture a development snapshot (code + image + meta)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            description: { type: 'string' }
+          }
+        }
+      },
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }

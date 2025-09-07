@@ -2,6 +2,7 @@ import SwiftUI
 import MetalKit
 import Metal
 import UniformTypeIdentifiers
+import CryptoKit
 
 @main
 struct ShaderPlaygroundApp: App {
@@ -15,6 +16,7 @@ struct ShaderPlaygroundApp: App {
 
 struct ContentView: View {
     @StateObject private var renderer = MetalShaderRenderer()
+    @StateObject private var session = SessionRecorder()
     @State private var shaderCode = defaultShader
     
     let communicationDir = "Resources/communication"
@@ -108,12 +110,19 @@ struct ContentView: View {
             
             if let action = command?["action"] as? String {
                 switch action {
-                case "set_shader":
+case "set_shader":
                     if let newCode = command?["shader_code"] as? String {
+                        let desc = command?["description"] as? String
                         DispatchQueue.main.async {
                             self.shaderCode = newCode
                             self.renderer.updateShader(newCode)
+                            self.session.recordSnapshot(code: newCode, renderer: self.renderer, label: desc)
                         }
+                    }
+case "save_snapshot":
+                    let desc = command?["description"] as? String ?? "snapshot"
+                    DispatchQueue.main.async {
+                        self.session.recordSnapshot(code: self.shaderCode, renderer: self.renderer, label: desc)
                     }
                 case "export_frame":
                     let description = command?["description"] as? String ?? "mcp_export"
