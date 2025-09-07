@@ -5,6 +5,20 @@ All notable changes to the Metal Shader MCP project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2025-09-07] - GitHub Setup and Repo Hygiene
+
+### Changed
+- Verified Git remote: origin -> https://github.com/erichowens/metal-shader-mcp.git
+- Pushed pending local commits on main to origin (was ahead by +3)
+- Updated .gitignore to exclude local app binary (MetalShaderStudio), macOS app bundles (*.app), and secret-laden config (warp_drive_mcp_import.json)
+
+### Security
+- Ensured secrets are not tracked in Git. Store keys in .env or your shell env. See .env.example for sources and variable names.
+- warp_drive_mcp_import.json kept untracked; contains local paths and env placeholders.
+
+### Visual Evidence
+- N/A (no UI/shader changes).
+
 ## [2025-09-07] - REPL Plan, UI Design, and Pragmatic Docs
 
 ### Added

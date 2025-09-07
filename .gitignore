@@ -64,6 +64,7 @@ old-versions/
 # Compiled Swift executables
 MetalStudioMCPEnhanced
 MetalStudio*
+MetalShaderStudio
 !MetalStudioMCP*.swift
 *.dSYM/
 # Swift build artifacts
@@ -72,3 +73,7 @@ MetalStudio*
 *.xcodeproj
 DerivedData/
 *.dSYM/
+# App bundles and binaries
+*.app
+# Local MCP/agent config with secrets (do not commit)
+warp_drive_mcp_import.json
