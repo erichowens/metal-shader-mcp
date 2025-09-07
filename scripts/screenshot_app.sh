@@ -15,11 +15,13 @@ while [[ $# -gt 0 ]]; do
     --expect-tab)
       EXPECT_TAB="$2"; shift 2;;
     *)
-      if [[ -z "$DESC" ]]; then DESC="$1"; else DESC+="_$1"; fi; shift;;
+      if [[ -z "$DESC" ]]; then DESC="$1"; else DESC="$DESC $1"; fi; shift;;
   esac
 done
 
 if [[ -z "$DESC" ]]; then DESC="app"; fi
+# Replace spaces with underscores for filename
+DESC="${DESC// /_}"
 
 # Create directory
 mkdir -p "$SCREENSHOT_DIR"
