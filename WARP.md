@@ -33,42 +33,38 @@
 - For visual work: implement or update visual regression tests
 - Document test coverage changes
 
-## 🤖 Agent Responsibilities
+## 🤖 Main Agent Responsibilities
 
-### Code Reviewer Agent
+As the primary development agent, you are responsible for all aspects of the project workflow. These responsibilities are organized by category but should be executed as a cohesive development process:
+
+### Code Review & Quality
 - Review all code changes before commit
 - Ensure adherence to Metal and Swift best practices
 - Verify shader optimization and performance
 - Check parameter boundary conditions
-
-### Documentarian Agent
-- Maintain consistency across all .md files
-- Update technical documentation as code evolves
-- Keep API documentation current
-- Ensure examples remain functional
-
-### Task Master Agent
-- Track completion of after-action requirements
-- Ensure no steps are skipped in the workflow
-- Coordinate between different agents
-- Maintain project momentum and focus
-
-### Quality Assessment Agent
 - Provide honest assessment of changes
 - Identify potential issues before they become bugs
 - Validate visual output quality
 - Ensure user experience improvements
 
-### Domain-Specific Agents
-For this Metal Shader project:
+### Documentation Management
+- Maintain consistency across all .md files
+- Update technical documentation as code evolves
+- Keep API documentation current
+- Ensure examples remain functional
+- Document creative decisions and their rationale
 
-#### **Shader Artist Agent**
+### Task & Workflow Management
+- Track completion of after-action requirements
+- Ensure no steps are skipped in the workflow
+- Maintain project momentum and focus
+- Prioritize tasks based on dependencies and importance
+- Create and manage todo lists when tasks require 3+ steps
+
+### Metal Shader Specific
 - Evaluate aesthetic quality of shader output
 - Suggest artistic improvements
 - Maintain visual consistency across shaders
-- Document creative decisions and their rationale
-
-#### **Metal Performance Agent**
 - Monitor shader compilation times
 - Profile GPU usage and memory consumption
 - Identify optimization opportunities
@@ -124,16 +120,16 @@ Resources/screenshots/2024-09-06_09-16-45_ui_parameter_panel_expanded.png
 - Cross-platform rendering verified
 
 ### Workflow Efficiency  
-- After-action workflow completed in < 2 minutes
+- After-action workflow completed in reasonable time (5-10 minutes for complex changes)
 - No workflow steps skipped or forgotten
-- Agents coordinate without duplication of effort
+- Tasks prioritized and executed systematically
 - Continuous improvement in process efficiency
 
 ## 🛠 Tools and Commands
 
 ### Screenshot Capture (macOS)
 ```bash
-# Capture MetalShaderStudio window (bulletproof)
+# Capture Metal Shader app window
 ./scripts/screenshot_app.sh "description"
 
 # Manual capture selection
@@ -141,6 +137,9 @@ screencapture -s ~/path/to/screenshot.png
 
 # Debug window issues
 python3 scripts/debug_window.py
+
+# Find window ID for debugging
+python3 scripts/find_window_id.py
 ```
 
 ### Git Workflow
@@ -159,6 +158,16 @@ git push origin feature/plasma-enhancements
 
 ### Test Execution
 ```bash
+# Compile and run the Metal Shader app
+swiftc -o MetalShaderStudio ShaderPlayground.swift \
+  -framework SwiftUI \
+  -framework MetalKit \
+  -framework AppKit \
+  -framework UniformTypeIdentifiers \
+  -parse-as-library
+
+./MetalShaderStudio &
+
 # Capture screenshots for visual testing
 ./scripts/screenshot_app.sh "test_description"
 
@@ -186,4 +195,10 @@ python3 scripts/find_window_id.py
 
 ---
 
-*This workflow ensures that every action builds toward a more robust, well-documented, and visually stunning shader development environment. The discipline of visual evidence and systematic documentation transforms development from ad-hoc exploration into purposeful artistic and technical progress.*
+*This workflow ensures that every action builds toward a more robust, well-documented, and visually stunning shader development environment. The discipline of visual evidence and systematic documentation transforms development from ad-hoc exploration into purposeful artistic and technical progress. While originally designed for multiple agents, this workflow has been adapted for efficient execution by a single primary agent handling all responsibilities.*
+
+---
+
+**Last Updated**: 2025-09-07  
+**Project Structure**: ShaderPlayground.swift as main application file  
+**Key Changes**: Consolidated multi-agent workflow into single agent responsibilities

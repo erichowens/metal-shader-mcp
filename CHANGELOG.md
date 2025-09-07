@@ -5,7 +5,7 @@ All notable changes to the Metal Shader MCP project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2025-09-07] - Real MCP Tool Implementation
+## [2025-09-07] - Real MCP Tool Implementation & Workflow Streamlining
 
 ### Added
 - **get_compilation_errors** MCP tool - Reports shader compilation errors with line numbers and helpful suggestions
@@ -19,9 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Error messages now include line numbers and context-specific suggestions
 - Uniforms can now be overridden during live preview and frame export
 
+### Changed
+- **WARP.md Workflow Protocol**: Consolidated multi-agent workflow into single-agent responsibilities
+- Updated compilation commands to reflect ShaderPlayground.swift as main application file
+- Revised workflow timing expectations to be realistic for single-agent execution (5-10 minutes for complex changes)
+- Reorganized agent responsibilities into cohesive categories: Code Review & Quality, Documentation, Task Management, Metal Shader Specific
+
 ### Removed
 - Deleted agent-orchestrator.ts - unnecessary complexity, Warp already provides orchestration
 - Removed fake "agent" abstractions that provided no real value
+- Eliminated references to multiple agents in WARP.md workflow documentation
 
 ## [Unreleased]
 
