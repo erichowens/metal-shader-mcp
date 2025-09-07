@@ -1,7 +1,9 @@
 import Foundation
 import CryptoKit
+import Combine
+import SwiftUI
 
-final class SessionRecorder {
+final class SessionRecorder: ObservableObject {
     private let baseDir = "Resources/sessions"
     private(set) var sessionId: String
     private let sessionDir: String

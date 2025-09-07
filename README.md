@@ -1,5 +1,11 @@
 # Metal Shader MCP - Claude's Shader Development Playground
 
+[![Swift/Metal Build](https://github.com/erichowens/metal-shader-mcp/actions/workflows/swift-build.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/swift-build.yml)
+[![Tests](https://github.com/erichowens/metal-shader-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/test.yml)
+[![Documentation](https://github.com/erichowens/metal-shader-mcp/actions/workflows/documentation.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/documentation.yml)
+[![Visual Tests](https://github.com/erichowens/metal-shader-mcp/actions/workflows/visual-tests.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/visual-tests.yml)
+[![WARP Compliance](https://github.com/erichowens/metal-shader-mcp/actions/workflows/warp-compliance.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/warp-compliance.yml)
+
 A complete system for AI-assisted Metal shader development where Claude can write, modify, and visually iterate on shaders in real-time.
 
 ## Features

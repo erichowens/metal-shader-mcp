@@ -31,7 +31,8 @@ jobs:
     - name: Compile MetalShaderStudio
       run: |
         echo "Compiling MetalShaderStudio for visual testing..."
-        swiftc -o MetalShaderStudio ShaderPlayground.swift \
+        swiftc -o MetalShaderStudio \
+          ShaderPlayground.swift AppShellView.swift HistoryTabView.swift SessionRecorder.swift \
           -framework SwiftUI \
           -framework MetalKit \
           -framework AppKit \
