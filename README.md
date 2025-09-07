@@ -1,6 +1,6 @@
-# Metal Shader MCP
+# Metal Shader MCP - Claude's Shader Development Playground
 
-Live Metal shader development with real-time preview and hot reload via Model Context Protocol.
+A complete system for AI-assisted Metal shader development where Claude can write, modify, and visually iterate on shaders in real-time.
 
 ## Features
 

@@ -12,7 +12,7 @@ def get_window_id_via_applescript():
     """Alternative method using AppleScript to get process info"""
     script = '''
     tell application "System Events"
-        tell process "MetalShaderStudio"
+        tell process "ShaderPlayground"
             if exists window 1 then
                 return {name of window 1, id of window 1}
             else
@@ -41,7 +41,7 @@ for window in windowList {
     if let ownerName = window["kCGWindowOwnerName"] as? String,
        let windowID = window["kCGWindowNumber"] as? Int {
         
-        if ownerName.contains("MetalShaderStudio") {
+        if ownerName.contains("ShaderPlayground") {
             let windowName = window["kCGWindowName"] as? String ?? ""
             let isOnScreen = window["kCGWindowIsOnscreen"] as? Bool ?? false
             
@@ -59,7 +59,7 @@ for window in windowList {
     if let ownerName = window["kCGWindowOwnerName"] as? String,
        let windowID = window["kCGWindowNumber"] as? Int {
         
-        if ownerName.contains("MetalShaderStudio") {
+        if ownerName.contains("ShaderPlayground") {
             let isOnScreen = window["kCGWindowIsOnscreen"] as? Bool ?? false
             
             if isOnScreen {
@@ -96,7 +96,7 @@ exit(1)
             os.remove(swift_file)
 
 def main():
-    print("🔍 Searching for MetalShaderStudio window ID...")
+    print("🔍 Searching for ShaderPlayground window ID...")
     
     # Method 1: Try Swift approach (most reliable)
     window_id = get_window_id_via_swift()

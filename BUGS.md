@@ -12,6 +12,8 @@
 ✅ **Library selection doesn't compile** - Added auto-compilation on library load
 ✅ **Compilation targets wrong shader** - compileCurrentShader() was always using first tab, now uses selectedTabIndex
 ✅ **Auto-compile on typing not working** - Added scheduleCompilation() to text change handlers
+✅ **Uniform overrides not applied** - Added loadUniformOverrides() with 300ms polling, mouse/time/resolution overrides work
+✅ **get_compilation_errors MCP tool** - Implemented full error reporting with line numbers and suggestions
 
 ## Known Working Solutions
 1. **Text Editor**: Uses CustomTextView class with proper NSViewRepresentable pattern

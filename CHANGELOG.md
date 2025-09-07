@@ -5,6 +5,24 @@ All notable changes to the Metal Shader MCP project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2025-09-07] - Real MCP Tool Implementation
+
+### Added
+- **get_compilation_errors** MCP tool - Reports shader compilation errors with line numbers and helpful suggestions
+- **set_uniforms** MCP tool - Allows setting shader uniform values via JSON file
+- **list_uniforms** MCP tool - Lists current uniform overrides
+- Uniform override system in ShaderPlayground.swift - Polls uniforms.json and applies overrides to time, resolution, mouse
+- Visual evidence: Resources/screenshots/2025-09-07_08-39-19_uniforms_override_test_export.png
+
+### Fixed
+- Shader compilation error tracking now saves to compilation_errors.json with proper formatting
+- Error messages now include line numbers and context-specific suggestions
+- Uniforms can now be overridden during live preview and frame export
+
+### Removed
+- Deleted agent-orchestrator.ts - unnecessary complexity, Warp already provides orchestration
+- Removed fake "agent" abstractions that provided no real value
+
 ## [Unreleased]
 
 ### Fixed

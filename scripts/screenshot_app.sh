@@ -3,7 +3,7 @@
 # BULLETPROOF MetalShaderStudio Screenshot Script
 # Usage: ./scripts/screenshot_reliable.sh [description]
 
-APP_NAME="MetalShaderStudio"
+APP_NAME="ShaderPlayground"
 SCREENSHOT_DIR="Resources/screenshots"
 TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
 

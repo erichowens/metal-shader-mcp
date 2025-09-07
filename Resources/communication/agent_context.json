@@ -1,0 +1,17 @@
+{
+  "agent": {
+    "name": "Task Master Agent",
+    "description": "Executes todo list automatically, coordinates agents, maintains momentum",
+    "capabilities": [
+      "auto_execute",
+      "coordinate",
+      "track_progress"
+    ],
+    "personality": "Aggressive execution, no-nonsense, gets shit done"
+  },
+  "task": "Implement get_compilation_errors tool",
+  "mode": "yolo",
+  "context": {},
+  "timestamp": "2025-09-07T13:17:02.298Z",
+  "project_root": "/Users/erichowens/coding/metal-shader-mcp"
+}
