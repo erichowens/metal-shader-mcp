@@ -1,20 +1,50 @@
 #!/bin/bash
 
 # BULLETPROOF MetalShaderStudio Screenshot Script
-# Usage: ./scripts/screenshot_reliable.sh [description]
+# Usage: ./scripts/screenshot_app.sh [description] [--expect-tab <repl|library|projects|tools|history>]
 
 APP_NAME="ShaderPlayground"
 SCREENSHOT_DIR="Resources/screenshots"
 TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
+EXPECT_TAB=""
+
+# Parse args (simple)
+DESC=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --expect-tab)
+      EXPECT_TAB="$2"; shift 2;;
+    *)
+      if [[ -z "$DESC" ]]; then DESC="$1"; else DESC+="_$1"; fi; shift;;
+  esac
+done
+
+if [[ -z "$DESC" ]]; then DESC="app"; fi
 
 # Create directory
 mkdir -p "$SCREENSHOT_DIR"
 
-# Generate filename with optional description
-if [ -n "$1" ]; then
-    OUTPUT_FILE="$SCREENSHOT_DIR/${TIMESTAMP}_${1}.png"
-else
-    OUTPUT_FILE="$SCREENSHOT_DIR/${TIMESTAMP}_app.png"
+# Filename
+OUTPUT_FILE="$SCREENSHOT_DIR/${TIMESTAMP}_${DESC}.png"
+
+# Optional: verify expected tab from status.json
+if [[ -n "$EXPECT_TAB" ]]; then
+  echo "🔎 Verifying selected tab = '$EXPECT_TAB'"
+  STATUS_FILE="Resources/communication/status.json"
+  ATTEMPTS=0; MAX_ATTEMPTS=30
+  while [[ $ATTEMPTS -lt $MAX_ATTEMPTS ]]; do
+    if [[ -f "$STATUS_FILE" ]]; then
+      CURRENT=$(jq -r '.current_tab // empty' "$STATUS_FILE" 2>/dev/null || true)
+      if [[ "$CURRENT" == "$EXPECT_TAB" ]]; then
+        echo "✅ current_tab matches ($CURRENT)"; break
+      fi
+    fi
+    ATTEMPTS=$((ATTEMPTS+1)); sleep 0.1
+  done
+  if [[ "$CURRENT" != "$EXPECT_TAB" ]]; then
+    echo "❌ Expected tab '$EXPECT_TAB' but status shows '$CURRENT' or missing" >&2
+    exit 2
+  fi
 fi
 
 echo "📸 Capturing $APP_NAME window using CGWindowID..."

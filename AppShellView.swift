@@ -1,34 +1,63 @@
 import SwiftUI
 
-struct AppShellView: View {
-    @State private var selectedTab: Tab = .repl
+// Shared enum for app tabs
+enum AppTab: String, Hashable, CaseIterable { case repl, library, projects, tools, history }
 
-    enum Tab: Hashable {
-        case repl, library, projects, tools, history
+final class AppState: ObservableObject {
+    @Published var selectedTab: AppTab = .repl
+}
+
+struct AppShellView: View {
+    @EnvironmentObject var appState: AppState
+    let initialTab: AppTab
+
+    init(initialTab: AppTab = .repl) {
+        self.initialTab = initialTab
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $appState.selectedTab) {
             // REPL: Use the existing ContentView to avoid breaking behavior
             ContentView()
                 .tabItem { Label("REPL", systemImage: "sparkles") }
-                .tag(Tab.repl)
+                .tag(AppTab.repl)
 
             LibraryView()
                 .tabItem { Label("Library", systemImage: "books.vertical") }
-                .tag(Tab.library)
+                .tag(AppTab.library)
 
             ProjectsView()
                 .tabItem { Label("Projects", systemImage: "folder") }
-                .tag(Tab.projects)
+                .tag(AppTab.projects)
 
             MCPToolsView()
                 .tabItem { Label("MCP Tools", systemImage: "wrench.and.screwdriver") }
-                .tag(Tab.tools)
+                .tag(AppTab.tools)
 
-            HistoryView()
+            HistoryTabView()
                 .tabItem { Label("History", systemImage: "clock.arrow.circlepath") }
-                .tag(Tab.history)
+                .tag(AppTab.history)
+        }
+        .onAppear {
+            // Set initial tab once at startup
+            if AppTab.allCases.contains(initialTab) {
+                appState.selectedTab = initialTab
+            }
+            writeSelectedTabStatus()
+        }
+        .onChange(of: appState.selectedTab) { _, _ in
+            writeSelectedTabStatus()
+        }
+    }
+
+    private func writeSelectedTabStatus() {
+        let obj: [String: Any] = [
+            "current_tab": appState.selectedTab.rawValue,
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        if let data = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted]) {
+            try? FileManager.default.createDirectory(atPath: "Resources/communication", withIntermediateDirectories: true)
+            try? data.write(to: URL(fileURLWithPath: "Resources/communication/status.json"))
         }
     }
 }
@@ -70,7 +99,7 @@ struct MCPToolsView: View {
     }
 }
 
-struct HistoryView: View {
+struct HistoryPlaceholderView: View {
     var body: some View {
         VStack(spacing: 16) {
             Text("History")

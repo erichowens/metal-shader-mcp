@@ -1,0 +1,23 @@
+name: UI Smoke (tab + status)
+
+on:
+  pull_request:
+    paths:
+      - 'ShaderPlayground.swift'
+      - 'AppShellView.swift'
+      - 'HistoryTabView.swift'
+      - 'SessionRecorder.swift'
+      - 'scripts/screenshot_app.sh'
+      - 'scripts/set_tab.sh'
+      - 'scripts/ci/ui_smoke.sh'
+
+jobs:
+  ui-smoke:
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run UI smoke
+        run: |
+          bash scripts/ci/ui_smoke.sh
