@@ -675,17 +675,6 @@ fragment float4 fragmentShader(float4 position [[position]],
       }
 
       // Session & snapshots
-      {
-        name: 'save_snapshot',
-        description: 'Ask the app to capture a development snapshot (code + image + meta)',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            description: { type: 'string' }
-          }
-        }
-      },
-
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
