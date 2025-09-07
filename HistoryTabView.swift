@@ -360,7 +360,11 @@ struct CompareSheet: View {
             }
             .padding(.horizontal)
             HStack {
-                Button("Close") { NSApp.keyWindow?.endSheet(NSApp.keyWindow!) }
+                Button("Close") {
+                    if let keyWindow = NSApp.keyWindow {
+                        keyWindow.endSheet(keyWindow)
+                    }
+                }
             }
             .padding(.bottom)
         }
