@@ -109,7 +109,9 @@ final class SessionRecorder: ObservableObject {
             defer { try? handle.close() }
             handle.seekToEndOfFile()
             handle.write(data)
-            handle.write("\n".data(using: .utf8)!)
+            if let newlineData = "\n".data(using: .utf8) {
+                handle.write(newlineData)
+            }
         }
     }
 
