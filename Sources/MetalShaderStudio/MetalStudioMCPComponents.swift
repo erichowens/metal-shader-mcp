@@ -66,8 +66,7 @@ struct MetalRenderingView: NSViewRepresentable {
             let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: descriptor)!
             encoder.setRenderPipelineState(pipelineState)
             
-            // Set vertex buffer
-            encoder.setVertexBuffer(parent.workspace.renderer.vertexBuffer, offset: 0, index: 0)
+            // No vertex buffer needed - vertex shader uses [[vertex_id]]
             
             // Calculate animated time
             let currentTime = CACurrentMediaTime()
@@ -176,9 +175,9 @@ struct ShaderEditorView: View {
         VStack(spacing: 0) {
             // Tab bar
             HStack(spacing: 0) {
-                ForEach(workspace.shaderTabs.indices, id: \.self) { index in
+                ForEach(Array(workspace.shaderTabs.enumerated()), id: \.offset) { index, tab in
                     ShaderTabView(
-                        title: workspace.shaderTabs[index].title,
+                        title: tab.title,
                         isSelected: workspace.selectedTabIndex == index
                     ) {
                         workspace.selectedTabIndex = index
@@ -203,12 +202,22 @@ struct ShaderEditorView: View {
             MetalCodeEditor(
                 text: Binding(
                     get: { 
-                        return workspace.shaderTabs[safe: workspace.selectedTabIndex]?.content ?? "" 
+                        // Ensure indices are valid
+                        guard !workspace.shaderTabs.isEmpty,
+                              workspace.selectedTabIndex >= 0,
+                              workspace.selectedTabIndex < workspace.shaderTabs.count else {
+                            return ""
+                        }
+                        return workspace.shaderTabs[workspace.selectedTabIndex].content
                     },
                     set: { newContent in
-                        if workspace.selectedTabIndex < workspace.shaderTabs.count {
-                            workspace.shaderTabs[workspace.selectedTabIndex].content = newContent
+                        // Ensure indices are valid before setting
+                        guard !workspace.shaderTabs.isEmpty,
+                              workspace.selectedTabIndex >= 0,
+                              workspace.selectedTabIndex < workspace.shaderTabs.count else {
+                            return
                         }
+                        workspace.shaderTabs[workspace.selectedTabIndex].content = newContent
                         workspace.markAsModified()
                         // Auto-compile on text change
                         workspace.scheduleCompilation()
@@ -329,12 +338,9 @@ struct ParametersSection: View {
                     
                     Spacer()
                     
-                    Button(action: { workspace.extractParametersFromShader() }) {
-                        Image(systemName: "wand.and.stars")
-                            .font(.system(size: 11))
-                    }
-                    .buttonStyle(.plain)
-                    .help("Extract parameters from shader")
+                    Text("Auto-extracted")
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary.opacity(0.7))
                 }
                 
                 ForEach(workspace.customParameters) { parameter in

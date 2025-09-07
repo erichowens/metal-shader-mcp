@@ -76,7 +76,6 @@ class WorkspaceManager: ObservableObject {
             range: 0...100,
             isBuiltin: true
         )
-        
         resolutionParameter = ShaderParameter(
             id: UUID(),
             name: "resolution",
@@ -133,7 +132,18 @@ class WorkspaceManager: ObservableObject {
     func compileCurrentShader() {
         compilationStatus = .compiling
         
-        guard shaderTabs.indices.contains(selectedTabIndex) else { return }
+        // Safety checks
+        guard !shaderTabs.isEmpty else {
+            compilationStatus = .error
+            addMCPLog(level: "error", message: "No shader tabs available to compile")
+            return
+        }
+        
+        // Ensure selectedTabIndex is valid
+        if selectedTabIndex < 0 || selectedTabIndex >= shaderTabs.count {
+            selectedTabIndex = 0
+        }
+        
         let currentTab = shaderTabs[selectedTabIndex]
         
         // Auto-extract parameters before compilation
@@ -714,13 +724,22 @@ class WorkspaceManager: ObservableObject {
     }
     
     func extractParametersFromShader() {
-        guard let currentTab = shaderTabs.first else { return }
+        
+        // Fix: Use selectedTabIndex instead of first
+        guard shaderTabs.indices.contains(selectedTabIndex) else { 
+            print("❌ No valid current tab for parameter extraction")
+            return 
+        }
+        let currentTab = shaderTabs[selectedTabIndex]
+        print("✅ Extracting parameters from tab: \(currentTab.title)")
         
         // Advanced parameter extraction from Metal shader code
         let shaderCode = currentTab.content
+        print("🔄 Shader code length: \(shaderCode.count)")
         
         // Keep existing custom parameters but update if found in shader
         var foundParams: [String: ShaderParameter] = [:]
+        print("🔄 Created foundParams dictionary")
         
         // Pattern for Metal constant parameters: constant type& name [[buffer(index)]]
         // Also look for simple constant declarations
@@ -733,16 +752,20 @@ class WorkspaceManager: ObservableObject {
             "uniform\\s+(float|vec2|vec3|vec4|int|bool)\\s+(\\w+)\\s*(?:=\\s*([^;]+))?;"
         ]
         
-        for pattern in patterns {
+        for (patternIndex, pattern) in patterns.enumerated() {
+            print("🔄 Processing pattern \(patternIndex + 1)/\(patterns.count)")
             do {
                 let regex = try NSRegularExpression(pattern: pattern, options: [])
                 let matches = regex.matches(in: shaderCode, options: [], 
                                            range: NSRange(location: 0, length: shaderCode.count))
+                print("✅ Found \(matches.count) matches for pattern \(patternIndex + 1)")
                 
-                for match in matches {
+                for (matchIndex, match) in matches.enumerated() {
+                    print("🔄 Processing match \(matchIndex + 1)/\(matches.count) - numberOfRanges: \(match.numberOfRanges)")
                     // Extract type
                     let typeRange = match.range(at: 1)
                     let nameRange = match.range(at: 2)
+                    print("🔄 typeRange: \(typeRange), nameRange: \(nameRange)")
                     
                     if typeRange.location != NSNotFound && nameRange.location != NSNotFound {
                         let typeStr = (shaderCode as NSString).substring(with: typeRange)
@@ -884,34 +907,49 @@ class WorkspaceManager: ObservableObject {
     }
     
     func loadShaderFromLibrary(_ shader: ShaderLibraryItem) {
+        print("🔄 Loading shader: \(shader.name)")
+        print("📊 Current state - shaderTabs.count: \(shaderTabs.count), selectedTabIndex: \(selectedTabIndex)")
+        
         let newTab = ShaderTabModel(
             id: UUID(),
             title: shader.name,
             content: shader.code
         )
+        print("✅ Created new tab model")
         
         if shaderTabs.isEmpty {
+            print("📝 shaderTabs is empty, appending new tab")
             shaderTabs.append(newTab)
             selectedTabIndex = 0
+            print("✅ Appended tab, selectedTabIndex set to 0")
         } else {
-            // Replace current tab instead of always the first
-            if shaderTabs.indices.contains(selectedTabIndex) {
-                shaderTabs[selectedTabIndex] = newTab
-            } else {
-                shaderTabs[0] = newTab
+            print("📝 shaderTabs has \(shaderTabs.count) tabs")
+            // Ensure selectedTabIndex is within bounds
+            if selectedTabIndex < 0 || selectedTabIndex >= shaderTabs.count {
+                print("⚠️ selectedTabIndex \(selectedTabIndex) out of bounds, resetting to 0")
                 selectedTabIndex = 0
             }
+            
+            print("🔄 Replacing tab at index \(selectedTabIndex)")
+            // Replace current tab (guaranteed to be valid now)
+            shaderTabs[selectedTabIndex] = newTab
+            print("✅ Replaced tab successfully")
         }
         
         hasUnsavedChanges = true
+        print("🔄 Set hasUnsavedChanges = true")
         
         // Reset time when loading new shader
         timeParameter.value = .float(0)
+        print("🔄 Reset time parameter")
         
         // Compile and auto-extract parameters
+        print("🔄 About to schedule compilation...")
         scheduleCompilation()
+        print("✅ Compilation scheduled")
         
         addMCPLog(level: "info", message: "Loaded shader: \(shader.name)")
+        print("✅ Finished loading shader: \(shader.name)")
     }
     
     func updateResolution(width: Float, height: Float) {
@@ -1155,8 +1193,18 @@ struct MetalCodeEditor: NSViewRepresentable {
         textView.isAutomaticSpellingCorrectionEnabled = false
         textView.isAutomaticQuoteSubstitutionEnabled = false
         textView.font = NSFont.monospacedSystemFont(ofSize: 13, weight: .medium)
+        
+        // Set initial text content
         textView.string = text
+        
+        // Set delegate AFTER setting text
         textView.delegate = context.coordinator
+        
+        // Ensure text view is properly configured for editing
+        textView.isFieldEditor = false
+        textView.isAutomaticDataDetectionEnabled = false
+        textView.isAutomaticLinkDetectionEnabled = false
+        textView.needsDisplay = true
         
         scrollView.documentView = textView
         
@@ -1167,9 +1215,10 @@ struct MetalCodeEditor: NSViewRepresentable {
         DispatchQueue.main.async {
             context.coordinator.applySyntaxHighlighting(to: textView)
             // Make the text view first responder to ensure it can receive keyboard input
-            if let window = textView.window {
-                window.makeFirstResponder(textView)
-            }
+            textView.window?.makeFirstResponder(textView)
+            // Force display update
+            textView.needsDisplay = true
+            textView.setNeedsDisplay(textView.bounds)
         }
         
         // Store reference for later use
@@ -1181,32 +1230,30 @@ struct MetalCodeEditor: NSViewRepresentable {
     func updateNSView(_ nsView: NSScrollView, context: Context) {
         guard let textView = nsView.documentView as? NSTextView else { return }
         
-        // Only update if text has changed externally (not from user typing)
-        if textView.string != text && !context.coordinator.isUpdatingText {
+        // Prevent infinite loop by checking if we're already updating
+        guard !context.coordinator.isUpdatingText else { return }
+        
+        // Only update if text has actually changed
+        if textView.string != text {
             context.coordinator.isUpdatingText = true
             
-            // Save selection
+            // Save selection and scroll position
             let selectedRange = textView.selectedRange()
+            let visibleRect = textView.visibleRect
             
-            // Update text
+            // Use direct string assignment - this is the correct way
             textView.string = text
             
-            // Restore selection if valid
+            // Restore selection and scroll position
             if selectedRange.location <= text.count {
                 textView.setSelectedRange(selectedRange)
             }
+            textView.scrollToVisible(visibleRect)
             
             // Apply syntax highlighting
             context.coordinator.applySyntaxHighlighting(to: textView)
             
             context.coordinator.isUpdatingText = false
-            
-            // Ensure text view remains first responder
-            DispatchQueue.main.async {
-                if let window = textView.window {
-                    window.makeFirstResponder(textView)
-                }
-            }
         }
     }
     
@@ -1419,15 +1466,10 @@ class MetalRenderer: NSObject, ObservableObject {
         self.device = device
         self.commandQueue = device.makeCommandQueue()
         
-        // Create vertex buffer
-        let vertices: [Float] = [
-            -1.0, -1.0, 0.0, 1.0,
-             1.0, -1.0, 0.0, 1.0,
-            -1.0,  1.0, 0.0, 1.0,
-             1.0,  1.0, 0.0, 1.0,
-        ]
-        
-        vertexBuffer = device.makeBuffer(bytes: vertices, length: vertices.count * MemoryLayout<Float>.size, options: [])
+        // No vertex buffer needed - vertex shader uses [[vertex_id]] to generate positions
+        // Create a dummy buffer to satisfy the property requirement
+        let dummyData: [UInt8] = [0]
+        vertexBuffer = device.makeBuffer(bytes: dummyData, length: 1, options: [])
     }
     
     private func detectVertexShader(in source: String) -> Bool {
