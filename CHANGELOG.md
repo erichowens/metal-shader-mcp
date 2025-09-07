@@ -5,20 +5,18 @@ All notable changes to the Metal Shader MCP project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2025-09-07] - Fresh Project Start & Three-Phase Development Plan
+## [2025-09-07] - REPL Plan, UI Design, and Pragmatic Docs
 
 ### Added
-- **Three-Phase Development Plan**: Structured approach to building Metal Shader MCP
-  - Phase 1: Core MCP Tools - Shader metadata persistence and management
-  - Phase 2: Shader Library - Comprehensive collection with documentation
-  - Phase 3: UI/UX Improvements - Enhanced editor and visual feedback
-- **Todo List**: 9 detailed tasks covering all three phases
-- **Fresh BUGS.md**: Reset for clean project start
+- **REPL-focused MCP tool roadmap** prioritized for Claude’s visual learning
+- **EPIC: SwiftUI App UI/UX + Educational Library** with persistence plan
+- **DESIGN.md**: Wireframes, user stories, view hierarchy, persistence model
+- **CLAUDE.md** rewritten as pragmatic REPL guide aligned with WARP.md
+- Updated internal todos to reflect new EPICs and priorities
 
-### Reset
-- **BUGS.md**: Cleared old issues from previous implementation attempts
-- **Project Focus**: Shifted to implementing core shader metadata features first
-- **Development Approach**: Following WARP.md workflow with single agent
+### Notes
+- GitHub issue creation via MCP blocked (401). Added task to configure credentials and re-run issue creation.
+- We will create GitHub epics once auth is configured (or use gh CLI).
 
 ### Changed
 - **WARP.md Workflow Protocol**: Consolidated multi-agent workflow into single-agent responsibilities
