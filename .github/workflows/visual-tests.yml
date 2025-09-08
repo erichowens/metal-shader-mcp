@@ -25,7 +25,6 @@ jobs:
       run: |
         echo "Building with Swift Package Manager (debug)..."
         swift build --configuration debug
-          -parse-as-library
     
     - name: Prepare evidence directory
       run: |

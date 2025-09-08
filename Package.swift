@@ -29,7 +29,7 @@ let package = Package(
         .testTarget(
             name: "MetalShaderTests",
             dependencies: ["MetalShaderStudio"],
-            path: "Tests"
+            path: "Tests/MetalShaderTests"
         )
     ]
 )
