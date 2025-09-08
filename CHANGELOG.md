@@ -2,6 +2,22 @@
 
 All notable changes to the Metal Shader MCP project will be documented in this file.
 
+## [2025-09-08] - CI stability and branch protection policy updates
+
+### Fixed
+- GitHub Actions CI failing due to compiling only a subset of Swift sources. Updated build and visual-test workflows to compile all relevant Swift files (ShaderPlayground.swift, AppShellView.swift, HistoryTabView.swift, SessionRecorder.swift).
+- UI Smoke job compile error addressed by adding `import SwiftUI` to `SessionRecorder.swift` to satisfy `@StateObject`’s `ObservableObject` constraint on macOS 15/Swift 6.1.2.
+
+### Changed
+- Branch protection policy updated for solo maintenance:
+  - Removed the “required PR review” gate.
+  - Kept “require branches up-to-date” and “all required status checks must pass.”
+  - Admin enforcement remains enabled.
+
+### Notes
+- Visual evidence and artifacts are captured in CI runs.
+- Future work: migrate to Xcode project or Swift Package for automatic file discovery in CI.
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 

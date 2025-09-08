@@ -8,6 +8,36 @@
 
 A complete system for AI-assisted Metal shader development where Claude can write, modify, and visually iterate on shaders in real-time.
 
+## Project overview
+Metal Shader MCP is a macOS SwiftUI + Metal playground with a disciplined workflow for shader iteration, visual evidence, and CI. An MCP layer is planned to let AI assistants interact with the app (compile, preview, snapshot), but today the primary entry point is the macOS app you can compile and run locally.
+
+## Current state (as of 2025-09-08)
+- macOS app (SwiftUI + Metal) builds and runs locally and in CI.
+- Live shader editing with a simple renderer and screenshot/export helpers.
+- Session Browser (History tab) captures per-session snapshots (code + image + meta).
+- CI enforces: build, tests, visual-evidence capture, WARP workflow compliance, UI smoke (tab selection/status), docs checks.
+- Branch protection requires all status checks to pass and branches to be up-to-date (no required external review since this is solo-maintained).
+
+## Roadmap
+- MCP server integration to drive the macOS app (compile/preview/snapshot) from tools.
+- Visual regression tests with baselines across multiple resolutions.
+- Shader library with names, descriptions, and persistent metadata (see WARP/metadata rules).
+- Export pipelines (PNG/video) with parameter sweeps and performance profiling.
+- Xcode project or Swift Package targets for automatic file discovery in CI.
+
+## Quick start (macOS app)
+- Prereqs: macOS with Xcode (latest stable), Metal-capable device.
+- Build and run locally:
+
+```bash
+swiftc -o MetalShaderStudio \
+  ShaderPlayground.swift AppShellView.swift HistoryTabView.swift SessionRecorder.swift \
+  -framework SwiftUI -framework MetalKit -framework AppKit -framework UniformTypeIdentifiers \
+  -parse-as-library
+
+./MetalShaderStudio --tab history
+```
+
 ## Features
 
 - **Live Compilation**: Compile Metal shaders in real-time with error reporting
@@ -19,7 +49,11 @@ A complete system for AI-assisted Metal shader development where Claude can writ
 
 ## Installation
 
+- macOS app (current): see Quick start above.
+- MCP server (planned): the existing npm scripts are placeholders for the future MCP server. They are not required to run the macOS app today.
+
 ```bash
+# Planned (MCP server), not required for the macOS app today
 npm install
 npm run build
 ```
