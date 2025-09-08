@@ -40,16 +40,17 @@ jobs:
         xcrun -sdk macosx metal --version
         echo "Metal compiler available"
     
-    - name: Compile ShaderPlayground.swift
+    - name: Compile application (all Swift sources)
       run: |
-        echo "Compiling ShaderPlayground.swift with Metal framework..."
-        swiftc -o MetalShaderStudio ShaderPlayground.swift \
+        echo "Compiling MetalShaderStudio with all Swift sources..."
+        swiftc -o MetalShaderStudio \
+          ShaderPlayground.swift AppShellView.swift HistoryTabView.swift SessionRecorder.swift \
           -framework SwiftUI \
           -framework MetalKit \
           -framework AppKit \
           -framework UniformTypeIdentifiers \
           -parse-as-library
-        echo "✅ ShaderPlayground.swift compiled successfully"
+        echo "✅ Application compiled successfully"
     
     - name: Validate Metal shader files
       run: |

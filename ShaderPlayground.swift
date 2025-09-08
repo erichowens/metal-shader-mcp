@@ -2,19 +2,42 @@ import SwiftUI
 import MetalKit
 import Metal
 import UniformTypeIdentifiers
+import CryptoKit
 
 @main
 struct ShaderPlaygroundApp: App {
+    @StateObject var appState = AppState()
+
     var body: some Scene {
         WindowGroup("Claude's Shader Playground") {
-            AppShellView()
+            AppShellView(initialTab: Self.initialTabFromArgs())
+                .environmentObject(appState)
                 .frame(minWidth: 1000, minHeight: 700)
         }
+    }
+
+    private static func initialTabFromArgs() -> AppTab {
+        let args = CommandLine.arguments
+        func map(_ s: String) -> AppTab? {
+            switch s.lowercased() {
+            case "repl": return .repl
+            case "library": return .library
+            case "projects": return .projects
+            case "tools", "mcp", "mcp-tools": return .tools
+            case "history", "sessions": return .history
+            default: return nil
+            }
+        }
+        if let i = args.firstIndex(of: "--tab"), i+1 < args.count, let t = map(args[i+1]) { return t }
+        if let i = args.firstIndex(of: "-t"), i+1 < args.count, let t = map(args[i+1]) { return t }
+        return .repl
     }
 }
 
 struct ContentView: View {
+    @EnvironmentObject var appState: AppState
     @StateObject private var renderer = MetalShaderRenderer()
+    @StateObject private var session = SessionRecorder()
     @State private var shaderCode = defaultShader
     
     let communicationDir = "Resources/communication"
@@ -108,18 +131,39 @@ struct ContentView: View {
             
             if let action = command?["action"] as? String {
                 switch action {
-                case "set_shader":
+case "set_shader":
                     if let newCode = command?["shader_code"] as? String {
+                        let desc = command?["description"] as? String
+                        let noSnapshot = (command?["no_snapshot"] as? Bool) ?? false
                         DispatchQueue.main.async {
                             self.shaderCode = newCode
                             self.renderer.updateShader(newCode)
+                            if !noSnapshot {
+                                self.session.recordSnapshot(code: newCode, renderer: self.renderer, label: desc)
+                            }
                         }
+                    }
+case "save_snapshot":
+                    let desc = command?["description"] as? String ?? "snapshot"
+                    DispatchQueue.main.async {
+                        self.session.recordSnapshot(code: self.shaderCode, renderer: self.renderer, label: desc)
                     }
                 case "export_frame":
                     let description = command?["description"] as? String ?? "mcp_export"
                     let time = command?["time"] as? Float
                     renderer.exportFrame(description: description, time: time)
                     
+                case "set_tab":
+                    if let tabName = command?["tab"] as? String {
+                        DispatchQueue.main.async {
+                            let lower = tabName.lowercased()
+                            if lower == "repl" { self.appState.selectedTab = .repl }
+                            else if lower == "library" { self.appState.selectedTab = .library }
+                            else if lower == "projects" { self.appState.selectedTab = .projects }
+                            else if lower == "tools" || lower == "mcp" || lower == "mcp-tools" { self.appState.selectedTab = .tools }
+                            else if lower == "history" || lower == "sessions" { self.appState.selectedTab = .history }
+                        }
+                    }
                 case "export_sequence":
                     let description = command?["description"] as? String ?? "mcp_sequence"
                     let duration = command?["duration"] as? Float ?? 5.0

@@ -41,7 +41,7 @@ for window in windowList {
     if let ownerName = window["kCGWindowOwnerName"] as? String,
        let windowID = window["kCGWindowNumber"] as? Int {
         
-        if ownerName.contains("ShaderPlayground") {
+        if ownerName.contains("ShaderPlayground") || ownerName.contains("MetalShaderStudio") {
             let windowName = window["kCGWindowName"] as? String ?? ""
             let isOnScreen = window["kCGWindowIsOnscreen"] as? Bool ?? false
             
@@ -59,7 +59,7 @@ for window in windowList {
     if let ownerName = window["kCGWindowOwnerName"] as? String,
        let windowID = window["kCGWindowNumber"] as? Int {
         
-        if ownerName.contains("ShaderPlayground") {
+        if ownerName.contains("ShaderPlayground") || ownerName.contains("MetalShaderStudio") {
             let isOnScreen = window["kCGWindowIsOnscreen"] as? Bool ?? false
             
             if isOnScreen {
