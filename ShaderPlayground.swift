@@ -56,7 +56,8 @@ struct ContentView: View {
                 
                 TextEditor(text: $shaderCode)
                     .font(.system(.body, design: .monospaced))
-                    .onChange(of: shaderCode) { _, newCode in
+                    .onChange(of: shaderCode) { newCode in
+                        // Update Metal pipeline when shader code changes
                         renderer.updateShader(newCode)
                     }
                 
