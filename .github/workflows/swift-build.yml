@@ -40,17 +40,11 @@ jobs:
         xcrun -sdk macosx metal --version
         echo "Metal compiler available"
     
-    - name: Compile application (all Swift sources)
+    - name: Build with SwiftPM
       run: |
-        echo "Compiling MetalShaderStudio with all Swift sources..."
-        swiftc -o MetalShaderStudio \
-          ShaderPlayground.swift AppShellView.swift HistoryTabView.swift SessionRecorder.swift \
-          -framework SwiftUI \
-          -framework MetalKit \
-          -framework AppKit \
-          -framework UniformTypeIdentifiers \
-          -parse-as-library
-        echo "✅ Application compiled successfully"
+        echo "Building with Swift Package Manager..."
+        swift build --configuration debug
+        echo "✅ swift build completed"
     
     - name: Validate Metal shader files
       run: |
@@ -76,14 +70,14 @@ jobs:
           echo "✅ All Metal shader files compiled successfully"
         fi
     
-    - name: Test shader playground executable
+    - name: Test built executable exists
       run: |
-        echo "Testing compiled MetalShaderStudio executable..."
-        if [ -x "./MetalShaderStudio" ]; then
-          echo "✅ MetalShaderStudio executable created successfully"
-          file ./MetalShaderStudio
+        echo "Checking built executable..."
+        if [ -x ".build/debug/MetalShaderStudio" ]; then
+          echo "✅ .build/debug/MetalShaderStudio exists"
+          file .build/debug/MetalShaderStudio
         else
-          echo "❌ MetalShaderStudio executable not found or not executable"
+          echo "❌ .build/debug/MetalShaderStudio not found"
           exit 1
         fi
     
@@ -92,7 +86,7 @@ jobs:
       with:
         name: metal-shader-studio-build
         path: |
-          MetalShaderStudio
+          .build/debug/MetalShaderStudio
           **/*.air
         retention-days: 7
     
