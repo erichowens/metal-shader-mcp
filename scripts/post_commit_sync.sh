@@ -65,7 +65,7 @@ fi
 # Collect screenshot evidence in this commit (filenames only)
 SCREENSHOTS=()
 for f in "${CHANGED[@]}"; do
-  if [[ "$f" == Resources/screenshots/*.(png|jpg|jpeg) ]]; then
+  if [[ "$f" == Resources/screenshots/*.png || "$f" == Resources/screenshots/*.jpg || "$f" == Resources/screenshots/*.jpeg ]]; then
     SCREENSHOTS+=("$f")
   fi
 done
