@@ -45,7 +45,7 @@ struct AppShellView: View {
             }
             writeSelectedTabStatus()
         }
-        .onChange(of: appState.selectedTab) { _, _ in
+        .onChange(of: appState.selectedTab) { _ in
             writeSelectedTabStatus()
         }
     }

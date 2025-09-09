@@ -6,6 +6,14 @@ Starting clean implementation of Metal Shader MCP with three-phase approach.
 ## Current Issues
 *No issues yet - project freshly started*
 
+### 2025-09-08 — EPIC auto-comment robustness
+- Problem: Post-commit EPIC sync printed `command not found` lines like `build(ci)::` when commits included conventional scopes. The heredoc in the sync script wasn’t fully protected and quoting was fragile; script also posted to all EPICs indiscriminately.
+- Fix:
+  - Hardened `scripts/post_commit_sync.sh` with strict tool checks and safe quoting (literal heredoc) to avoid any accidental evaluation of commit text.
+  - Added targeted routing via `docs/EPICS_MAP.json` so only relevant EPICs are updated.
+- Validation: No more stray shell errors on commit; comments go only to the mapped EPICs.
+- Follow-up: Add small mapping tests (see scripts/tests) and consider expanding mappings as codebase grows.
+
 ### 2025-09-08 — CI and Branch Protection
 - Issue: GitHub Actions CI for PRs compiled only ShaderPlayground.swift which referenced types declared in other Swift files (AppShellView, HistoryTabView, SessionRecorder), causing missing-type build failures.
 - Also: UI Smoke job errored that `@StateObject` requires `SessionRecorder` to conform to `ObservableObject` due to missing `import SwiftUI` on CI’s toolchain.

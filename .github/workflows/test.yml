@@ -21,44 +21,7 @@ jobs:
       with:
         xcode-version: latest-stable
     
-    - name: Create Package.swift for testing (if not exists)
-      run: |
-        if [ ! -f "Package.swift" ]; then
-          echo "Creating Package.swift for testing framework..."
-          cat > Package.swift << 'EOF'
-        // swift-tools-version:5.9
-        import PackageDescription
-        
-        let package = Package(
-            name: "MetalShaderMCP",
-            platforms: [
-                .macOS(.v12)
-            ],
-            products: [
-                .executable(name: "MetalShaderStudio", targets: ["MetalShaderStudio"]),
-            ],
-            targets: [
-                .executableTarget(
-                    name: "MetalShaderStudio",
-                    path: ".",
-                    sources: ["ShaderPlayground.swift"],
-                    linkerSettings: [
-                        .linkedFramework("SwiftUI"),
-                        .linkedFramework("MetalKit"),
-                        .linkedFramework("AppKit"),
-                        .linkedFramework("UniformTypeIdentifiers")
-                    ]
-                ),
-                .testTarget(
-                    name: "MetalShaderTests",
-                    dependencies: ["MetalShaderStudio"],
-                    path: "Tests"
-                )
-            ]
-        )
-        EOF
-          echo "✅ Created Package.swift for testing"
-        fi
+    # Using committed Package.swift; no need to generate one in CI
     
     - name: Create basic test structure
       run: |

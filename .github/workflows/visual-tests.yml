@@ -20,155 +20,25 @@ jobs:
       uses: maxim-lobanov/setup-xcode@v1
       with:
         xcode-version: latest-stable
-    
-    - name: Install screenshot dependencies
+
+    - name: Build with SwiftPM
       run: |
-        # Install imagemagick for image processing
-        brew install imagemagick
-        # Install pngcrush for PNG optimization
-        brew install pngcrush
+        echo "Building with Swift Package Manager (debug)..."
+        swift build --configuration debug
     
-    - name: Compile MetalShaderStudio
-      run: |
-        echo "Compiling MetalShaderStudio for visual testing..."
-        swiftc -o MetalShaderStudio \
-          ShaderPlayground.swift AppShellView.swift HistoryTabView.swift SessionRecorder.swift \
-          -framework SwiftUI \
-          -framework MetalKit \
-          -framework AppKit \
-          -framework UniformTypeIdentifiers \
-          -parse-as-library
-    
-    - name: Create screenshots directory
+    - name: Prepare evidence directory
       run: |
         mkdir -p Resources/screenshots
         mkdir -p visual-test-output
-        echo "Created directories for visual evidence"
+        echo "Prepared directories for visual evidence"
     
-    - name: Run headless Metal shader tests
-      run: |
-        echo "Running headless Metal shader rendering tests..."
-        
-        # Create a simple test script that runs the shaders
-        cat > test_shaders.py << 'EOF'
-        import subprocess
-        import time
-        import os
-        from datetime import datetime
-        
-        def capture_shader_output(shader_name, duration=5):
-            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            output_file = f"Resources/screenshots/{timestamp}_{shader_name}_visual_test.png"
-            
-            print(f"Testing shader: {shader_name}")
-            print(f"Output file: {output_file}")
-            
-            # For now, we'll just verify the shader compiles
-            # In a real implementation, we would run the MetalShaderStudio
-            # and capture screenshots programmatically
-            
-            return output_file
-        
-        # Test available shaders
-        shaders = []
-        if os.path.exists("shaders"):
-            for file in os.listdir("shaders"):
-                if file.endswith(".metal"):
-                    shaders.append(file.replace(".metal", ""))
-        
-        if os.path.exists("Resources/communication/current_shader.metal"):
-            shaders.append("current_shader")
-        
-        print(f"Found shaders to test: {shaders}")
-        
-        for shader in shaders:
-            capture_shader_output(shader)
-        EOF
-        
-        python3 test_shaders.py
+    # Skipping heavy placeholder generation to keep CI fast
     
-    - name: Generate placeholder visual evidence
-      run: |
-        echo "Generating visual evidence placeholders..."
-        timestamp=$(date '+%Y-%m-%d_%H-%M-%S')
-        
-        # Create placeholder images showing the workflow is working
-        convert -size 800x600 xc:lightblue \
-          -pointsize 24 \
-          -draw "text 50,100 'Metal Shader Visual Test'" \
-          -draw "text 50,150 'Timestamp: $timestamp'" \
-          -draw "text 50,200 'Status: Visual Testing Active'" \
-          "Resources/screenshots/${timestamp}_visual_test_placeholder.png"
-        
-        # Create a compilation evidence image
-        convert -size 600x400 xc:lightgreen \
-          -pointsize 20 \
-          -draw "text 50,100 'Shader Compilation: SUCCESS'" \
-          -draw "text 50,150 'Framework: Metal + SwiftUI'" \
-          -draw "text 50,200 'Platform: macOS'" \
-          "Resources/screenshots/${timestamp}_compilation_success.png"
-        
-        echo "Generated visual evidence files"
+    # Baseline comparison intentionally skipped for speed; future tool will handle diffs
     
-    - name: Check for visual regression baselines
-      run: |
-        echo "Checking for baseline images for visual regression testing..."
-        if [ -d "Resources/screenshots/baselines" ]; then
-          echo "Found baseline images directory"
-          BASELINE_COUNT=$(find Resources/screenshots/baselines -name "*.png" | wc -l)
-          echo "Found $BASELINE_COUNT baseline image(s)"
-          
-          # If baselines exist, we would compare current renders against them
-          if [ $BASELINE_COUNT -gt 0 ]; then
-            echo "Visual regression testing would be performed here"
-            echo "Baseline images found for comparison"
-          fi
-        else
-          echo "No baseline images found - first run or baselines not established"
-          mkdir -p Resources/screenshots/baselines
-          echo "Created baselines directory for future use"
-        fi
+    # Naming convention checks skipped: naming hints remain in docs, not enforced in CI
     
-    - name: Validate WARP.md screenshot naming convention
-      run: |
-        echo "Validating screenshot naming follows WARP.md conventions..."
-        
-        # Check if screenshots follow the required naming pattern
-        VALID_SCREENSHOTS=0
-        INVALID_SCREENSHOTS=0
-        
-        for screenshot in Resources/screenshots/*.png; do
-          if [ -f "$screenshot" ]; then
-            filename=$(basename "$screenshot")
-            # Check if follows pattern: YYYY-MM-DD_HH-MM-SS_description.png
-            if [[ $filename =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}_.+\.png$ ]]; then
-              echo "✅ $filename follows WARP naming convention"
-              VALID_SCREENSHOTS=$((VALID_SCREENSHOTS + 1))
-            else
-              echo "❌ $filename does not follow WARP naming convention"
-              INVALID_SCREENSHOTS=$((INVALID_SCREENSHOTS + 1))
-            fi
-          fi
-        done
-        
-        echo "Valid screenshots: $VALID_SCREENSHOTS"
-        echo "Invalid screenshots: $INVALID_SCREENSHOTS"
-        
-        if [ $INVALID_SCREENSHOTS -gt 0 ]; then
-          echo "⚠️ Some screenshots don't follow WARP.md naming conventions"
-        fi
-    
-    - name: Optimize captured images
-      run: |
-        echo "Optimizing captured PNG images..."
-        for png in Resources/screenshots/*.png; do
-          if [ -f "$png" ]; then
-            echo "Optimizing $(basename "$png")"
-            pngcrush -reduce -brute "$png" "${png}.opt"
-            mv "${png}.opt" "$png"
-          fi
-        done
-        echo "✅ Image optimization complete"
+    # Skipping PNG optimization to reduce CI time
     
     - name: Generate visual test report
       run: |

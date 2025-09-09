@@ -1,12 +1,25 @@
 # Changelog
 
+## [2025-09-09] - CI EPIC Progress Sync
+
+### Added
+- New GitHub Actions workflow `.github/workflows/epic-sync.yml` that runs `scripts/post_commit_sync.sh` in CI to post progress comments to EPIC issues.
+  - Uses `GITHUB_TOKEN` with `issues: write` permission.
+  - Triggers on push to any branch, and on PR opened/synchronize/reopened (non-fork) events.
+  - Automatically includes commit URL, short SHA, PR link (when available), changed files, and any screenshot evidence in `Resources/screenshots/`.
+
+### Documentation
+- WARP.md updated with a "CI Automation: EPIC Progress Sync" section describing configuration, triggers, and secret handling.
+
 All notable changes to the Metal Shader MCP project will be documented in this file.
 
-## [2025-09-08] - CI stability and branch protection policy updates
+## [2025-09-08] - CI stability, EPIC targeting, and branch protection policy updates
 
 ### Fixed
 - GitHub Actions CI failing due to compiling only a subset of Swift sources. Updated build and visual-test workflows to compile all relevant Swift files (ShaderPlayground.swift, AppShellView.swift, HistoryTabView.swift, SessionRecorder.swift).
 - UI Smoke job compile error addressed by adding `import SwiftUI` to `SessionRecorder.swift` to satisfy `@StateObject`’s `ObservableObject` constraint on macOS 15/Swift 6.1.2.
+- SwiftUI macOS compatibility: Replaced `.onChange(of:) { _, new in ... }` with single-argument form to avoid requiring macOS 14+ (keeps macOS 12+ target).
+- EPIC sync script robustness: Quoting and targeting fixes eliminate stray shell errors and prevent blanket comments.
 
 ### Changed
 - Branch protection policy updated for solo maintenance:
@@ -17,6 +30,7 @@ All notable changes to the Metal Shader MCP project will be documented in this f
 ### Notes
 - Visual evidence and artifacts are captured in CI runs.
 - Future work: migrate to Xcode project or Swift Package for automatic file discovery in CI.
+- Added `docs/EPICS_MAP.json` to route EPIC updates by area (UI/UX, State & Workflow, CI/Regression, Library, Core MCP).
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).

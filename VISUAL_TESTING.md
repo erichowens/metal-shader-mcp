@@ -27,12 +27,11 @@ Resources/
 ### Naming Convention
 ```
 YYYY-MM-DD_HH-MM-SS_<shader_name>_<test_type>_<parameters>.png
-
-Examples:
-2024-09-06_14-30-15_plasma_basic_default_params.png
-2024-09-06_14-31-22_kaleidoscope_rotation_speed_2.0.png
-2024-09-06_14-32-08_ui_parameter_panel_expanded.png
 ```
+Notes:
+- This convention is recommended for human readability and audit trails.
+- CI does not enforce naming; the pipeline prioritizes speed and only reports counts.
+- Automated visual regression thresholds are configurable and will be documented when the diff tool lands (default target: 0.95 similarity).
 
 ## 🧪 Test Types
 
@@ -288,10 +287,10 @@ Consider integration with:
 - Cross-resolution compatibility verified
 
 ### Quality Thresholds
-- 95% visual similarity for regression detection
+- Default visual similarity threshold: 0.95 (configurable per-suite when diff tool lands)
 - 100% test pass rate before deployment  
 - 0 undocumented visual changes
-- < 5 minute visual test execution time
+- Visual test execution time budget: under 2 minutes in CI
 
 ---
 

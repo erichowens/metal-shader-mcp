@@ -1,0 +1,10 @@
+{
+  "mappings": [
+    { "globs": ["AppShellView.swift", "HistoryTabView.swift", "*.swift"], "epics": [8] },
+    { "globs": ["SessionRecorder.swift", "Resources/sessions/**"], "epics": [7] },
+    { "globs": [".github/workflows/**", "scripts/**", "Tests/**", "Package.swift"], "epics": [3] },
+    { "globs": ["shaders/**", "Resources/Library/**"], "epics": [6] },
+    { "globs": ["src/**", "*.mcp.json", "warp_*.json"], "epics": [1] }
+  ]
+}
+
