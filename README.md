@@ -5,6 +5,7 @@
 [![Documentation](https://github.com/erichowens/metal-shader-mcp/actions/workflows/documentation.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/documentation.yml)
 [![Visual Tests](https://github.com/erichowens/metal-shader-mcp/actions/workflows/visual-tests.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/visual-tests.yml)
 [![WARP Compliance](https://github.com/erichowens/metal-shader-mcp/actions/workflows/warp-compliance.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/warp-compliance.yml)
+[![EPIC Progress Sync](https://github.com/erichowens/metal-shader-mcp/actions/workflows/epic-sync.yml/badge.svg?branch=main)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/epic-sync.yml)
 
 A complete system for AI-assisted Metal shader development where Claude can write, modify, and visually iterate on shaders in real-time.
 
