@@ -1,5 +1,16 @@
 # Changelog
 
+## [2025-09-09] - CI EPIC Progress Sync
+
+### Added
+- New GitHub Actions workflow `.github/workflows/epic-sync.yml` that runs `scripts/post_commit_sync.sh` in CI to post progress comments to EPIC issues.
+  - Uses `GITHUB_TOKEN` with `issues: write` permission.
+  - Triggers on push to any branch, and on PR opened/synchronize/reopened (non-fork) events.
+  - Automatically includes commit URL, short SHA, PR link (when available), changed files, and any screenshot evidence in `Resources/screenshots/`.
+
+### Documentation
+- WARP.md updated with a "CI Automation: EPIC Progress Sync" section describing configuration, triggers, and secret handling.
+
 All notable changes to the Metal Shader MCP project will be documented in this file.
 
 ## [2025-09-08] - CI stability, EPIC targeting, and branch protection policy updates
