@@ -3,6 +3,7 @@ import MetalKit
 import Metal
 import UniformTypeIdentifiers
 import CryptoKit
+import AppKit
 
 @main
 struct ShaderPlaygroundApp: App {
@@ -38,7 +39,8 @@ struct ContentView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var renderer = MetalShaderRenderer()
     @StateObject private var session = SessionRecorder()
-    @State private var shaderCode = defaultShader
+@State private var shaderCode = defaultShader
+    @State private var shaderMeta = ShaderMetadata.from(code: defaultShader, path: nil)
     
     let communicationDir = "Resources/communication"
     let shaderStateFile = "Resources/communication/current_shader.metal"
@@ -54,26 +56,50 @@ struct ContentView: View {
                     .font(.headline)
                     .padding()
                 
-                TextEditor(text: $shaderCode)
+TextEditor(text: $shaderCode)
                     .font(.system(.body, design: .monospaced))
                     .onChange(of: shaderCode) { newCode in
                         renderer.updateShader(newCode)
+                        shaderMeta = ShaderMetadata.from(code: newCode, path: shaderStateFile)
+                        writeCurrentShaderMeta()
                     }
                 
-                Button("Compile & Update") {
-                    renderer.updateShader(shaderCode)
+HStack(spacing: 12) {
+                    Button("Compile & Update") {
+renderer.updateShader(shaderCode)
+                        shaderMeta = ShaderMetadata.from(code: shaderCode, path: shaderStateFile)
+                        writeCurrentShaderMeta()
+                    }
+                    Button("Save As…") {
+                        saveAsShaderDialog()
+                    }
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.bottom)
             }
             .frame(maxWidth: .infinity)
             
             Divider()
             
             // Right: Metal Preview
-            VStack {
+VStack {
                 Text("Live Preview")
                     .font(.headline)
-                    .padding()
+                    .padding(.top)
+                // Shader name and description (from docstring)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(shaderMeta.name.isEmpty ? "Untitled Shader" : shaderMeta.name)
+                        .font(.title3).bold()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if !shaderMeta.description.isEmpty {
+                        Text(shaderMeta.description)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 4)
                 
                 MetalView(renderer: renderer)
                     .aspectRatio(1.0, contentMode: .fit)
@@ -102,7 +128,10 @@ struct ContentView: View {
     }
     
     // MARK: - Communication Functions
-    private func setupCommunication() {
+private func setupCommunication() {
+        // Ensure metadata is initialized
+        shaderMeta = ShaderMetadata.from(code: shaderCode, path: shaderStateFile)
+        writeCurrentShaderMeta()
         // Create communication directory
         try? FileManager.default.createDirectory(atPath: communicationDir, withIntermediateDirectories: true)
         
@@ -116,7 +145,9 @@ struct ContentView: View {
         }
     }
     
-    private func startMonitoringCommands() {
+private func startMonitoringCommands() {
+        // Ensure communication dir exists
+        try? FileManager.default.createDirectory(atPath: communicationDir, withIntermediateDirectories: true)
         Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             checkForCommands()
         }
@@ -143,7 +174,42 @@ case "set_shader":
                             }
                         }
                     }
-case "save_snapshot":
+case "get_shader_meta":
+                    // Write current shader meta (already maintained)
+                    self.writeCurrentShaderMeta()
+
+                case "set_shader_with_meta":
+                    let newCode = command?["shader_code"] as? String
+                    let name = command?["name"] as? String
+                    let desc = command?["description"] as? String
+                    let path = command?["path"] as? String
+                    let save = (command?["save"] as? Bool) ?? false
+                    let noSnapshot = (command?["no_snapshot"] as? Bool) ?? false
+                    DispatchQueue.main.async {
+                        if let newCode = newCode {
+                            self.shaderCode = newCode
+                            self.renderer.updateShader(newCode)
+                        }
+                        // Update metadata
+                        var meta = ShaderMetadata.from(code: self.shaderCode, path: self.shaderStateFile)
+                        if let name = name { meta.name = name }
+                        if let desc = desc { meta.description = desc }
+                        if let path = path, !path.isEmpty { meta.path = path }
+                        self.shaderMeta = meta
+                        self.writeCurrentShaderMeta()
+                        // Save to path if requested
+                        if save, let p = meta.path, !p.isEmpty {
+                            Self.writeTextSafely(self.shaderCode, toPath: p)
+                        }
+                        if !noSnapshot {
+                            self.session.recordSnapshot(code: self.shaderCode, renderer: self.renderer, label: "set_shader_with_meta")
+                        }
+                    }
+
+                case "list_library_entries":
+                    self.writeLibraryIndex()
+
+                case "save_snapshot":
                     let desc = command?["description"] as? String ?? "snapshot"
                     DispatchQueue.main.async {
                         self.session.recordSnapshot(code: self.shaderCode, renderer: self.renderer, label: desc)
@@ -200,6 +266,116 @@ case "save_snapshot":
         
         // Also update shader state file
         try? shaderCode.write(toFile: shaderStateFile, atomically: true, encoding: .utf8)
+    }
+}
+
+// MARK: - Shader Metadata
+struct ShaderMetadata: Codable {
+    var name: String
+    var description: String
+    var path: String?
+
+    static func from(code: String, path: String?) -> ShaderMetadata {
+        // Extract the first block comment /** ... */ as docstring
+        // Fallbacks if not present
+        let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
+        var title = ""
+        var desc = ""
+        if let startRange = trimmed.range(of: "/**"), let endRange = trimmed.range(of: "*/", range: startRange.upperBound..<trimmed.endIndex) {
+            let doc = String(trimmed[startRange.upperBound..<endRange.lowerBound])
+            // Split into lines, strip leading * and spaces
+            let lines = doc.split(separator: "\n").map { line -> String in
+                var s = String(line)
+                if s.trimmingCharacters(in: .whitespaces).hasPrefix("*") {
+                    s = s.replacingOccurrences(of: "*", with: "", options: [], range: s.range(of: "*"))
+                }
+                return s.trimmingCharacters(in: .whitespaces)
+            }
+            // First non-empty line as title, subsequent non-empty lines until blank as description (joined)
+            var i = 0
+            while i < lines.count && lines[i].isEmpty { i += 1 }
+            if i < lines.count { title = lines[i]; i += 1 }
+            var descLines: [String] = []
+            while i < lines.count {
+                let l = lines[i]
+                if l.isEmpty { break }
+                descLines.append(l)
+                i += 1
+            }
+            desc = descLines.joined(separator: " ")
+        }
+        if title.isEmpty { title = "Untitled Shader" }
+        return ShaderMetadata(name: title, description: desc, path: path)
+    }
+}
+
+extension ContentView {
+    func saveAsShaderDialog() {
+        let panel = NSSavePanel()
+        panel.allowedFileTypes = ["metal"]
+        panel.canCreateDirectories = true
+        panel.title = "Save Shader As"
+        // Default directory: ./shaders
+        let shadersDir = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("shaders")
+        try? FileManager.default.createDirectory(at: shadersDir, withIntermediateDirectories: true)
+        panel.directoryURL = shadersDir
+        panel.nameFieldStringValue = (shaderMeta.name.isEmpty ? "Untitled Shader" : shaderMeta.name).replacingOccurrences(of: " ", with: "_").lowercased() + ".metal"
+        if panel.runModal() == .OK, let url = panel.url {
+            let path = url.path
+            Self.writeTextSafely(shaderCode, toPath: path)
+            // Update meta path and rewrite meta
+            shaderMeta.path = path
+            writeCurrentShaderMeta()
+        }
+    }
+
+    static func writeTextSafely(_ text: String, toPath path: String) {
+        let dir = (path as NSString).deletingLastPathComponent
+        try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+        // If file exists, replace
+        if FileManager.default.fileExists(atPath: path) {
+            _ = try? FileManager.default.removeItem(atPath: path)
+        }
+        try? text.write(toFile: path, atomically: true, encoding: .utf8)
+    }
+
+    func writeLibraryIndex() {
+        let shadersDir = "shaders"
+        var entries: [[String: Any]] = []
+        if let files = try? FileManager.default.contentsOfDirectory(atPath: shadersDir) {
+            for fn in files where fn.hasSuffix(".metal") {
+                let full = shadersDir + "/" + fn
+                if let code = try? String(contentsOfFile: full) {
+                    let meta = ShaderMetadata.from(code: code, path: full)
+                    entries.append([
+                        "name": meta.name,
+                        "description": meta.description,
+                        "path": full
+                    ])
+                }
+            }
+        }
+        let obj: [String: Any] = [
+            "entries": entries,
+            "count": entries.count,
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        if let data = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted]) {
+            try? data.write(to: URL(fileURLWithPath: communicationDir + "/library_index.json"))
+        }
+    }
+    func writeCurrentShaderMeta() {
+        let meta = shaderMeta
+        let obj: [String: Any] = [
+            "name": meta.name,
+            "description": meta.description,
+            "path": meta.path ?? "",
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        if let data = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted]) {
+            try? FileManager.default.createDirectory(atPath: communicationDir, withIntermediateDirectories: true)
+            try? data.write(to: URL(fileURLWithPath: communicationDir + "/shader_meta.json"))
+        }
     }
 }
 
