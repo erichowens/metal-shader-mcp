@@ -127,6 +127,15 @@ Resources/screenshots/2024-09-06_09-16-45_ui_parameter_panel_expanded.png
 
 ## 🛠 Tools and Commands
 
+### CI Automation: EPIC Progress Sync
+- The repository includes an automated CI workflow that posts progress comments to EPIC GitHub issues based on changed files and mappings.
+- Source of truth for EPICs: `docs/EPICS.json` and mapping `docs/EPICS_MAP.json`.
+- Script executed: `scripts/post_commit_sync.sh`
+- Triggers: push to any branch, and PR events (opened, synchronize, reopened) on this repository.
+- Authentication: uses GitHub Actions built-in `GITHUB_TOKEN` (scoped per-repo). No additional secrets required.
+  - If cross-repo or org-wide posting is ever needed, create a fine-scoped PAT and store it as `EPIC_SYNC_TOKEN` in repository Secrets, then set `GH_TOKEN: ${{ secrets.EPIC_SYNC_TOKEN }}` in the workflow.
+- Workflow file: `.github/workflows/epic-sync.yml`
+
 ### Screenshot Capture (macOS)
 ```bash
 # Capture Metal Shader app window

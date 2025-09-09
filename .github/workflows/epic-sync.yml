@@ -1,0 +1,55 @@
+name: EPIC Progress Sync
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+# Explicit permissions so the workflow can comment on issues
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  epic-sync:
+    name: Post progress to EPIC issues
+    runs-on: ubuntu-latest
+    if: >-
+      ${{ github.event_name == 'push' ||
+          (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false) ||
+          github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Ensure dependencies (jq, gh)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq gh
+
+      - name: Authenticate gh CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh auth status || echo "gh will use GH_TOKEN from env"
+
+      - name: Run EPIC sync script
+        env:
+          # Used by scripts/post_commit_sync.sh to link to PR if available
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          bash scripts/post_commit_sync.sh
+
+      - name: Summary
+        run: |
+          echo "## 🧭 EPIC Progress Sync" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ EPIC sync job executed" >> $GITHUB_STEP_SUMMARY
+          echo "- 📄 Script: scripts/post_commit_sync.sh" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔐 Auth: GITHUB_TOKEN (issues:write)" >> $GITHUB_STEP_SUMMARY
