@@ -2,6 +2,9 @@
 
 ## [2025-09-09] - CI EPIC Progress Sync
 
+### Changed
+- README.md: Added EPIC Progress Sync status badge.
+
 ### Added
 - New GitHub Actions workflow `.github/workflows/epic-sync.yml` that runs `scripts/post_commit_sync.sh` in CI to post progress comments to EPIC issues.
   - Uses `GITHUB_TOKEN` with `issues: write` permission.
