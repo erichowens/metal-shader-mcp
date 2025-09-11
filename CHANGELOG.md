@@ -25,6 +25,12 @@
 - Integrated parameter extraction and shader library directly into main server
 - Added comprehensive error handling for all new tools
 
+### CI
+- Added GitHub Actions workflow `.github/workflows/node-tests.yml` to run Node/TypeScript Jest tests for the MCP server on Ubuntu runners
+  - Uses Node 20 with npm cache
+  - Runs `npm ci` and executes tests with `MCP_FAKE_RENDER=1` for deterministic, headless visual regression
+  - Publishes a concise test summary to the job summary and uploads debug artifacts on failure
+
 ### Infrastructure
 - Jest policy test (Tests/policy.mcp-first.spec.ts) to block AppleScript and file-bridge patterns outside allowlist
 - Core unit tests (Tests/mcp.core.spec.ts) for set_shader, run_frame, export_sequence

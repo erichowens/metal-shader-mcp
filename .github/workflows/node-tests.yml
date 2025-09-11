@@ -1,0 +1,54 @@
+name: MCP Node/TypeScript Tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+jobs:
+  node-tests:
+    name: MCP Server Jest Tests (CI-safe render)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Ensure screenshot directory exists
+        run: mkdir -p Resources/screenshots
+
+      - name: Run Jest tests with CI-safe renderer
+        env:
+          MCP_FAKE_RENDER: '1'
+        run: |
+          echo "Running Jest with MCP_FAKE_RENDER=1"
+          npm test --silent
+
+      - name: Test summary
+        if: always()
+        run: |
+          echo "## 🧪 MCP Node/TypeScript Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Node: $(node -v)" >> $GITHUB_STEP_SUMMARY
+          echo "- npm: $(npm -v)" >> $GITHUB_STEP_SUMMARY
+          echo "- Renderer mode: MCP_FAKE_RENDER=1" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Jest cache and logs (optional)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jest-debug
+          path: |
+            .jest-cache
+            **/jest*.log
+          retention-days: 7
