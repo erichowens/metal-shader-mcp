@@ -30,6 +30,7 @@
   - Uses Node 20 with npm cache
   - Runs `npm ci` and executes tests with `MCP_FAKE_RENDER=1` for deterministic, headless visual regression
   - Publishes a concise test summary to the job summary and uploads debug artifacts on failure
+- Created a tracking issue to enable this workflow as a required status check in branch protection settings
 
 ### Infrastructure
 - Jest policy test (Tests/policy.mcp-first.spec.ts) to block AppleScript and file-bridge patterns outside allowlist
@@ -43,6 +44,7 @@
 - WARP.md: Added "MCP-First Architecture & Enforcement" section
 - CLAUDE.md: Added MCP-First Rules and updated tool priorities
 - DESIGN.md: Removed communication/ bridge files from persistence paths
+- README.md: Added status badge for MCP Node/TypeScript Tests workflow
 
 ### Deprecated
 - Resources/exports/ directory for new artifacts
