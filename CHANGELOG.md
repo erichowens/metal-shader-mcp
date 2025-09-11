@@ -27,6 +27,8 @@
 
 ### Infrastructure
 - Jest policy test (Tests/policy.mcp-first.spec.ts) to block AppleScript and file-bridge patterns outside allowlist
+- Core unit tests (Tests/mcp.core.spec.ts) for set_shader, run_frame, export_sequence
+- Visual regression tests (tests/visual.regression.spec.ts) using set_baseline and compare_to_baseline
 - Add Jest config for ESM TypeScript (jest.config.cjs)
 - GitHub issues created to track MCP-first enforcement and migration
 - Updated package.json with pixelmatch and pngjs dependencies
