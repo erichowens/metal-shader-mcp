@@ -36,6 +36,21 @@ export class PreviewEngine {
    */
   async renderFrame(options: RenderOptions): Promise<Buffer> {
     const { shaderPath, width, height, uniforms, format = 'png' } = options;
+
+    // Test/CI fallback: generate synthetic image when MCP_FAKE_RENDER=1
+    if (process.env.MCP_FAKE_RENDER === '1') {
+      const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="100%" height="100%" fill="url(#g)"/>
+</svg>`;
+      return await sharp(Buffer.from(svg)).toFormat(format).toBuffer();
+    }
     
     // Generate cache key
     const cacheKey = this.generateCacheKey(options);
@@ -56,7 +71,8 @@ export class PreviewEngine {
       
       // Compile and run the render program
       const outputPath = path.join(tempDir, `output.${format}`);
-      const compileCmd = `swiftc -O -o ${path.join(tempDir, 'render')} ${programPath}`;
+      const compileCmd = `swiftc -O -o ${path.join(tempDir, 'render')} ${programPath} ` +
+        `-framework Metal -framework MetalKit -framework AppKit -framework CoreImage -framework ImageIO -framework CoreGraphics -framework UniformTypeIdentifiers`;
       await execAsync(compileCmd);
       
       const runCmd = `${path.join(tempDir, 'render')} ${shaderPath} ${width} ${height} ${outputPath}`;
@@ -164,6 +180,8 @@ import Metal
 import MetalKit
 import CoreImage
 import AppKit
+import UniformTypeIdentifiers
+import ImageIO
 
 // Command line arguments
 let args = CommandLine.arguments
@@ -238,7 +256,7 @@ let ciContext = CIContext(mtlDevice: device)
 let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent)!
 
 let url = URL(fileURLWithPath: outputPath)
-let destination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypePNG, 1, nil)!
+let destination = CGImageDestinationCreateWithURL(url as CFURL, UTType.png.identifier as CFString, 1, nil)!
 CGImageDestinationAddImage(destination, cgImage, nil)
 CGImageDestinationFinalize(destination)
 
