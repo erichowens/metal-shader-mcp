@@ -26,7 +26,8 @@
 - Added comprehensive error handling for all new tools
 
 ### Infrastructure
-- Jest policy test (tests/mcp_policy.test.js) to block AppleScript and file-bridge patterns
+- Jest policy test (Tests/policy.mcp-first.spec.ts) to block AppleScript and file-bridge patterns outside allowlist
+- Add Jest config for ESM TypeScript (jest.config.cjs)
 - GitHub issues created to track MCP-first enforcement and migration
 - Updated package.json with pixelmatch and pngjs dependencies
 
