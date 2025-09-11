@@ -45,6 +45,7 @@
 - CLAUDE.md: Added MCP-First Rules and updated tool priorities
 - DESIGN.md: Removed communication/ bridge files from persistence paths
 - README.md: Added status badge for MCP Node/TypeScript Tests workflow
+- README.md: Added status badge for UI Smoke workflow
 
 ### Deprecated
 - Resources/exports/ directory for new artifacts
