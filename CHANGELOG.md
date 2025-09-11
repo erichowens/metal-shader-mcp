@@ -1,19 +1,43 @@
 # Changelog
 
-## [2025-09-11] - Enforce MCP-first policy; documentation and tests
+## [2025-09-11] - Comprehensive MCP server implementation
 
 ### Added
-- Jest policy test (tests/mcp_policy.test.js) to block AppleScript and file-bridge patterns in TypeScript code (excluding deprecated src/simple-mcp.ts).
-- GitHub issues created to track MCP-first enforcement, MCP consolidation, rendering/streaming/session/baseline tools, UI migration, output standardization, and CI visual regression via MCP.
+- Complete MCP tool suite implementation in src/index.ts:
+  - `set_shader`: Set and compile shader with metadata extraction
+  - `run_frame`: Render single frames to Resources/screenshots/
+  - `export_sequence`: Export video/GIF/image sequences with ffmpeg
+  - `save_session_snapshot`, `list_sessions`, `get_session`, `restore_session`: Session management
+  - `set_baseline`, `compare_to_baseline`: Visual regression testing with pixelmatch
+  - `extract_parameters`, `infer_parameter_ranges`, `generate_ui_controls`: Parameter extraction
+  - `library_search`, `library_get`, `library_inject`, `library_list_categories`: Shader library
+  - `get_example_shader`: Example shader retrieval
+- Automatic parameter extraction from shader source with inline parsing
+- Session persistence to Resources/sessions/ for shader development history
+- PNG comparison with pixelmatch and pngjs for visual regression
+- Inline shader function library with common utilities (noise, color conversions)
+- Type declarations for pngjs and pixelmatch modules
+- Server state management for current shader, sessions, and baselines
 
-### Changed
-- WARP.md: Added "MCP-First Architecture & Enforcement" section; standardized artifacts to Resources/screenshots/; defined prohibited patterns and CI gates; updated last updated timestamp.
-- CLAUDE.md: Added MCP-First Rules; updated tool priorities to include validate_shader, start_preview_stream, sessions.*, baseline.*; removed communication-file control-plane reference; updated workflows to use MCP tools.
-- DESIGN.md: Removed "communication/ (MCP bridge files)" from persistence paths.
+### Changed 
+- Bumped MCP server version to 2.0.0 for MCP-first architecture
+- Standardized all output paths to Resources/screenshots/
+- Integrated parameter extraction and shader library directly into main server
+- Added comprehensive error handling for all new tools
+
+### Infrastructure
+- Jest policy test (tests/mcp_policy.test.js) to block AppleScript and file-bridge patterns
+- GitHub issues created to track MCP-first enforcement and migration
+- Updated package.json with pixelmatch and pngjs dependencies
+
+### Documentation
+- WARP.md: Added "MCP-First Architecture & Enforcement" section
+- CLAUDE.md: Added MCP-First Rules and updated tool priorities
+- DESIGN.md: Removed communication/ bridge files from persistence paths
 
 ### Deprecated
-- Resources/exports/ directory for new artifacts.
-- src/simple-mcp.ts remains as demo-only and will be removed after UI migration.
+- Resources/exports/ directory for new artifacts
+- src/simple-mcp.ts remains as demo-only and will be removed after UI migration
 
 ## [2025-09-09] - CI EPIC Progress Sync
 

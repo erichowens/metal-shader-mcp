@@ -308,7 +308,7 @@ export class ShaderLibrary {
     });
   }
 
-  private async searchFunctions(query?: string, category?: string) {
+  async searchFunctions(query?: string, category?: string) {
     let results: ShaderFunction[] = Array.from(this.library.values());
     
     if (category) {
@@ -337,7 +337,7 @@ export class ShaderLibrary {
     };
   }
 
-  private async getFunction(name: string) {
+  async getFunction(name: string) {
     const func = this.library.get(name);
     
     if (!func) {
@@ -358,7 +358,7 @@ export class ShaderLibrary {
     };
   }
 
-  private async injectFunction(functionName: string, shaderCode: string, position: string = "after_includes") {
+  async injectFunction(functionName: string, shaderCode: string, position: string = "after_includes") {
     const func = this.library.get(functionName);
     
     if (!func) {
@@ -404,7 +404,7 @@ export class ShaderLibrary {
     };
   }
 
-  private async listCategories() {
+  async listCategories() {
     const categories = new Set<string>();
     this.library.forEach(f => categories.add(f.category));
     

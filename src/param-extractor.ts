@@ -138,7 +138,7 @@ export class ParameterExtractor {
     });
   }
 
-  private async extractParameters(source: string, includeComments: boolean = true) {
+  async extractParameters(source: string, includeComments: boolean = true) {
     const parameters: ShaderParameter[] = [];
     
     // Match struct definitions for uniforms
@@ -279,7 +279,7 @@ export class ParameterExtractor {
     return 'slider';
   }
 
-  private async generateUI(parameters: ShaderParameter[], style: string = 'panel') {
+  async generateUI(parameters: ShaderParameter[], style: string = 'panel') {
     const controls: UIControl[] = [];
     
     for (const param of parameters) {
@@ -364,7 +364,7 @@ export class ParameterExtractor {
     };
   }
 
-  private async inferRanges(source: string, paramName: string) {
+  async inferRanges(source: string, paramName: string) {
     // Analyze usage patterns to infer reasonable ranges
     const usageRegex = new RegExp(`${paramName}\\s*([*+\\-/])\\s*([\\d.]+)`, 'g');
     const comparisons = new RegExp(`${paramName}\\s*([<>]=?)\\s*([\\d.]+)`, 'g');
