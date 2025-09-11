@@ -7,24 +7,29 @@ Claude can only learn to write good shaders if it can immediately see the result
 
 ## Prioritized MCP Tooling (source of truth)
 MVP (build in this order):
-1) set_shader, compile_shader, get_compilation_errors
-2) run_frame/screenshot, set_uniforms, set_time/play/pause/set_playback_speed
-3) set_resolution/aspect/seed/mouse
-4) profile_frame, set_baseline/diff_against_baseline
-5) sweep_param/grid + compare_variants
+1) set_shader, compile_shader, validate_shader, get_compilation_errors
+2) run_frame, start_preview_stream, update_uniforms
+3) set_resolution/aspect/seed/mouse/time/play/pause/set_playback_speed
+4) profile_performance, baseline.set, baseline.diff
+5) sweep/grid + compare_variants
 6) sample_pixel/capture_histogram/toggle_overlays
-7) library, assets, snapshots
-8) explain_error/auto_tune (optional)
+7) library.search/get/inject/list_categories, sessions.save_snapshot/list/get, examples.get
+8) explain_compilation_error, explain_shader (optional)
 
 See DESIGN.md and WARP.md for details.
+
+## MCP-First Rules
+- The UI and any agents MUST only act through MCP tools. No file-bridge, AppleScript, or private side-channels.
+- All image artifacts are saved to `Resources/screenshots/` via MCP tools. No `Resources/exports/`.
+- Every shader must carry a docstring name/description; MCP returns and persists this metadata.
 
 ## REPL Workflows (recipes Claude should follow)
 
 ### 1. Basic Loop
 - set_shader(code)
 - compile_shader() → if errors: get_compilation_errors() and fix
-- run_frame(time, uniforms, resolution, seed)
-- screenshot("desc") and record observations
+- run_frame(time, uniforms, resolution, seed) → returns image and writes to Resources/screenshots/
+- sessions.save_snapshot({label, uniforms}) to persist code+image+meta
 
 ### 2. Debugging Compilation Errors
 - get_compilation_errors() → use line/col/snippet to patch code
@@ -46,10 +51,10 @@ See DESIGN.md and WARP.md for details.
 - get_example_shader(type) → study → modify → document
 
 ## Conventions and Storage
-- Communication files under Resources/communication/*.json
-- Screenshots: Resources/screenshots/YYYY-MM-DD_HH-MM-SS_<desc>.png
-- Projects, snapshots, variants, presets: Resources/projects/<project-id>/*.json
-- Educational shader library: Resources/library/*.metal + metadata.json
+- All interactions occur via MCP tools (stdio). No `Resources/communication/*.json` control plane.
+- Screenshots: `Resources/screenshots/YYYY-MM-DD_HH-MM-SS_<desc>.png`
+- Sessions and variants: `Resources/sessions/<session-id>/*`
+- Educational shader library: `Resources/library/*.metal` + metadata.json
 
 ## WARP Alignment (must-do after each significant change)
 1. Update BUGS.md if issues discovered

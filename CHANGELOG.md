@@ -1,5 +1,20 @@
 # Changelog
 
+## [2025-09-11] - Enforce MCP-first policy; documentation and tests
+
+### Added
+- Jest policy test (tests/mcp_policy.test.js) to block AppleScript and file-bridge patterns in TypeScript code (excluding deprecated src/simple-mcp.ts).
+- GitHub issues created to track MCP-first enforcement, MCP consolidation, rendering/streaming/session/baseline tools, UI migration, output standardization, and CI visual regression via MCP.
+
+### Changed
+- WARP.md: Added "MCP-First Architecture & Enforcement" section; standardized artifacts to Resources/screenshots/; defined prohibited patterns and CI gates; updated last updated timestamp.
+- CLAUDE.md: Added MCP-First Rules; updated tool priorities to include validate_shader, start_preview_stream, sessions.*, baseline.*; removed communication-file control-plane reference; updated workflows to use MCP tools.
+- DESIGN.md: Removed "communication/ (MCP bridge files)" from persistence paths.
+
+### Deprecated
+- Resources/exports/ directory for new artifacts.
+- src/simple-mcp.ts remains as demo-only and will be removed after UI migration.
+
 ## [2025-09-09] - CI EPIC Progress Sync
 
 ### Changed

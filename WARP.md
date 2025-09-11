@@ -125,6 +125,44 @@ Resources/screenshots/2024-09-06_09-16-45_ui_parameter_panel_expanded.png
 - Tasks prioritized and executed systematically
 - Continuous improvement in process efficiency
 
+## 🧭 MCP-First Architecture & Enforcement
+
+The MCP server in `src/index.ts` is the canonical interface for all shader operations. The macOS app is a strict client of the MCP and MUST NOT perform actions outside the MCP tool vocabulary.
+
+Enforcement rules
+- Single source of truth: All compile, render, preview, profiling, library, session, baseline/diff, and parameter operations MUST be invoked via MCP tools. No private side-channels.
+- Prohibited patterns (blocked in tests/CI):
+  - Any use of AppleScript (e.g., `osascript`) to control the UI
+  - Any read/write to `Resources/communication/` as a control plane
+  - UI-initiated compilation/rendering that bypasses MCP
+- Output standardization:
+  - All image artifacts MUST be saved under `Resources/screenshots/` using the project naming convention
+  - `Resources/exports/` is deprecated and MUST NOT be used for new artifacts
+- Required MCP tools (min set surface):
+  - `set_shader`, `compile_shader`, `validate_shader`
+  - `run_frame`, `export_sequence`, `start_preview_stream`
+  - `update_uniforms`, `hot_reload`, `profile_performance`
+  - `baseline.set`, `baseline.diff`
+  - `sessions.save_snapshot`, `sessions.list`, `sessions.get`
+  - `library.search`, `library.get`, `library.inject`, `library.list_categories`
+  - `extract_parameters`, `generate_ui`, `infer_ranges`, `examples.get`
+- CI & tests:
+  - A Jest “policy” test fails the build if forbidden patterns are introduced into TypeScript code (outside the explicitly deprecated `src/simple-mcp.ts`).
+  - Visual regression, baseline/diff, and deterministic render checks MUST be exercised headlessly via MCP.
+- Documentation alignment:
+  - Foundational docs (this WARP.md and CLAUDE.md) define the MCP-first policy. Any prior instructions to the contrary are invalid and have been removed.
+  - README/SETUP reflect MCP-first usage; the app is an optional visualization client only.
+
+Agent responsibilities under MCP-first
+- When adding a new capability, first define it as an MCP tool with a clear input schema and deterministic outputs, then migrate the UI to call that tool.
+- If a UI feature cannot be expressed via MCP, do not implement it in the UI. Add an MCP tool first, update docs, add tests, then wire UI.
+
+Compliance gate
+- A change cannot merge unless:
+  - Policy tests pass (no forbidden patterns)
+  - Required MCP tools for the change are covered by unit/integration tests
+  - Visual evidence (where applicable) is produced via MCP tools and saved to `Resources/screenshots/`
+
 ## 🛠 Tools and Commands
 
 ### CI Automation: EPIC Progress Sync
@@ -208,6 +246,6 @@ python3 scripts/find_window_id.py
 
 ---
 
-**Last Updated**: 2025-09-07  
-**Project Structure**: ShaderPlayground.swift as main application file  
-**Key Changes**: Consolidated multi-agent workflow into single agent responsibilities
+**Last Updated**: 2025-09-11  
+**Project Structure**: MCP-first; macOS app is a strict MCP client  
+**Key Changes**: Enforced MCP-first policy; deprecated Resources/communication and AppleScript; standardized artifacts to Resources/screenshots/; added compliance gates (tests/CI)

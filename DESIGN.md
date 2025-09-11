@@ -67,8 +67,7 @@ Layout (3 columns):
     - HistoryView (Timeline + Detail)
 
 ## 4) Persistence Model (JSON)
-Paths under Resources/:
-- communication/  (MCP bridge files)
+Paths under Resources:
 - screenshots/
 - projects/<project-id>/project.json
 - projects/<project-id>/snapshots/<snapshot-id>.json
