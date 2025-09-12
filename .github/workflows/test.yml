@@ -7,15 +7,39 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Swift Tests and Quality Checks
     runs-on: macos-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
+    - name: Determine change scope (paths-filter)
+      id: changes
+      uses: dorny/paths-filter@v3
+      with:
+        filters: |
+          swift:
+            - 'Package.swift'
+            - 'Sources/**'
+            - '*.swift'
+            - 'Resources/communication/*.metal'
+            - 'shaders/*.metal'
+          tests:
+            - 'Tests/**'
+
+    - name: Short-circuit if no relevant changes on PR
+      if: github.event_name == 'pull_request' && steps.changes.outputs.swift != 'true' && steps.changes.outputs.tests != 'true'
+      run: |
+        echo "No Swift/tests changes detected; skipping."
+        exit 0
+
     - name: Set up Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
