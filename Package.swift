@@ -7,6 +7,7 @@ let package = Package(
         .macOS(.v12)
     ],
     products: [
+        .executable(name: "MetalShaderStudio", targets: ["MetalShaderStudio"]),
         .library(name: "MetalShaderCore", targets: ["MetalShaderCore"])
     ],
     targets: [
@@ -14,28 +15,9 @@ let package = Package(
             name: "MetalShaderCore",
             path: "Sources/MetalShaderCore"
         ),
-        .testTarget(
-            name: "MetalShaderTests",
-            dependencies: ["MetalShaderCore"],
-            path: "Tests/MetalShaderTests"
-        )
-    ]
-)
-
-// swift-tools-version: 5.9
-import PackageDescription
-
-let package = Package(
-    name: "MetalShaderMCP",
-    platforms: [
-        .macOS(.v12)
-    ],
-    products: [
-        .executable(name: "MetalShaderStudio", targets: ["MetalShaderStudio"]) 
-    ],
-    targets: [
         .executableTarget(
             name: "MetalShaderStudio",
+            dependencies: ["MetalShaderCore"],
             path: ".",
             sources: [
                 "ShaderPlayground.swift",
@@ -52,7 +34,7 @@ let package = Package(
         ),
         .testTarget(
             name: "MetalShaderTests",
-            dependencies: ["MetalShaderStudio"],
+            dependencies: ["MetalShaderCore"],
             path: "Tests/MetalShaderTests"
         )
     ]
