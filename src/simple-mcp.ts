@@ -7,7 +7,7 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { execSync } from 'child_process';
-import { writeFileSync, readFileSync, existsSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 const server = new Server(
@@ -223,8 +223,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const statusFile = 'Resources/communication/status.json';
         
         try {
-          // Ensure communication directory exists
-          execSync('mkdir -p Resources/communication');
+          // Ensure communication directory exists (avoid shell exec for safety)
+          try { mkdirSync('Resources/communication', { recursive: true }); } catch { /* ignore */ }
           
           // Write command
           writeFileSync(commandFile, JSON.stringify(command, null, 2));
