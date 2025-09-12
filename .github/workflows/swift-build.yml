@@ -6,6 +6,8 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+  schedule:
+    - cron: "25 6 * * *"  # daily @ 06:25 UTC
 
 jobs:
   swift-metal-build:

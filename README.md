@@ -181,6 +181,23 @@ The profiler measures:
 - Memory usage
 - Power consumption estimate
 
+## CI Contract
+
+Required status check names (branch protection):
+- Swift/Metal Compilation
+- Documentation Validation
+- Swift Tests and Quality Checks
+- Visual Testing and Screenshot Capture
+- WARP Workflow Compliance Check
+
+These names must match the job names in the workflows. A CI Contract workflow enforces this mapping so changes to job names don’t silently block merges.
+
+Manual re-run
+- All workflows are configured with workflow_dispatch so you can re-run any job manually on a ref if needed.
+
+Nightly schedule
+- Visual tests and a minimal Swift test smoke will run nightly to catch environment or runner changes early.
+
 ## Development Workflow
 
 ### After-Action Requirements
