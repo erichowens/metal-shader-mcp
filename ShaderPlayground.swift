@@ -41,6 +41,7 @@ struct ContentView: View {
     @StateObject private var renderer = MetalShaderRenderer()
     @StateObject private var session = SessionRecorder()
 @State private var shaderCode = defaultShader
+    private let mcp: MCPBridge = FileBridgeMCP()
     @State private var shaderMeta = ShaderMetadata.from(code: defaultShader, path: nil)
     
     let communicationDir = "Resources/communication"
@@ -107,8 +108,8 @@ VStack {
                     .padding()
                 
                 HStack {
-                    Button("Export Frame") {
-                        renderer.saveScreenshot()
+Button("Export Frame") {
+                        mcp.exportFrame(description: "manual_export", time: nil)
                     }
                     
                     Button("Export Sequence") {

@@ -291,33 +291,15 @@ struct SnapshotCard: View {
         } else {
             print("Warning: Could not read data from \(snapshot.jsonPath)")
         }
-        // Send set_shader command via bridge
-        let cmd: [String: Any] = [
-            "action": "set_shader",
-            "shader_code": code,
-            "description": "open_snapshot \(snapshot.id)",
-            "timestamp": Date().timeIntervalSince1970,
-            "no_snapshot": false
-        ]
-        if let data = try? JSONSerialization.data(withJSONObject: cmd, options: [.prettyPrinted]) {
-            try? FileManager.default.createDirectory(atPath: "Resources/communication", withIntermediateDirectories: true)
-            try? data.write(to: URL(fileURLWithPath: "Resources/communication/commands.json"))
-        }
+// Send set_shader via MCP bridge
+        let bridge = FileBridgeMCP()
+        bridge.setShader(code: code, name: nil, description: "open_snapshot \(snapshot.id)", path: nil, save: false, snapshot: true)
     }
 
     private func openInREPLSilent() {
         guard let code = try? String(contentsOfFile: snapshot.codePath, encoding: .utf8) else { return }
-        let cmd: [String: Any] = [
-            "action": "set_shader",
-            "shader_code": code,
-            "description": "open_snapshot_silent \(snapshot.id)",
-            "timestamp": Date().timeIntervalSince1970,
-            "no_snapshot": true
-        ]
-        if let data = try? JSONSerialization.data(withJSONObject: cmd, options: [.prettyPrinted]) {
-            try? FileManager.default.createDirectory(atPath: "Resources/communication", withIntermediateDirectories: true)
-            try? data.write(to: URL(fileURLWithPath: "Resources/communication/commands.json"))
-        }
+let bridge = FileBridgeMCP()
+        bridge.setShader(code: code, name: nil, description: "open_snapshot_silent \(snapshot.id)", path: nil, save: false, snapshot: false)
     }
 }
 
