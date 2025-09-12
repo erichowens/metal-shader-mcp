@@ -9,12 +9,19 @@ Owner: Automated Agent (this file is maintained so any agent can resume work)
   - PRIORITIES.md and weekly priorities-review workflow
   - Swift fix: write current_shader_meta.json instead of library_index.json
 
-## In Progress (this branch: ci/modernization)
-- Add concurrency cancel-in-progress, path filters, and label-gating:
-  - swift-build.yml: added concurrency + paths-filter + PR short-circuit
-  - test.yml: added concurrency + paths-filter + PR short-circuit
-  - visual-tests.yml: added concurrency + label-gating (visual-required)
-  - ui-smoke.yml: added concurrency block
+## In Progress (branches)
+- ci/modernization: CI speed-ups, concurrency, label-gating (PR #30)
+- feature/strict-mcp-client: strict MCP client in Swift (this branch)
+
+### Work started on strict MCP client
+- Added Sources/MetalShaderCore/MCPBridge.swift with MCPBridge protocol and FileBridgeMCP implementation (temporary bridge).
+- Refactored ShaderPlayground to use MCPBridge for exporting frames and snapshot-driven set_shader calls.
+
+### CI changes in flight
+- swift-build.yml: added concurrency + paths-filter + PR short-circuit
+- test.yml: added concurrency + paths-filter + PR short-circuit
+- visual-tests.yml: added concurrency + label-gating (visual-required)
+- ui-smoke.yml: added concurrency block
 
 ## Next Steps
 1) Update branch protection on main to require (see PRIORITIES.md):
