@@ -1,413 +1,139 @@
-#!/usr/bin/env node
+import fs from 'fs';
+import path from 'path';
+import { PNG } from 'pngjs';
 
-/**
- * Metal Shader MCP Server
- * Live Metal shader development with real-time preview and hot reload
- */
+export type ShaderMeta = {
+  name: string;
+  description: string;
+  path?: string;
+};
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  Tool,
-} from '@modelcontextprotocol/sdk/types.js';
-import { compileShader, validateShader } from './compiler.js';
-import { PreviewEngine } from './preview.js';
-import { HotReloadManager } from './hotReload.js';
-import { PerformanceProfiler } from './profiler.js';
-import { ShaderParameters } from './parameters.js';
+const COMM_DIR = path.join(process.cwd(), 'Resources', 'communication');
+const SCREENSHOTS_DIR = path.join(process.cwd(), 'Resources', 'screenshots');
 
-class MetalShaderMCPServer {
-  private server: Server;
-  private preview: PreviewEngine;
-  private hotReload: HotReloadManager;
-  private profiler: PerformanceProfiler;
-  private parameters: ShaderParameters;
-
-  constructor() {
-    this.server = new Server(
-      {
-        name: 'metal-shader-mcp',
-        version: '1.0.0',
-      },
-      {
-        capabilities: {
-          tools: {},
-        },
-      }
-    );
-
-    this.preview = new PreviewEngine();
-    this.hotReload = new HotReloadManager();
-    this.profiler = new PerformanceProfiler();
-    this.parameters = new ShaderParameters();
-
-    this.setupHandlers();
-  }
-
-  private setupHandlers() {
-    // List available tools
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-      tools: this.getTools(),
-    }));
-
-    // Handle tool calls
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
-
-      switch (name) {
-        case 'compile_shader':
-          return await this.handleCompileShader(args);
-        
-        case 'preview_shader':
-          return await this.handlePreviewShader(args);
-        
-        case 'update_uniforms':
-          return await this.handleUpdateUniforms(args);
-        
-        case 'profile_performance':
-          return await this.handleProfilePerformance(args);
-        
-        case 'hot_reload':
-          return await this.handleHotReload(args);
-        
-        case 'validate_shader':
-          return await this.handleValidateShader(args);
-
-        default:
-          throw new Error(`Unknown tool: ${name}`);
-      }
-    });
-  }
-
-  private getTools(): Tool[] {
-    return [
-      {
-        name: 'compile_shader',
-        description: 'Compile Metal shader code and return compilation results',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            code: { type: 'string', description: 'Metal shader source code' },
-            target: { 
-              type: 'string', 
-              enum: ['air', 'metallib', 'spirv'],
-              description: 'Compilation target format' 
-            },
-            optimize: { type: 'boolean', description: 'Enable optimizations' },
-          },
-          required: ['code'],
-        },
-      },
-      {
-        name: 'preview_shader',
-        description: 'Generate a preview image using the compiled shader',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            shaderPath: { type: 'string', description: 'Path to compiled shader' },
-            width: { type: 'number', description: 'Preview width in pixels' },
-            height: { type: 'number', description: 'Preview height in pixels' },
-            time: { type: 'number', description: 'Animation time (0-1)' },
-            touchPoint: {
-              type: 'object',
-              properties: {
-                x: { type: 'number' },
-                y: { type: 'number' },
-              },
-            },
-          },
-          required: ['shaderPath'],
-        },
-      },
-      {
-        name: 'update_uniforms',
-        description: 'Update shader uniform parameters',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            uniforms: {
-              type: 'object',
-              description: 'Key-value pairs of uniform names and values',
-            },
-          },
-          required: ['uniforms'],
-        },
-      },
-      {
-        name: 'profile_performance',
-        description: 'Profile shader performance metrics',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            shaderPath: { type: 'string', description: 'Path to compiled shader' },
-            iterations: { type: 'number', description: 'Number of test iterations' },
-            resolution: {
-              type: 'object',
-              properties: {
-                width: { type: 'number' },
-                height: { type: 'number' },
-              },
-            },
-          },
-          required: ['shaderPath'],
-        },
-      },
-      {
-        name: 'hot_reload',
-        description: 'Enable hot reload for a shader file',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            filePath: { type: 'string', description: 'Path to .metal file to watch' },
-            enable: { type: 'boolean', description: 'Enable or disable hot reload' },
-          },
-          required: ['filePath', 'enable'],
-        },
-      },
-      {
-        name: 'validate_shader',
-        description: 'Validate shader syntax and semantics',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            code: { type: 'string', description: 'Metal shader source code' },
-          },
-          required: ['code'],
-        },
-      },
-    ];
-  }
-
-  private async handleCompileShader(args: any) {
-    const { code, target = 'air', optimize = false } = args;
-    
-    try {
-      const result = await compileShader(code, { target, optimize });
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              success: result.success,
-              outputPath: result.outputPath,
-              errors: result.errors,
-              warnings: result.warnings,
-              compileTime: result.compileTime,
-            }, null, 2),
-          },
-        ],
-      };
-    } catch (error: any) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Compilation failed: ${error.message}`,
-          },
-        ],
-        isError: true,
-      };
-    }
-  }
-
-  private async handlePreviewShader(args: any) {
-    const { shaderPath, width = 512, height = 512, time = 0, touchPoint } = args;
-    
-    try {
-      const imageData = await this.preview.renderFrame({
-        shaderPath,
-        width,
-        height,
-        uniforms: {
-          time,
-          touchPoint: touchPoint || { x: 0.5, y: 0.5 },
-          resolution: { x: width, y: height },
-        },
-      });
-      
-      return {
-        content: [
-          {
-            type: 'image',
-            data: imageData.toString('base64'),
-            mimeType: 'image/png',
-          },
-        ],
-      };
-    } catch (error: any) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Preview failed: ${error.message}`,
-          },
-        ],
-        isError: true,
-      };
-    }
-  }
-
-  private async handleUpdateUniforms(args: any) {
-    const { uniforms } = args;
-    
-    this.parameters.updateUniforms(uniforms);
-    
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Updated ${Object.keys(uniforms).length} uniforms`,
-        },
-      ],
-    };
-  }
-
-  private async handleProfilePerformance(args: any) {
-    const { shaderPath, iterations = 100, resolution = { width: 512, height: 512 } } = args;
-    
-    try {
-      const metrics = await this.profiler.profileShader({
-        shaderPath,
-        iterations,
-        resolution,
-      });
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              averageFrameTime: `${metrics.averageFrameTime.toFixed(2)}ms`,
-              fps: metrics.fps.toFixed(1),
-              gpuTime: `${metrics.gpuTime.toFixed(2)}ms`,
-              cpuTime: `${metrics.cpuTime.toFixed(2)}ms`,
-              memoryUsage: `${(metrics.memoryUsage / 1024 / 1024).toFixed(1)}MB`,
-              powerUsage: metrics.powerUsage,
-            }, null, 2),
-          },
-        ],
-      };
-    } catch (error: any) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Profiling failed: ${error.message}`,
-          },
-        ],
-        isError: true,
-      };
-    }
-  }
-
-  private async handleHotReload(args: any) {
-    const { filePath, enable } = args;
-    
-    if (enable) {
-      await this.hotReload.watch(filePath, async (path) => {
-        // Notify about file change
-        this.server.notification({
-          method: 'shader/changed',
-          params: { path },
-        });
-      });
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Hot reload enabled for ${filePath}`,
-          },
-        ],
-      };
-    } else {
-      this.hotReload.unwatch(filePath);
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Hot reload disabled for ${filePath}`,
-          },
-        ],
-      };
-    }
-  }
-
-  private async handleValidateShader(args: any) {
-    const { code } = args;
-    
-    try {
-      const validation = await validateShader(code);
-      
-      return {
-        content: [
-          {
-            type: 'text',
-            text: JSON.stringify({
-              valid: validation.valid,
-              errors: validation.errors,
-              warnings: validation.warnings,
-              suggestions: validation.suggestions,
-            }, null, 2),
-          },
-        ],
-      };
-    } catch (error: any) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Validation failed: ${error.message}`,
-          },
-        ],
-        isError: true,
-      };
-    }
-  }
-
-  async run() {
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
-    console.error('Metal Shader MCP Server running on stdio');
-  }
+function ensureDir(p: string) {
+  fs.mkdirSync(p, { recursive: true });
 }
 
-// Start the server
-const server = new MetalShaderMCPServer();
-server.run().catch(console.error);
+function writeJSON(filePath: string, obj: any) {
+  ensureDir(path.dirname(filePath));
+  fs.writeFileSync(filePath, JSON.stringify(obj, null, 2), 'utf8');
+}
 
-// Keep the process alive and handle stdio properly
-process.stdin.resume();
+export function extractDocstring(code: string): ShaderMeta {
+  const trimmed = code.trim();
+  let title = '';
+  let desc = '';
+  const start = trimmed.indexOf('/**');
+  if (start >= 0) {
+    const end = trimmed.indexOf('*/', start + 3);
+    if (end > start) {
+      const block = trimmed.slice(start + 3, end);
+      const lines = block.split(/\r?\n/).map(l => l.replace(/^\s*\*\s?/, '').trim());
+      let i = 0;
+      while (i < lines.length && lines[i].length === 0) i++;
+      if (i < lines.length) {
+        title = lines[i++];
+      }
+      const descLines: string[] = [];
+      while (i < lines.length && lines[i].length > 0) {
+        descLines.push(lines[i++]);
+      }
+      desc = descLines.join(' ');
+    }
+  }
+  if (!title) title = 'Untitled Shader';
+  return { name: title, description: desc };
+}
 
-// Handle parent process termination (for when launched from Swift)
-if (process.argv.includes('--stdio')) {
-  // Monitor stdin for EOF (parent process terminated)
-  process.stdin.on('end', () => {
-    console.error('Parent process terminated, shutting down...');
-    process.exit(0);
-  });
-  
-  // Handle SIGINT and SIGTERM gracefully
-  process.on('SIGINT', () => {
-    console.error('Received SIGINT, shutting down gracefully...');
-    process.exit(0);
-  });
-  
-  process.on('SIGTERM', () => {
-    console.error('Received SIGTERM, shutting down gracefully...');
-    process.exit(0);
-  });
-  
-  // Prevent uncaught exceptions from crashing
-  process.on('uncaughtException', (err) => {
-    console.error('Uncaught exception:', err);
-  });
-  
-  process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled rejection at:', promise, 'reason:', reason);
-  });
+export async function setShader(code: string, opts: { name?: string; description?: string; path?: string; save?: boolean; noSnapshot?: boolean } = {}) {
+  ensureDir(COMM_DIR);
+  const meta = extractDocstring(code);
+  const payload: any = {
+    action: opts.name || opts.description || opts.path ? 'set_shader_with_meta' : 'set_shader',
+    shader_code: code,
+    name: opts.name ?? meta.name,
+    description: opts.description ?? meta.description,
+    path: opts.path ?? '',
+    save: Boolean(opts.save),
+    no_snapshot: Boolean(opts.noSnapshot),
+    timestamp: Date.now() / 1000
+  };
+  writeJSON(path.join(COMM_DIR, 'commands.json'), payload);
+}
+
+function listNewScreenshots(token: string, since: number): string[] {
+  if (!fs.existsSync(SCREENSHOTS_DIR)) return [];
+  const files = fs.readdirSync(SCREENSHOTS_DIR)
+    .filter(f => f.endsWith('.png') && f.includes(token))
+    .map(f => path.join(SCREENSHOTS_DIR, f));
+  return files.filter(f => {
+    try {
+      const st = fs.statSync(f);
+      return st.mtimeMs >= since;
+    } catch { return false; }
+  }).sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+}
+
+async function wait(ms: number) { return new Promise(res => setTimeout(res, ms)); }
+
+async function generatePlaceholderPNG(filename: string, label: string) {
+  ensureDir(SCREENSHOTS_DIR);
+  const width = 512, height = 512;
+  const png = new PNG({ width, height });
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (width * y + x) << 2;
+      png.data[idx] = Math.floor((x / width) * 255);
+      png.data[idx + 1] = Math.floor((y / height) * 255);
+      png.data[idx + 2] = 128;
+      png.data[idx + 3] = 255;
+    }
+  }
+  const buffer = (PNG as any).sync.write(png as any);
+  fs.writeFileSync(filename, buffer);
+}
+
+export async function exportFrame(description: string, time?: number, opts: { waitSeconds?: number } = {}) {
+  ensureDir(COMM_DIR);
+  const now = Date.now();
+  const payload: any = { action: 'export_frame', description, time, timestamp: now / 1000 };
+  writeJSON(path.join(COMM_DIR, 'commands.json'), payload);
+
+  const waitSeconds = opts.waitSeconds ?? 6;
+  const until = Date.now() + waitSeconds * 1000;
+  while (Date.now() < until) {
+    const found = listNewScreenshots(description, now);
+    if (found.length > 0) return found[0];
+    await wait(200);
+  }
+  if (process.env.MCP_FAKE_RENDER === '1') {
+    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19).replace('T', '_');
+    const filename = path.join(SCREENSHOTS_DIR, `${ts}_${description}.png`);
+    await generatePlaceholderPNG(filename, description);
+    return filename;
+  }
+  throw new Error(`Timed out waiting for exported frame containing '${description}'.`);
+}
+
+if (process.argv[1] && path.basename(process.argv[1]).includes('index')) {
+  (async () => {
+    const cmd = process.argv[2];
+    if (cmd === 'set_shader') {
+      const fileArg = process.argv[3];
+      if (!fileArg) { console.error('Usage: node dist/index.js set_shader <file.metal>'); process.exit(1); }
+      const code = fs.readFileSync(fileArg, 'utf8');
+      await setShader(code);
+      console.log('set_shader command issued.');
+    } else if (cmd === 'export_frame') {
+      const description = process.argv[3] ?? 'mcp_export';
+      const time = process.argv[4] ? Number(process.argv[4]) : undefined;
+      const out = await exportFrame(description, time);
+      console.log(out);
+    } else if (cmd === 'extract_meta') {
+      const fileArg = process.argv[3];
+      const code = fileArg ? fs.readFileSync(fileArg, 'utf8') : '';
+      console.log(JSON.stringify(extractDocstring(code), null, 2));
+    }
+  })().catch(err => { console.error(err); process.exit(1); });
 }

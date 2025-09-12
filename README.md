@@ -2,6 +2,7 @@
 
 [![Swift/Metal Build](https://github.com/erichowens/metal-shader-mcp/actions/workflows/swift-build.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/swift-build.yml)
 [![Tests](https://github.com/erichowens/metal-shader-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/test.yml)
+[![MCP Node/TypeScript Tests](https://github.com/erichowens/metal-shader-mcp/actions/workflows/node-tests.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/node-tests.yml)
 [![Documentation](https://github.com/erichowens/metal-shader-mcp/actions/workflows/documentation.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/documentation.yml)
 [![Visual Tests](https://github.com/erichowens/metal-shader-mcp/actions/workflows/visual-tests.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/visual-tests.yml)
 [![WARP Compliance](https://github.com/erichowens/metal-shader-mcp/actions/workflows/warp-compliance.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/warp-compliance.yml)

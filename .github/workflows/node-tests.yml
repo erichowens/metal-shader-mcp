@@ -1,0 +1,56 @@
+name: MCP Node/TypeScript Tests
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'tsconfig.json'
+      - 'jest.config.cjs'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'tsconfig.json'
+      - 'jest.config.cjs'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+- name: Install deps
+        run: npm install
+
+      - name: Run tests (fake render)
+        env:
+          MCP_FAKE_RENDER: '1'
+        run: npm test --silent
+
+      - name: Upload Jest results (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-jest-results
+          path: |
+            junit.xml
+            coverage
+          if-no-files-found: ignore

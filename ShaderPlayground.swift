@@ -369,7 +369,8 @@ extension ContentView {
             "path": meta.path ?? "",
             "timestamp": Date().timeIntervalSince1970
         ]
-MCP.shared.writeJSON(obj, to: communicationDir + "/library_index.json")
+        // Write to a dedicated current shader metadata file (not the library index)
+        MCP.shared.writeJSON(obj, to: communicationDir + "/current_shader_meta.json")
     }
 }
 
