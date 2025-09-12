@@ -55,10 +55,8 @@ struct AppShellView: View {
             "current_tab": appState.selectedTab.rawValue,
             "timestamp": Date().timeIntervalSince1970
         ]
-        if let data = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted]) {
-            try? FileManager.default.createDirectory(atPath: "Resources/communication", withIntermediateDirectories: true)
-            try? data.write(to: URL(fileURLWithPath: "Resources/communication/status.json"))
-        }
+        // Delegate to MCP client to avoid hardcoded file operations here
+MCP.shared.writeJSON(obj, to: "Resources/communication/status.json")
     }
 }
 

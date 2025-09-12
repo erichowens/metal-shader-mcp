@@ -129,7 +129,7 @@ VStack {
     }
     
     // MARK: - Communication Functions
-private func setupCommunication() {
+    private func setupCommunication() {
         // Ensure metadata is initialized
         shaderMeta = ShaderMetadata.from(code: shaderCode, path: shaderStateFile)
         writeCurrentShaderMeta()
@@ -137,13 +137,11 @@ private func setupCommunication() {
         try? FileManager.default.createDirectory(atPath: communicationDir, withIntermediateDirectories: true)
         
         // Initialize shader state file
-        try? shaderCode.write(toFile: shaderStateFile, atomically: true, encoding: .utf8)
+MCP.shared.writeText(shaderCode, to: shaderStateFile)
         
         // Initialize status file
         let status = ["status": "ready", "timestamp": Date().timeIntervalSince1970] as [String: Any]
-        if let statusData = try? JSONSerialization.data(withJSONObject: status) {
-            try? statusData.write(to: URL(fileURLWithPath: statusFile))
-        }
+MCP.shared.writeJSON(status, to: statusFile)
     }
     
 private func startMonitoringCommands() {
@@ -261,12 +259,10 @@ case "get_shader_meta":
             "error": error as Any
         ] as [String: Any]
         
-        if let statusData = try? JSONSerialization.data(withJSONObject: status) {
-            try? statusData.write(to: URL(fileURLWithPath: statusFile))
-        }
+MCP.shared.writeJSON(status, to: statusFile)
         
         // Also update shader state file
-        try? shaderCode.write(toFile: shaderStateFile, atomically: true, encoding: .utf8)
+MCP.shared.writeText(shaderCode, to: shaderStateFile)
     }
 }
 
@@ -373,10 +369,7 @@ extension ContentView {
             "path": meta.path ?? "",
             "timestamp": Date().timeIntervalSince1970
         ]
-        if let data = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted]) {
-            try? FileManager.default.createDirectory(atPath: communicationDir, withIntermediateDirectories: true)
-            try? data.write(to: URL(fileURLWithPath: communicationDir + "/shader_meta.json"))
-        }
+MCP.shared.writeJSON(obj, to: communicationDir + "/library_index.json")
     }
 }
 

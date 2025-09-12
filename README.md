@@ -33,6 +33,7 @@ Metal Shader MCP is a macOS SwiftUI + Metal playground with a disciplined workfl
 ```bash
 swiftc -o MetalShaderStudio \
   ShaderPlayground.swift AppShellView.swift HistoryTabView.swift SessionRecorder.swift \
+  Sources/MetalShaderCore/MCPClient.swift \
   -framework SwiftUI -framework MetalKit -framework AppKit -framework UniformTypeIdentifiers \
   -parse-as-library
 
