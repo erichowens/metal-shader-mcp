@@ -1,3 +1,21 @@
+# CLAUDE.md — Creative Direction and Assistant Guidance
+
+This project follows an MCP‑first, evidence‑driven workflow. For upcoming work and priorities, consult the living roadmap.
+
+- Roadmap (single source of truth): ROADMAP.md
+- Priorities/process policy: PRIORITIES.md (required checks, single‑flight PRs)
+- Handoff/state: AGENT_HANDOFF.md
+
+Guidance for Claude and other assistants
+- Always check ROADMAP.md first to understand what’s next.
+- If you discover future work, write it down in ROADMAP.md under the appropriate epic and open an issue/PR as needed.
+- Keep the roadmap living: re‑consider scope weekly; prune, promote, or defer.
+- Follow the single‑flight PR policy to reduce cognitive load.
+
+Notes
+- File‑bridge is being deprecated in favor of a strict MCP client. See README for the deprecation timeline.
+- Visual tests on PR require the label `visual-required`; they always run on main.
+
 # Claude Shader REPL Guide
 
 A pragmatic guide for building beautiful shaders with fast, visual iteration. This replaces the previous aspirational document and aligns with our WARP.md single-agent workflow.

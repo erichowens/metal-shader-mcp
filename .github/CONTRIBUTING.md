@@ -245,6 +245,8 @@ brew install imagemagick pngcrush
 
 ## 📞 Getting Help
 
+Always check ROADMAP.md first for current plan and next actions. Update it when you scope future work.
+
 - **GitHub Issues**: For bug reports and feature requests
 - **GitHub Discussions**: For questions and general discussion  
 - **Pull Request Comments**: For code-specific questions

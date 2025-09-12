@@ -1,6 +1,11 @@
 # WARP Agent Workflow Protocol
 
-## 🔄 After-Action Requirements
+## After-Action Requirements
+
+Roadmap as first-class artifact
+- For any significant change, update ROADMAP.md with new tasks or adjustments.
+- Weekly: revisit the roadmap; ensure it reflects the truth of what’s next.
+- Keep single‑flight PRs: one active core PR; others draft.
 **CRITICAL**: After every significant agent action, these steps MUST be completed:
 
 ### 1. **BUGS.md Update** 
