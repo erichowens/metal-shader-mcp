@@ -86,15 +86,69 @@ jobs:
           echo "✅ Created basic shader tests"
         fi
     
-    - name: Run Swift tests
+    - name: Run Swift tests (no coverage)
       run: |
-        echo "Running Swift tests..."
+        echo "Running Swift tests (baseline)..."
         if swift test --verbose 2>&1; then
-          echo "✅ All Swift tests passed"
+          echo "✅ Swift tests completed"
         else
-          echo "⚠️ Some tests failed or no tests found"
-          # Don't fail the build if tests are not yet implemented
-          # exit 1
+          echo "⚠️ Swift tests reported failures or none found"
+        fi
+
+    - name: Run Swift tests with code coverage
+      run: |
+        echo "Running Swift tests with coverage..."
+        set -e
+        swift test --enable-code-coverage
+
+    - name: Generate coverage report (llvm-cov)
+      run: |
+        set -eo pipefail
+        echo "Generating coverage report..."
+        PROF=$(ls -1 .build/debug/codecov/*.profdata 2>/dev/null | head -1 || true)
+        if [ -z "$PROF" ]; then
+          echo "⚠️ No .profdata found in .build/debug/codecov/"
+        fi
+        BINARIES=()
+        if [ -x ".build/debug/MetalShaderStudio" ]; then BINARIES+=(".build/debug/MetalShaderStudio"); fi
+        for x in .build/debug/*.xctest/Contents/MacOS/*; do
+          if [ -x "$x" ]; then BINARIES+=("$x"); fi
+        done
+        if [ -n "$PROF" ] && [ ${#BINARIES[@]} -gt 0 ]; then
+          echo "Using profdata: $PROF"
+          echo "Binaries: ${BINARIES[*]}"
+          xcrun llvm-cov export -format=lcov -instr-profile "$PROF" ${BINARIES[@]} > coverage.lcov || true
+          xcrun llvm-cov report -instr-profile "$PROF" ${BINARIES[@]} > coverage.txt || true
+          echo "✅ Coverage artifacts generated"
+        else
+          echo "⚠️ Skipping coverage export - missing profdata or binaries"
+        fi
+
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage
+        path: |
+          coverage.lcov
+          coverage.txt
+        retention-days: 7
+
+    - name: Coverage summary
+      run: |
+        echo "## 📊 Coverage Summary" >> $GITHUB_STEP_SUMMARY
+        if [ -f coverage.txt ]; then
+          echo "### llvm-cov Report" >> $GITHUB_STEP_SUMMARY
+          TOTAL_LINE=$(grep -E "^TOTAL|TOTAL:" coverage.txt | head -1 || true)
+          if [ -n "$TOTAL_LINE" ]; then
+            echo "- $TOTAL_LINE" >> $GITHUB_STEP_SUMMARY
+          else
+            # Fallback: show last lines
+            tail -n 5 coverage.txt >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Artifacts: coverage.lcov, coverage.txt" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- Coverage report not generated (no profdata/binaries)." >> $GITHUB_STEP_SUMMARY
         fi
     
     - name: Validate Metal shader files compilation
