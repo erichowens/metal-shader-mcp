@@ -37,8 +37,8 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-- name: Install deps
-        run: npm install
+      - name: Install deps
+        run: npm ci || npm install
 
       - name: Run tests (fake render)
         env:
