@@ -695,7 +695,7 @@ class MetalShaderRenderer: ObservableObject {
         dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
         let timestamp = dateFormatter.string(from: Date())
         let filename = "\(timestamp)_\(description).png"
-        let resourcesDir = "Resources/exports"
+        let resourcesDir = "Resources/screenshots"
         
         // Create directory if it doesn't exist
         try? FileManager.default.createDirectory(atPath: resourcesDir, withIntermediateDirectories: true)

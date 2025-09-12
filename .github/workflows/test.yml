@@ -342,6 +342,22 @@ jobs:
           **/*.air
         retention-days: 7
     
+    - name: Enforce UI MCP policy (no direct file writes in UI)
+      run: |
+        echo "Enforcing MCP policy in UI files..."
+        FAIL=0
+        for f in ShaderPlayground.swift AppShellView.swift; do
+          if grep -nE "write\(toFile:|FileManager\.default\.createDirectory\(" "$f"; then
+            echo "❌ Direct file system writes found in $f. Route via MCP.shared instead."
+            FAIL=1
+          fi
+        done
+        if grep -R "Resources/exports" -n --include "*.swift" .; then
+          echo "❌ Found deprecated Resources/exports usage in Swift files. Use Resources/screenshots."
+          FAIL=1
+        fi
+        if [ $FAIL -ne 0 ]; then exit 1; fi
+
     - name: Test summary
       run: |
         echo "## 🧪 Test Summary" >> $GITHUB_STEP_SUMMARY
