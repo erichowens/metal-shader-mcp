@@ -11,6 +11,8 @@
 A complete system for AI-assisted Metal shader development where Claude can write, modify, and visually iterate on shaders in real-time.
 
 ## Project overview
+
+Note: The legacy file-bridge (writing commands to Resources/communication) is being deprecated in favor of a strict MCP client. See Deprecation notice below.
 Metal Shader MCP is a macOS SwiftUI + Metal playground with a disciplined workflow for shader iteration, visual evidence, and CI. An MCP layer is planned to let AI assistants interact with the app (compile, preview, snapshot), but today the primary entry point is the macOS app you can compile and run locally.
 
 ## Current state (as of 2025-09-08)
@@ -216,6 +218,12 @@ swift test --filter VisualRegressionTests
 - **VISUAL_TESTING.md** - Visual testing framework
 - **BUGS.md** - Current issues and solutions
 - **CHANGELOG.md** - Project evolution history
+
+## Deprecation notice (file-bridge)
+
+- The file-bridge (commands.json polling) is transitional and will be removed once the strict MCP client (MCPLiveClient) is integrated into the Swift app via MCPBridge.
+- Target: replace bridge with proper MCP transport (stdio/websocket), remove polling, add robust error handling.
+- Timeline: as soon as PR #29 merges, we’ll proceed with PR #32 to complete this migration.
 
 ## Contributing
 

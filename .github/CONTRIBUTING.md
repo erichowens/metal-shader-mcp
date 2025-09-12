@@ -20,6 +20,8 @@ Thank you for your interest in contributing to the Metal Shader MCP project! Thi
 
 ## 🔄 CI/CD Pipeline
 
+Note: Visual tests are label-gated on pull requests. Add the label `visual-required` to run them on your PR. They always run on pushes to main.
+
 Our GitHub Actions workflows automatically run on every push and pull request:
 
 ### 1. Swift/Metal Build (`swift-build.yml`)
@@ -119,6 +121,8 @@ xcrun -sdk macosx metal -c shaders/*.metal
 ```
 
 ## 📝 WARP Workflow Requirements
+
+Process policy: We operate with a single-flight PR policy for core work. Only one active (non-draft) PR should be open at a time; others remain draft and are rebased after the active PR merges.
 
 Our project follows the WARP (Workflow Agent Review Protocol). **Every significant change must include**:
 
