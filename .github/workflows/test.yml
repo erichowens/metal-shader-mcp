@@ -28,7 +28,7 @@ jobs:
           swift:
             - 'Package.swift'
             - 'Sources/**'
-            - '*.swift'
+            - '**/*.swift'
             - 'Resources/communication/*.metal'
             - 'shaders/*.metal'
           tests:

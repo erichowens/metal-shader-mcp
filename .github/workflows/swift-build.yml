@@ -28,7 +28,7 @@ jobs:
           swift:
             - 'Package.swift'
             - 'Sources/**'
-            - '*.swift'
+            - '**/*.swift'
             - 'Resources/communication/*.metal'
             - 'shaders/*.metal'
           docs:
@@ -38,11 +38,10 @@ jobs:
       if: github.event_name == 'pull_request' && steps.changes.outputs.swift != 'true'
       run: |
         echo "No Swift/shader changes detected; skipping build."
-        echo "skipped=true" >> $GITHUB_OUTPUT
         exit 0
 
     - name: Set up Xcode
-    
+      uses: maxim-lobanov/setup-xcode@v1
       with:
         xcode-version: latest-stable
     
