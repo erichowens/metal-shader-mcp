@@ -7,15 +7,39 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   visual-tests:
     name: Visual Testing and Screenshot Capture
     runs-on: macos-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
+    - name: Determine change scope (paths-filter)
+      id: changes
+      uses: dorny/paths-filter@v3
+      with:
+        filters: |
+          visual:
+            - 'Resources/screenshots/**'
+            - '*.swift'
+            - 'Sources/**'
+            - 'shaders/*.metal'
+            - 'Resources/communication/*.metal'
+
+    - name: Skip unless label or explicit push to main
+      if: |
+        github.event_name == 'pull_request' &&
+        !contains(join(github.event.pull_request.labels.*.name), 'visual-required')
+      run: |
+        echo "Skipping visual tests (no 'visual-required' label)."
+        exit 0
+
     - name: Set up Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
