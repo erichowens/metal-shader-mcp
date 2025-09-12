@@ -86,7 +86,7 @@ jobs:
           echo "✅ Created basic shader tests"
         fi
     
-- name: Run Swift tests (no coverage)
+    - name: Run Swift tests (no coverage)
       run: |
         echo "Running Swift tests (baseline)..."
         if swift test --verbose 2>&1; then
