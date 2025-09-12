@@ -116,7 +116,7 @@ final class SessionRecorder: ObservableObject {
     }
 
     private func waitForLatestExport(matching desc: String, timeoutSec: TimeInterval) -> String? {
-        let dir = "Resources/exports"
+        let dir = "Resources/screenshots"
         let start = Date()
         while Date().timeIntervalSince(start) < timeoutSec {
             if let path = latestPNG(in: dir, containing: desc) { return path }
