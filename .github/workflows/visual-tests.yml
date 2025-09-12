@@ -6,11 +6,16 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+  schedule:
+    - cron: "15 6 * * *"  # daily @ 06:15 UTC
 
 jobs:
   visual-tests:
     name: Visual Testing and Screenshot Capture
-    runs-on: macos-latest
+    runs-on: macos-14
+    concurrency:
+      group: visual-tests-${{ github.ref }}
+      cancel-in-progress: true
     
     steps:
     - name: Checkout code
@@ -19,7 +24,7 @@ jobs:
     - name: Set up Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: latest-stable
+        xcode-version: '16.0'
 
     - name: Build with SwiftPM
       run: |

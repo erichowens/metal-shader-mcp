@@ -10,7 +10,10 @@ on:
 jobs:
   validate-docs:
     name: Documentation Validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: docs-${{ github.ref }}
+      cancel-in-progress: true
     
     steps:
     - name: Checkout code

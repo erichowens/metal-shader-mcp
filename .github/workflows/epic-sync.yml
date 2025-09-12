@@ -17,7 +17,10 @@ permissions:
 jobs:
   epic-sync:
     name: Post progress to EPIC issues
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: epic-sync-${{ github.ref }}
+      cancel-in-progress: true
     if: >-
       ${{ github.event_name == 'push' ||
           (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false) ||
