@@ -10,7 +10,10 @@ on:
 jobs:
   warp-compliance:
     name: WARP Workflow Compliance Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: warp-compliance-${{ github.ref }}
+      cancel-in-progress: true
     
     steps:
     - name: Checkout code

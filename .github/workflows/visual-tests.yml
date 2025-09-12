@@ -10,7 +10,10 @@ on:
 jobs:
   visual-tests:
     name: Visual Testing and Screenshot Capture
-    runs-on: macos-latest
+    runs-on: macos-14
+    concurrency:
+      group: visual-tests-${{ github.ref }}
+      cancel-in-progress: true
     
     steps:
     - name: Checkout code
@@ -19,7 +22,7 @@ jobs:
     - name: Set up Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: latest-stable
+        xcode-version: '16.0'
 
     - name: Build with SwiftPM
       run: |

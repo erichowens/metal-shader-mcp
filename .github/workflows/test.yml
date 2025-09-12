@@ -10,7 +10,10 @@ on:
 jobs:
   test:
     name: Swift Tests and Quality Checks
-    runs-on: macos-latest
+    runs-on: macos-14
+    concurrency:
+      group: tests-${{ github.ref }}
+      cancel-in-progress: true
     
     steps:
     - name: Checkout code
@@ -19,7 +22,7 @@ jobs:
     - name: Set up Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
-        xcode-version: latest-stable
+        xcode-version: '16.0'
     
     # Using committed Package.swift; no need to generate one in CI
     

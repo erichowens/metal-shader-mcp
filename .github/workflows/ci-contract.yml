@@ -1,0 +1,59 @@
+name: CI Contract Enforcement
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  contract:
+    name: Verify required check names are present
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: ci-contract-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get required contexts from branch protection
+        id: req
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REQ=$(gh api -H "Accept: application/vnd.github+json" \
+            repos/${{ github.repository }}/branches/main/protection \
+            --jq '.required_status_checks.contexts')
+          echo "required_contexts=$REQ" >> $GITHUB_OUTPUT
+
+      - name: Check workflow job names
+        run: |
+          echo "Required contexts: ${{ steps.req.outputs.required_contexts }}"
+          # Build list of job names from all workflow files
+          JOBS=$(grep -R "^\s*name:\s" .github/workflows | \
+            sed -n 's/.*name:\s\+\(.*\)/\1/p' | sed 's/\r$//' | sort -u)
+          echo "Workflow job names:"; echo "$JOBS"
+
+          # Verify each required context is present in workflow job names
+          python3 - << 'PY'
+          import json, os
+          required = json.loads(os.environ.get('REQ_CTX', '[]'))
+          jobs = os.environ.get('WF_JOBS','').splitlines()
+          missing = [c for c in required if c not in jobs]
+          if missing:
+              print("Missing required contexts in workflows:", missing)
+              exit(1)
+          else:
+              print("All required contexts found.")
+          PY
+        env:
+          REQ_CTX: ${{ steps.req.outputs.required_contexts }}
+          WF_JOBS: ${{ steps.req.outputs.required_contexts }}
+
+      - name: Summarize
+        run: |
+          echo "## 🔒 CI Contract" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Required contexts checked against workflow names" >> $GITHUB_STEP_SUMMARY
