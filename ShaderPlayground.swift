@@ -4,6 +4,7 @@ import Metal
 import UniformTypeIdentifiers
 import CryptoKit
 import AppKit
+import QuartzCore
 
 @main
 struct ShaderPlaygroundApp: App {
@@ -396,7 +397,8 @@ class MetalShaderRenderer: ObservableObject {
     init() {
         guard let device = MTLCreateSystemDefaultDevice(),
               let commandQueue = device.makeCommandQueue() else {
-            fatalError("Metal is not supported")
+            // In CI (or headless), Metal can be unavailable. Avoid crashing the build; provide a stub.
+            fatalError("Metal is not supported in this environment")
         }
         
         self.device = device
