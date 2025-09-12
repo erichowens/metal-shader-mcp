@@ -7,15 +7,39 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   swift-metal-build:
     name: Swift/Metal Compilation
     runs-on: macos-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
+    - name: Determine change scope (paths-filter)
+      id: changes
+      uses: dorny/paths-filter@v3
+      with:
+        filters: |
+          swift:
+            - 'Package.swift'
+            - 'Sources/**'
+            - '**/*.swift'
+            - 'Resources/communication/*.metal'
+            - 'shaders/*.metal'
+          docs:
+            - '**/*.md'
+
+    - name: Short-circuit if no Swift or shader changes on PR
+      if: github.event_name == 'pull_request' && steps.changes.outputs.swift != 'true'
+      run: |
+        echo "No Swift/shader changes detected; skipping build."
+        exit 0
+
     - name: Set up Xcode
       uses: maxim-lobanov/setup-xcode@v1
       with:
