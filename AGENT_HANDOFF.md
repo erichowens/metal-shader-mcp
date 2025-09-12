@@ -23,6 +23,12 @@ Owner: Automated Agent (this file is maintained so any agent can resume work)
 - visual-tests.yml: added concurrency + label-gating (visual-required)
 - ui-smoke.yml: added concurrency block
 
+## Single-flight pull request policy
+To reduce cognitive load, we move forward one active PR at a time. All other related PRs are kept in draft until the current PR merges.
+
+Current active PR: #30 (CI modernization)
+Follow-ups (draft): #29 (headless MCP helpers), #32 (strict MCP client groundwork)
+
 ## Next Steps
 1) Update branch protection on main to require (see PRIORITIES.md):
    - MCP Node/TypeScript Tests
