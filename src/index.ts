@@ -46,10 +46,38 @@ export function extractDocstring(code: string): ShaderMeta {
   return { name: title, description: desc };
 }
 
+function isSafePathSegment(p?: string): boolean {
+  if (!p) return true;
+  if (p.includes('..') || p.includes('~') || p.startsWith('/') || p.includes('\\')) return false;
+  return true;
+}
+
+function validateCommandPayload(payload: any): void {
+  if (!payload || typeof payload !== 'object') throw new Error('Invalid payload: not an object');
+  const action = payload.action;
+  if (action !== 'set_shader' && action !== 'set_shader_with_meta' && action !== 'export_frame') {
+    throw new Error(`Invalid action: ${action}`);
+  }
+  if (action === 'set_shader' || action === 'set_shader_with_meta') {
+    if (typeof payload.shader_code !== 'string' || payload.shader_code.length < 1) {
+      throw new Error('shader_code must be a non-empty string');
+    }
+    if (payload.description && typeof payload.description !== 'string') throw new Error('description must be string');
+    if (!isSafePathSegment(payload.path)) throw new Error('unsafe path');
+  }
+  if (action === 'export_frame') {
+    if (typeof payload.description !== 'string' || payload.description.length < 1) {
+      throw new Error('description must be a non-empty string');
+    }
+    if (payload.time != null && typeof payload.time !== 'number') throw new Error('time must be number');
+  }
+}
+
 export async function setShader(code: string, opts: { name?: string; description?: string; path?: string; save?: boolean; noSnapshot?: boolean } = {}) {
   ensureDir(COMM_DIR);
   const meta = extractDocstring(code);
   const payload: any = {
+    v: 1,
     action: opts.name || opts.description || opts.path ? 'set_shader_with_meta' : 'set_shader',
     shader_code: code,
     name: opts.name ?? meta.name,
@@ -59,6 +87,7 @@ export async function setShader(code: string, opts: { name?: string; description
     no_snapshot: Boolean(opts.noSnapshot),
     timestamp: Date.now() / 1000
   };
+  validateCommandPayload(payload);
   writeJSON(path.join(COMM_DIR, 'commands.json'), payload);
 }
 
@@ -97,16 +126,40 @@ async function generatePlaceholderPNG(filename: string, label: string) {
 export async function exportFrame(description: string, time?: number, opts: { waitSeconds?: number } = {}) {
   ensureDir(COMM_DIR);
   const now = Date.now();
-  const payload: any = { action: 'export_frame', description, time, timestamp: now / 1000 };
+  const payload: any = { v: 1, action: 'export_frame', description, time, timestamp: now / 1000 };
+  validateCommandPayload(payload);
   writeJSON(path.join(COMM_DIR, 'commands.json'), payload);
 
   const waitSeconds = opts.waitSeconds ?? 6;
-  const until = Date.now() + waitSeconds * 1000;
-  while (Date.now() < until) {
-    const found = listNewScreenshots(description, now);
-    if (found.length > 0) return found[0];
-    await wait(200);
+  const deadline = Date.now() + waitSeconds * 1000;
+
+  // Try event-based detection first
+  let foundPath: string | null = null;
+  try {
+    const watcher = (fs as any).watch(SCREENSHOTS_DIR, { persistent: false }, () => {
+      const f = listNewScreenshots(description, now);
+      if (f.length > 0 && !foundPath) { foundPath = f[0]; watcher.close(); }
+    });
+    // Wait up to waitSeconds
+    const start = Date.now();
+    while (!foundPath && Date.now() - start < waitSeconds * 1000) {
+      await wait(50);
+    }
+    try { watcher.close(); } catch {}
+    if (foundPath) return foundPath;
+  } catch {
+    // ignore
   }
+
+  // Backoff polling as fallback
+  let delay = 100;
+  while (Date.now() < deadline) {
+    const f = listNewScreenshots(description, now);
+    if (f.length > 0) return f[0];
+    await wait(delay);
+    delay = Math.min(delay * 2, 800);
+  }
+
   if (process.env.MCP_FAKE_RENDER === '1') {
     const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19).replace('T', '_');
     const filename = path.join(SCREENSHOTS_DIR, `${ts}_${description}.png`);

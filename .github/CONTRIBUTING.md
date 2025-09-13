@@ -156,6 +156,10 @@ Use conventional commit format:
 - `test: add visual regression tests`
 
 ### PR Description Template
+
+Reviewer policy
+- Always add GitHub Copilot PR Reviewer (`copilot-pull-request-reviewer`) as a reviewer
+- Always invite Claude to review and respond to feedback for a few rounds per PR
 ```markdown
 ## Changes
 Brief description of what this PR does.

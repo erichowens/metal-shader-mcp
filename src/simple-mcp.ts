@@ -204,6 +204,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case 'set_shader': {
+        // Basic input validation
+        if (!args || typeof args.shader_code !== 'string' || args.shader_code.length < 1) {
+          return { content: [{ type: 'text', text: 'Invalid shader_code' }], isError: true } as any;
+        }
         if (!args) {
             return { text: [{ text: 'Missing arguments for set_shader' }] };
         }
@@ -328,6 +332,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
       
       case 'export_frame': {
+        if (!args || typeof args.description !== 'string' || args.description.length < 1) {
+          return { content: [{ type: 'text', text: 'Invalid description' }], isError: true } as any;
+        }
+        if (args.time != null && typeof args.time !== 'number') {
+          return { content: [{ type: 'text', text: 'time must be number' }], isError: true } as any;
+        }
         if (!args) {
             return { text: [{ text: 'Missing arguments for export_frame' }] };
         }
