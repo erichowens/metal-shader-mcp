@@ -16,17 +16,23 @@ public final class FileBridgeMCPClient: MCPClient {
     }
 
     public func writeJSON(_ object: Any, to path: String) {
-        if let data = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted]) {
+        do {
+            let data = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted])
             ensureDir((path as NSString).deletingLastPathComponent)
-            try? data.write(to: URL(fileURLWithPath: path))
+            try data.write(to: URL(fileURLWithPath: path))
+        } catch {
+            fputs("[MCPClient] Failed to write JSON to \(path): \(error)\n", stderr)
         }
     }
 
     public func writeText(_ text: String, to path: String) {
-        ensureDir((path as NSString).deletingLastPathComponent)
-        // Replace existing file
-        if fm.fileExists(atPath: path) { _ = try? fm.removeItem(atPath: path) }
-        try? text.write(toFile: path, atomically: true, encoding: .utf8)
+        do {
+            ensureDir((path as NSString).deletingLastPathComponent)
+            if fm.fileExists(atPath: path) { try fm.removeItem(atPath: path) }
+            try text.write(toFile: path, atomically: true, encoding: .utf8)
+        } catch {
+            fputs("[MCPClient] Failed to write text to \(path): \(error)\n", stderr)
+        }
     }
 }
 
