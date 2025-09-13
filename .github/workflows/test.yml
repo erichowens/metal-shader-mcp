@@ -175,7 +175,17 @@ jobs:
           echo "- Coverage report not generated (no profdata/binaries)." >> $GITHUB_STEP_SUMMARY
         fi
     
+    - name: Determine Metal toolchain presence
+      id: metal
+      run: |
+        if xcrun -sdk macosx -f metal >/dev/null 2>&1; then
+          echo "present=true" >> $GITHUB_OUTPUT
+        else
+          echo "present=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Validate Metal shader files compilation
+      if: steps.metal.outputs.present == 'true'
       run: |
         echo "Validating all Metal shader files..."
         SHADER_ERRORS=0
