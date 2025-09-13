@@ -20,6 +20,8 @@ Thank you for your interest in contributing to the Metal Shader MCP project! Thi
 
 ## 🔄 CI/CD Pipeline
 
+Note: Visual tests are label-gated on pull requests. Add the label `visual-required` to run them on your PR. They always run on pushes to main.
+
 Our GitHub Actions workflows automatically run on every push and pull request:
 
 ### 1. Swift/Metal Build (`swift-build.yml`)
@@ -120,6 +122,8 @@ xcrun -sdk macosx metal -c shaders/*.metal
 
 ## 📝 WARP Workflow Requirements
 
+Process policy: We operate with a single-flight PR policy for core work. Only one active (non-draft) PR should be open at a time; others remain draft and are rebased after the active PR merges.
+
 Our project follows the WARP (Workflow Agent Review Protocol). **Every significant change must include**:
 
 ### 1. Documentation Updates
@@ -152,6 +156,10 @@ Use conventional commit format:
 - `test: add visual regression tests`
 
 ### PR Description Template
+
+Reviewer policy
+- Always add GitHub Copilot PR Reviewer (`copilot-pull-request-reviewer`) as a reviewer
+- Always invite Claude to review and respond to feedback for a few rounds per PR
 ```markdown
 ## Changes
 Brief description of what this PR does.
@@ -240,6 +248,8 @@ brew install imagemagick pngcrush
 ```
 
 ## 📞 Getting Help
+
+Always check ROADMAP.md first for current plan and next actions. Update it when you scope future work.
 
 - **GitHub Issues**: For bug reports and feature requests
 - **GitHub Discussions**: For questions and general discussion  

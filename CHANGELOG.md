@@ -1,5 +1,20 @@
 # Changelog
 
+## [2025-09-12] - Headless MCP scaffold, priorities, and CI speedups
+
+### Added
+- Node/TypeScript headless MCP scaffold (`src/index.ts`) with tools: `set_shader`, `export_frame`, `extractDocstring`.
+- Jest tests under `tests/` and a fast CI workflow `.github/workflows/node-tests.yml` (runs with MCP_FAKE_RENDER=1).
+- PRIORITIES.md as the single source of truth for Must/Should/Shouldn’t/Can’t/Won’t and Required Checks.
+- Scheduled weekly “Priorities Review” workflow to detect drift between branch protection required checks and PRIORITIES.md.
+
+### Changed
+- README: Added badge for MCP Node/TypeScript Tests.
+- Swift: `writeCurrentShaderMeta()` now writes to `Resources/communication/current_shader_meta.json` instead of clobbering `library_index.json`.
+
+### Notes
+- The Node MCP currently interoperates with the existing UI via the file bridge (commands.json) while the strict MCP client is being finalized. Visual outputs are faked in CI for speed and determinism.
+
 ## [2025-09-11] - Fix CI required test check for PRs
 
 ### Added
