@@ -1,0 +1,88 @@
+name: Priorities Review
+
+on:
+  schedule:
+    - cron: '0 14 * * 1' # Every Monday 14:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract required checks from PRIORITIES.md
+        id: req
+        run: |
+          awk '/^## Required checks/{flag=1;next} /^## /{flag=0} flag && /^- / {sub("^- ", ""); print}' PRIORITIES.md | sed 's/\r$//' > req_checks.txt
+          echo "Required checks from doc:" && cat req_checks.txt || true
+
+      - name: Fetch branch protection (main)
+        id: bp
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eo pipefail
+          gh api -H "Accept: application/vnd.github+json" \
+            repos/${{ github.repository }}/branches/main/protection > bp.json || echo '{}' > bp.json
+          cat bp.json
+
+      - name: Compute drift
+        id: drift
+        run: |
+          echo "Computing drift..."
+          # Try contexts (classic) then checks (new API)
+          if jq -e '.required_status_checks.contexts' bp.json > /dev/null; then
+            jq -r '.required_status_checks.contexts[]' bp.json | sort > current_checks.txt || true
+          elif jq -e '.required_status_checks.checks' bp.json > /dev/null; then
+            jq -r '.required_status_checks.checks[].context' bp.json | sort > current_checks.txt || true
+          else
+            : > current_checks.txt
+          fi
+          sort req_checks.txt > desired_checks.txt
+          echo "Current checks:" && cat current_checks.txt || true
+          echo "Desired checks:" && cat desired_checks.txt || true
+          comm -3 current_checks.txt desired_checks.txt > diff.txt || true
+          echo "diff<<EOF" >> $GITHUB_OUTPUT
+          cat diff.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Open/Update tracking issue if drift
+        if: ${{ steps.drift.outputs.diff != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TITLE="Priorities/Branch protection drift detected"
+          BODY=$(cat <<'EOT'
+          Our configured required checks for main differ from PRIORITIES.md.
+
+          Diff (lines present in only one side):
+          
+          EOT
+          )
+          echo "$BODY" > body.txt
+          echo "" >> body.txt
+          cat diff.txt >> body.txt
+          # Find existing issue
+          NUM=$(gh issue list --search "$TITLE" --state open --json number --jq '.[0].number' || true)
+          if [ -n "$NUM" ]; then
+            gh issue comment "$NUM" -F body.txt
+          else
+            gh issue create -t "$TITLE" -F body.txt -l automation
+          fi
+
+      - name: Summary
+        run: |
+          echo "## 🔍 Priorities Review" >> $GITHUB_STEP_SUMMARY
+          echo "Required (doc):" >> $GITHUB_STEP_SUMMARY
+          sed 's/^/- /' req_checks.txt >> $GITHUB_STEP_SUMMARY || true
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Current (branch protection):" >> $GITHUB_STEP_SUMMARY
+          sed 's/^/- /' current_checks.txt >> $GITHUB_STEP_SUMMARY || true

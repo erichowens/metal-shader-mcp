@@ -175,7 +175,24 @@ jobs:
           echo "- Coverage report not generated (no profdata/binaries)." >> $GITHUB_STEP_SUMMARY
         fi
     
+    - name: Install Metal Toolchain (best-effort)
+      id: metalinstall
+      run: |
+        set -eo pipefail
+        if ! xcrun -sdk macosx -f metal >/dev/null 2>&1; then
+          echo "Attempting to install Metal Toolchain..."
+          xcodebuild -downloadComponent MetalToolchain || true
+        fi
+        if xcrun -sdk macosx -f metal >/dev/null 2>&1; then
+          echo "present=true" >> $GITHUB_OUTPUT
+          xcrun -sdk macosx metal --version
+        else
+          echo "present=false" >> $GITHUB_OUTPUT
+          echo "Metal toolchain not present on runner after install attempt"
+        fi
+
     - name: Validate Metal shader files compilation
+      if: steps.metalinstall.outputs.present == 'true'
       run: |
         echo "Validating all Metal shader files..."
         SHADER_ERRORS=0
@@ -366,6 +383,22 @@ jobs:
           **/*.air
         retention-days: 7
     
+    - name: Enforce UI MCP policy (no direct file writes in UI)
+      run: |
+        echo "Enforcing MCP policy in UI files..."
+        FAIL=0
+        for f in ShaderPlayground.swift AppShellView.swift; do
+          if grep -nE "write\(toFile:|FileManager\.default\.createDirectory\(" "$f"; then
+            echo "❌ Direct file system writes found in $f. Route via MCP.shared instead."
+            FAIL=1
+          fi
+        done
+        if grep -R "Resources/exports" -n --include "*.swift" .; then
+          echo "❌ Found deprecated Resources/exports usage in Swift files. Use Resources/screenshots."
+          FAIL=1
+        fi
+        if [ $FAIL -ne 0 ]; then exit 1; fi
+
     - name: Test summary
       run: |
         echo "## 🧪 Test Summary" >> $GITHUB_STEP_SUMMARY
