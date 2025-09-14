@@ -36,3 +36,8 @@ This file captures our intent, rationale, and enforcement posture. Revisit weekl
 
 ## Review cadence
 - Weekly, via the scheduled workflow that checks branch protection vs this list and opens/updates an issue when they drift.
+
+## Process policy
+- Local-first testing: You MUST run local tests before pushing (Node: MCP_FAKE_RENDER=1 npm test; Swift: swift build/test).
+- Single-flight PRs: only one active (non-draft) PR in flight for core work. Others remain draft and rebased after merge.
+- Weekly, via the scheduled workflow that checks branch protection vs this list and opens/updates an issue when they drift.
