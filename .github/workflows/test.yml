@@ -175,17 +175,24 @@ jobs:
           echo "- Coverage report not generated (no profdata/binaries)." >> $GITHUB_STEP_SUMMARY
         fi
     
-    - name: Determine Metal toolchain presence
-      id: metal
+    - name: Install Metal Toolchain (best-effort)
+      id: metalinstall
       run: |
+        set -eo pipefail
+        if ! xcrun -sdk macosx -f metal >/dev/null 2>&1; then
+          echo "Attempting to install Metal Toolchain..."
+          xcodebuild -downloadComponent MetalToolchain || true
+        fi
         if xcrun -sdk macosx -f metal >/dev/null 2>&1; then
           echo "present=true" >> $GITHUB_OUTPUT
+          xcrun -sdk macosx metal --version
         else
           echo "present=false" >> $GITHUB_OUTPUT
+          echo "Metal toolchain not present on runner after install attempt"
         fi
 
     - name: Validate Metal shader files compilation
-      if: steps.metal.outputs.present == 'true'
+      if: steps.metalinstall.outputs.present == 'true'
       run: |
         echo "Validating all Metal shader files..."
         SHADER_ERRORS=0

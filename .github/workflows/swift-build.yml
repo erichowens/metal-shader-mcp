@@ -59,14 +59,21 @@ jobs:
     - name: Check Swift version
       run: swift --version
     
-    - name: Verify Metal compiler or skip validation
+    - name: Install Metal Toolchain (best-effort)
       run: |
+        set -eo pipefail
+        if ! xcrun -sdk macosx -f metal >/dev/null 2>&1; then
+          echo "Attempting to install Metal Toolchain..."
+          # Best-effort install; do not fail the job if Apple changes the flag
+          xcodebuild -downloadComponent MetalToolchain || true
+        fi
         if xcrun -sdk macosx -f metal >/dev/null 2>&1; then
           xcrun -sdk macosx metal --version
+          echo "METAL_PRESENT=1" >> $GITHUB_ENV
           echo "Metal compiler available"
         else
-          echo "Metal toolchain not present on runner; skipping shader validation"
-          echo "SKIP_METAL=1" >> $GITHUB_ENV
+          echo "METAL_PRESENT=0" >> $GITHUB_ENV
+          echo "Metal toolchain not present on runner after install attempt"
         fi
     
     - name: Build with SwiftPM
@@ -76,7 +83,7 @@ jobs:
         echo "✅ swift build completed"
     
     - name: Validate Metal shader files
-      if: env.SKIP_METAL != '1'
+      if: env.METAL_PRESENT == '1'
       run: |
         echo "Validating Metal shader files..."
         SHADER_ERRORS=0
