@@ -14,7 +14,7 @@ concurrency:
 jobs:
   visual-tests:
     name: Visual Testing and Screenshot Capture
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - name: Checkout code
@@ -49,6 +49,27 @@ jobs:
       run: |
         echo "Building with Swift Package Manager (debug)..."
         swift build --configuration debug
+
+    - name: Install/Detect Metal Toolchain (best-effort, non-fatal)
+      shell: bash
+      run: |
+        set +e
+        echo "🔎 Checking for Metal CLI..."
+        if xcrun -sdk macosx -f metal >/dev/null 2>&1 && xcrun -sdk macosx metal --version >/dev/null 2>&1; then
+          echo "METAL_PRESENT=1" >> "$GITHUB_ENV"
+          echo "✅ Metal compiler available"
+        else
+          echo "⚠️ metal CLI not found or not usable; attempting installation"
+          xcodebuild -downloadComponent MetalToolchain >/dev/null 2>&1 || true
+          if xcrun -sdk macosx -f metal >/dev/null 2>&1 && xcrun -sdk macosx metal --version >/dev/null 2>&1; then
+            echo "METAL_PRESENT=1" >> "$GITHUB_ENV"
+            echo "✅ Metal compiler available after installation"
+          else
+            echo "METAL_PRESENT=0" >> "$GITHUB_ENV"
+            echo "❌ Metal toolchain not present; continuing without Metal-dependent steps"
+          fi
+        fi
+        set -e
     
     - name: Prepare evidence directory
       run: |
