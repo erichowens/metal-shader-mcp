@@ -14,7 +14,7 @@ concurrency:
 jobs:
   swift-metal-build:
     name: Swift/Metal Compilation
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - name: Checkout code
@@ -59,22 +59,39 @@ jobs:
     - name: Check Swift version
       run: swift --version
     
-    - name: Install Metal Toolchain (best-effort)
+    - name: Install/Detect Metal Toolchain (best-effort, non-fatal)
+      shell: bash
       run: |
-        set -eo pipefail
-        if ! xcrun -sdk macosx -f metal >/dev/null 2>&1; then
-          echo "Attempting to install Metal Toolchain..."
-          # Best-effort install; do not fail the job if Apple changes the flag
-          xcodebuild -downloadComponent MetalToolchain || true
-        fi
+        set +e
+        echo "🔎 Checking for Metal CLI..."
         if xcrun -sdk macosx -f metal >/dev/null 2>&1; then
-          xcrun -sdk macosx metal --version
-          echo "METAL_PRESENT=1" >> $GITHUB_ENV
-          echo "Metal compiler available"
+          # Try to invoke the tool; if it fails, attempt install
+          if xcrun -sdk macosx metal --version >/dev/null 2>&1; then
+            echo "METAL_PRESENT=1" >> "$GITHUB_ENV"
+            echo "✅ Metal compiler available"
+          else
+            echo "⚠️ metal found but not usable; attempting installation"
+            xcodebuild -downloadComponent MetalToolchain >/dev/null 2>&1 || true
+            if xcrun -sdk macosx metal --version >/dev/null 2>&1; then
+              echo "METAL_PRESENT=1" >> "$GITHUB_ENV"
+              echo "✅ Metal compiler available after installation"
+            else
+              echo "METAL_PRESENT=0" >> "$GITHUB_ENV"
+              echo "❌ Metal toolchain still not usable; continuing without shader validation"
+            fi
+          fi
         else
-          echo "METAL_PRESENT=0" >> $GITHUB_ENV
-          echo "Metal toolchain not present on runner after install attempt"
+          echo "⚠️ metal CLI not found; attempting installation"
+          xcodebuild -downloadComponent MetalToolchain >/dev/null 2>&1 || true
+          if xcrun -sdk macosx -f metal >/dev/null 2>&1 && xcrun -sdk macosx metal --version >/dev/null 2>&1; then
+            echo "METAL_PRESENT=1" >> "$GITHUB_ENV"
+            echo "✅ Metal compiler available after installation"
+          else
+            echo "METAL_PRESENT=0" >> "$GITHUB_ENV"
+            echo "❌ Metal toolchain not present on runner after install attempt; continuing"
+          fi
         fi
+        set -e
     
     - name: Build with SwiftPM
       run: |
