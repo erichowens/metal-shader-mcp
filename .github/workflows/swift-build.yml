@@ -96,8 +96,23 @@ jobs:
     - name: Build with SwiftPM
       run: |
         echo "Building with Swift Package Manager..."
-        swift build --configuration debug
+        set -o pipefail
+        swift build --configuration debug -v | tee build-swift.log
+        exit_code=${PIPESTATUS[0]}
+        if [ $exit_code -ne 0 ]; then
+          echo "❌ swift build failed with exit code $exit_code"
+          echo "Last 200 lines of build log:" && tail -n 200 build-swift.log || true
+          exit $exit_code
+        fi
         echo "✅ swift build completed"
+    
+    - name: Upload build log (always)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: swift-build-log
+        path: build-swift.log
+        retention-days: 7
     
     - name: Validate Metal shader files
       if: env.METAL_PRESENT == '1'
