@@ -45,11 +45,6 @@ jobs:
       with:
         xcode-version: latest-stable
 
-    - name: Build with SwiftPM
-      run: |
-        echo "Building with Swift Package Manager (debug)..."
-        swift build --configuration debug
-
     - name: Install/Detect Metal Toolchain (best-effort, non-fatal)
       shell: bash
       run: |
@@ -70,6 +65,11 @@ jobs:
           fi
         fi
         set -e
+
+    - name: Build with SwiftPM
+      run: |
+        echo "Building with Swift Package Manager (debug)..."
+        swift build --configuration debug
     
     - name: Prepare evidence directory
       run: |
