@@ -1,0 +1,7 @@
+{
+  "modelPath": "Resources/models/StyleTransfer.mlmodelc",
+  "inputName": "image",
+  "outputName": "stylizedImage",
+  "width": 512,
+  "height": 512
+}

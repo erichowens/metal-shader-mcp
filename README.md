@@ -12,6 +12,8 @@ A complete system for AI-assisted Metal shader development where Claude can writ
 
 ## Project overview
 
+New: Optional Core ML post-processing on exported frames. See section below for configuration.
+
 Note: The legacy file-bridge (writing commands to Resources/communication) is being deprecated in favor of a strict MCP client. See Deprecation notice below.
 Metal Shader MCP is a macOS SwiftUI + Metal playground with a disciplined workflow for shader iteration, visual evidence, and CI. An MCP layer is planned to let AI assistants interact with the app (compile, preview, snapshot), but today the primary entry point is the macOS app you can compile and run locally.
 
@@ -62,6 +64,28 @@ swiftc -o MetalShaderStudio \
 npm install
 npm run build
 ```
+
+## Headless renderer (for dataset and CI)
+
+Render a shader to PNG without launching the app:
+
+```bash
+swift run ShaderRenderCLI --shader-file shaders/plasma_fractal.metal --out data/sample.png --width 256 --height 256 --time 0.0
+```
+
+## Core ML post-processing (optional)
+
+- Configure at `Resources/communication/coreml_config.json` (template provided).
+- Provide a model at `Resources/models/YourModel.mlmodelc` or `.mlmodel`.
+- When present and valid, exports will be passed through the model before saving.
+
+Config fields:
+- `modelPath`: path to model (e.g., `Resources/models/StyleTransfer.mlmodelc`)
+- `inputName`: image input feature name (e.g., `image`)
+- `outputName`: output image feature name (e.g., `stylizedImage`)
+- `width`, `height`: model input dimensions
+
+Note: UI remains unchanged; this affects exported frames and session snapshots only.
 
 ## Usage
 

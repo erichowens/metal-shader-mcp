@@ -55,11 +55,26 @@ let package = Package(
                 "package.json",
                 "package-lock.json"
             ],
-            linkerSettings: [
+linkerSettings: [
                 .linkedFramework("SwiftUI"),
                 .linkedFramework("MetalKit"),
+                .linkedFramework("Metal"),
                 .linkedFramework("AppKit"),
-                .linkedFramework("UniformTypeIdentifiers")
+                .linkedFramework("UniformTypeIdentifiers"),
+                .linkedFramework("CoreML"),
+                .linkedFramework("CoreVideo")
+            ]
+        ),
+        .executableTarget(
+            name: "ShaderRenderCLI",
+            dependencies: ["MetalShaderCore"],
+            path: "Tools/ShaderRenderCLI",
+            linkerSettings: [
+                .linkedFramework("MetalKit"),
+                .linkedFramework("Metal"),
+                .linkedFramework("AppKit"),
+                .linkedFramework("CoreGraphics"),
+                .linkedFramework("ImageIO")
             ]
         ),
         .testTarget(

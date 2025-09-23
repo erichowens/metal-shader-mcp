@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 import CryptoKit
 import AppKit
 import QuartzCore
+import MetalShaderCore
 
 @main
 struct ShaderPlaygroundApp: App {
@@ -139,8 +140,12 @@ VStack {
         // Initialize shader state file
 MCP.shared.writeText(shaderCode, to: shaderStateFile)
         
-        // Initialize status file
-        let status = ["status": "ready", "timestamp": Date().timeIntervalSince1970] as [String: Any]
+        // Initialize status file with current_tab so external scripts can verify immediately
+        let status: [String: Any] = [
+            "status": "ready",
+            "current_tab": appState.selectedTab.rawValue,
+            "timestamp": Date().timeIntervalSince1970
+        ]
 MCP.shared.writeJSON(status, to: statusFile)
     }
     
@@ -252,12 +257,14 @@ case "get_shader_meta":
     }
     
     private func updateStatus(action: String, success: Bool, error: String? = nil) {
-        let status = [
+        // Always include current_tab so external tools (e.g., screenshot scripts) have a stable contract
+        let status: [String: Any] = [
             "last_action": action,
             "success": success,
+            "current_tab": appState.selectedTab.rawValue,
             "timestamp": Date().timeIntervalSince1970,
             "error": error as Any
-        ] as [String: Any]
+        ]
         
 MCP.shared.writeJSON(status, to: statusFile)
         
@@ -387,8 +394,43 @@ class MetalShaderRenderer: ObservableObject {
     private var overrideTime: Float?
     private var overrideResolution: SIMD2<Float>?
     private var overrideMouse: SIMD2<Float>?
+
+    // Optional Core ML post-processing
+    private var coreMLPost: CoreMLPostProcessor?
+    private var enableCoreMLForExport: Bool { coreMLPost?.isEnabled == true }
+    private let device: MTLDevice
+    private let commandQueue: MTLCommandQueue
+    @Published var fps: Double = 0
+    private var pipelineState: MTLRenderPipelineState?
+    private var startTime = CACurrentMediaTime()
     
-    init() {
+    // Uniform override support (from Resources/communication/uniforms.json)
+    private let uniformsFile = "Resources/communication/uniforms.json"
+    private var overrideTime: Float?
+    private var overrideResolution: SIMD2<Float>?
+    private var overrideMouse: SIMD2<Float>?
+    
+init() {
+        guard let device = MTLCreateSystemDefaultDevice(),
+              let commandQueue = device.makeCommandQueue() else {
+            // In CI (or headless), Metal can be unavailable. Avoid crashing the build; provide a stub.
+            fatalError("Metal is not supported in this environment")
+        }
+        
+        self.device = device
+        self.commandQueue = commandQueue
+        
+        // Optional Core ML post-processor (will enable if config/model present)
+        self.coreMLPost = CoreMLPostProcessor(device: device)
+        
+        // Compile default shader
+        updateShader(defaultShader)
+        
+        // Start polling for uniform overrides
+        Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
+            self?.loadUniformOverrides()
+        }
+    }
         guard let device = MTLCreateSystemDefaultDevice(),
               let commandQueue = device.makeCommandQueue() else {
             // In CI (or headless), Metal can be unavailable. Avoid crashing the build; provide a stub.
@@ -593,7 +635,68 @@ class MetalShaderRenderer: ObservableObject {
         exportFrame(description: "manual_screenshot")
     }
     
-    func exportFrame(description: String, time: Float? = nil) {
+func exportFrame(description: String, time: Float? = nil) {
+        guard let pipelineState = pipelineState,
+              let commandBuffer = commandQueue.makeCommandBuffer() else {
+            print("❌ Cannot export - no valid pipeline state")
+            return
+        }
+        
+        let width = 1024
+        let height = 1024
+        
+        // Create export texture
+        let textureDescriptor = MTLTextureDescriptor.texture2DDescriptor(
+            pixelFormat: .bgra8Unorm,
+            width: width,
+            height: height,
+            mipmapped: false
+        )
+        textureDescriptor.usage = [.shaderWrite, .renderTarget, .shaderRead, .blit]
+        
+        guard let exportTexture = device.makeTexture(descriptor: textureDescriptor) else {
+            print("❌ Failed to create export texture")
+            return
+        }
+        
+        // Create render pass
+        let renderPassDescriptor = MTLRenderPassDescriptor()
+        renderPassDescriptor.colorAttachments[0].texture = exportTexture
+        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
+        renderPassDescriptor.colorAttachments[0].loadAction = .clear
+        renderPassDescriptor.colorAttachments[0].storeAction = .store
+        
+        let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+        encoder.setRenderPipelineState(pipelineState)
+        
+        // Set shader uniforms (respect overrides if provided)
+        var exportTime = time ?? Float(CACurrentMediaTime() - startTime)
+        if let t = overrideTime, time == nil { exportTime = t }
+        var resolution = SIMD2<Float>(Float(width), Float(height))
+        if let r = overrideResolution { resolution = r }
+        var mouse = SIMD2<Float>(0.5, 0.5) // Default center for export
+        if let m = overrideMouse { mouse = m }
+        
+        encoder.setFragmentBytes(&exportTime, length: MemoryLayout<Float>.size, index: 0)
+        encoder.setFragmentBytes(&resolution, length: MemoryLayout<SIMD2<Float>>.size, index: 1)
+        encoder.setFragmentBytes(&mouse, length: MemoryLayout<SIMD2<Float>>.size, index: 2)
+        
+        encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
+        encoder.endEncoding()
+        
+        // Complete initial render
+        commandBuffer.addCompletedHandler { [weak self] _ in
+            guard let self = self else { return }
+            var finalTexture: MTLTexture = exportTexture
+            // Optional Core ML post-process
+            if self.enableCoreMLForExport, let processed = self.coreMLPost?.process(texture: exportTexture) {
+                finalTexture = processed
+            }
+            self.saveTextureToFile(finalTexture, description: description, time: exportTime)
+        }
+        
+        commandBuffer.commit()
+    }
         guard let pipelineState = pipelineState,
               let commandBuffer = commandQueue.makeCommandBuffer() else {
             print("❌ Cannot export - no valid pipeline state")

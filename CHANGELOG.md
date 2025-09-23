@@ -1,5 +1,45 @@
 # Changelog
 
+## 2025-09-16
+- feat(cli): Add ShaderRenderCLI headless renderer to generate PNGs from .metal shaders for dataset/CI
+- chore(ci): Add task-sync GitHub Action to mirror Task Master tasks to GitHub issues and close with proof comments
+- feat(ml): Add bootstrap aesthetic metrics module for dataset labeling
+- feat(coreml): Integrate optional Core ML post-processing into export pipeline
+  - Added `CoreMLPostProcessor` (config-driven via `Resources/communication/coreml_config.json`)
+  - Post-processes rendered textures (e.g., style transfer or super-resolution) and saves the ML-processed result
+  - Linked CoreML and CoreVideo frameworks in Package.swift
+  - Scaffolded config template and documented default keys
+- docs: Added config template at `Resources/communication/coreml_config.json`
+
+Usage:
+- Place a compiled `.mlmodelc` (or `.mlmodel` which will be compiled at runtime) under `Resources/models/`
+- Edit `Resources/communication/coreml_config.json`:
+  - `modelPath`: path to `.mlmodelc` or `.mlmodel`
+  - `inputName` / `outputName`: feature names in your model
+  - `width` / `height`: model’s expected input size
+- Exports (Export Frame/Sequence or session snapshots) will run through the model when config is present and valid.
+
+
+# Changelog
+
+## 2025-09-16
+- feat(coreml): Integrate optional Core ML post-processing into export pipeline
+  - Added `CoreMLPostProcessor` (config-driven via `Resources/communication/coreml_config.json`)
+  - Post-processes rendered textures (e.g., style transfer or super-resolution) and saves the ML-processed result
+  - Linked CoreML and CoreVideo frameworks in Package.swift
+  - Scaffolded config template and documented default keys
+- docs: Added config template at `Resources/communication/coreml_config.json`
+
+Usage:
+- Place a compiled `.mlmodelc` (or `.mlmodel` which will be compiled at runtime) under `Resources/models/`
+- Edit `Resources/communication/coreml_config.json`:
+  - `modelPath`: path to `.mlmodelc` or `.mlmodel`
+  - `inputName` / `outputName`: feature names in your model
+  - `width` / `height`: model’s expected input size
+- Exports (Export Frame/Sequence or session snapshots) will run through the model when config is present and valid.
+
+# Changelog
+
 ## [2025-09-12] - Headless MCP scaffold, priorities, and CI speedups
 
 ### Added
