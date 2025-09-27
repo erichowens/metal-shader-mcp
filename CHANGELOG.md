@@ -1,5 +1,23 @@
 # Changelog
 
+## 2025-09-27
+- chore(scripts): Add open_bg.sh (launch app in background, no focus) and focus_app.sh (bring to foreground on demand)
+- docs(changelog): Record background-safe screenshot evidence path for UI smoke
+  - Resources/screenshots/2025-09-26_15-48-28_ui_smoke_history_tab.png
+
+## 2025-09-26
+- feat(tests): Add visual regression test harness with shader fixtures and golden images
+  - Pixel-level diff generation on failure with artifacts written to `Resources/screenshots/tests`
+    - `actual_*.png`, `diff_*.png`, and a `*_summary.json` for quick diagnostics
+  - Tests render inline shaders and compare against bundled goldens via `Bundle.module`
+- chore(build): Relocate app target to `Apps/MetalShaderStudio` and wire it as an SPM executable target
+- chore(make): Add `make regen-goldens` using `ShaderRenderCLI` to rebuild golden images deterministically
+- docs: Update WARP.md, CLAUDE.md, and README.md with:
+  - How to run visual tests and where diffs are saved
+  - Regenerating goldens workflow
+  - Shader metadata conventions (docstrings for name/description)
+  - Library/metadata notes and file-bridge contract (status/commands JSON)
+
 ## 2025-09-16
 - feat(cli): Add ShaderRenderCLI headless renderer to generate PNGs from .metal shaders for dataset/CI
 - chore(ci): Add task-sync GitHub Action to mirror Task Master tasks to GitHub issues and close with proof comments
