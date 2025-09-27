@@ -69,6 +69,32 @@ See DESIGN.md and WARP.md for details.
 - Projects, snapshots, variants, presets: Resources/projects/<project-id>/*.json
 - Educational shader library: Resources/library/*.metal + metadata.json
 
+### Shader metadata conventions (required)
+Every shader must include a docstring at the top that encodes name and description. This is parsed by `ShaderMetadata.from(code:path:)` and later powers Library indexing/search.
+
+Example:
+```
+/**
+ * Wavy Plasma
+ * A smooth oscillating color field demonstrating uniforms.
+ */
+#include <metal_stdlib>
+using namespace metal;
+fragment float4 fragmentShader() { return float4(0,0,0,1); }
+```
+
+- First non-empty line becomes the shader name.
+- Subsequent non-empty lines until the first blank line become the description.
+- The absolute path (when known) is stored in `path` for provenance.
+
+### Visual regression harness (now live)
+- Tests render canonical shaders and compare against bundled goldens (processed resources under `Tests/MetalShaderTests/Fixtures`).
+- On failure, tests write artifacts to `Resources/screenshots/tests/`:
+  - `actual_*.png` (current actual)
+  - `diff_*.png` (highlighting mismatches)
+  - `*_summary.json` (quick diagnostics)
+- Approve changes by refreshing goldens: `make regen-goldens`.
+
 ## WARP Alignment (must-do after each significant change)
 1. Update BUGS.md if issues discovered
 2. Update CHANGELOG.md with what changed

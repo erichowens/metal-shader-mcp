@@ -3,9 +3,13 @@ import Metal
 import MetalKit
 import AppKit
 
-// Simple headless renderer CLI
-// Usage:
-// swift run ShaderRenderCLI --shader-file path/to/shader.metal --out out.png [--width 256 --height 256 --time 0.0]
+struct Uniforms {
+    var time: Float
+    var resolution: SIMD2<Float>
+    var mouse: SIMD2<Float>
+    var complexity: Float
+    var colorShift: Float
+}
 
 @main
 struct ShaderRenderCLI {
@@ -16,6 +20,8 @@ struct ShaderRenderCLI {
         var width = 256
         var height = 256
         var time: Float = 0.0
+        var complexity: Float = 0.5
+        var colorShift: Float = 0.0
 
         var i = 1
         while i < args.count {
@@ -26,6 +32,8 @@ struct ShaderRenderCLI {
             case "--width": if i+1 < args.count, let v = Int(args[i+1]) { width = v; i+=1 }
             case "--height": if i+1 < args.count, let v = Int(args[i+1]) { height = v; i+=1 }
             case "--time": if i+1 < args.count, let v = Float(args[i+1]) { time = v; i+=1 }
+            case "--complexity": if i+1 < args.count, let v = Float(args[i+1]) { complexity = v; i+=1 }
+            case "--colorShift": if i+1 < args.count, let v = Float(args[i+1]) { colorShift = v; i+=1 }
             default: break
             }
             i += 1
@@ -43,23 +51,24 @@ struct ShaderRenderCLI {
             shaderSource = defaultShader
         }
 
-        // Compile fragment function
         do {
             let library = try device.makeLibrary(source: shaderSource, options: nil)
             guard let fragment = library.makeFunction(name: "fragmentShader") else {
                 fputs("[ShaderRenderCLI] fragmentShader not found\n", stderr)
                 exit(2)
             }
-            let vertex = try makeVertexFunction(device: device)
+            guard let vertex = library.makeFunction(name: "vertexShader") else {
+                fputs("[ShaderRenderCLI] vertexShader not found\n", stderr)
+                exit(2)
+            }
             let pdesc = MTLRenderPipelineDescriptor()
             pdesc.vertexFunction = vertex
             pdesc.fragmentFunction = fragment
             pdesc.colorAttachments[0].pixelFormat = .bgra8Unorm
             let pipeline = try device.makeRenderPipelineState(descriptor: pdesc)
 
-            // Output texture
             let tdesc = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: .bgra8Unorm, width: width, height: height, mipmapped: false)
-            tdesc.usage = [.renderTarget, .shaderRead, .blit]
+            tdesc.usage = [.renderTarget, .shaderRead]
             guard let tex = device.makeTexture(descriptor: tdesc) else { fatalError("texture") }
 
             let rpd = MTLRenderPassDescriptor()
@@ -72,13 +81,14 @@ struct ShaderRenderCLI {
                   let enc = cb.makeRenderCommandEncoder(descriptor: rpd) else { fatalError("enc") }
             enc.setRenderPipelineState(pipeline)
 
-            // Uniforms
-            var t = time
-            var res = SIMD2<Float>(Float(width), Float(height))
-            var mouse = SIMD2<Float>(0.0, 0.0)
-            enc.setFragmentBytes(&t, length: MemoryLayout<Float>.size, index: 0)
-            enc.setFragmentBytes(&res, length: MemoryLayout<SIMD2<Float>>.size, index: 1)
-            enc.setFragmentBytes(&mouse, length: MemoryLayout<SIMD2<Float>>.size, index: 2)
+            var uniforms = Uniforms(
+                time: time,
+                resolution: SIMD2<Float>(Float(width), Float(height)),
+                mouse: SIMD2<Float>(0.0, 0.0),
+                complexity: complexity,
+                colorShift: colorShift
+            )
+            enc.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: 0)
 
             enc.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
             enc.endEncoding()
@@ -86,26 +96,12 @@ struct ShaderRenderCLI {
             cb.waitUntilCompleted()
 
             try saveTexture(tex, to: outPath)
-            print("[ShaderRenderCLI] Saved \(outPath) ("] + String(width) + "x" + String(height) + ")")
+            print("[ShaderRenderCLI] Saved \(outPath) (\(width)x\(height))")
         } catch {
             fputs("[ShaderRenderCLI] Error: \(error)\n", stderr)
             exit(3)
         }
     }
-}
-
-private func makeVertexFunction(device: MTLDevice) throws -> MTLFunction {
-    let src = """
-    #include <metal_stdlib>
-    using namespace metal;
-    vertex float4 vertexShader(uint vid [[vertex_id]]) {
-        float2 pos[4] = { float2(-1,-1), float2(1,-1), float2(-1,1), float2(1,1) };
-        return float4(pos[vid], 0.0, 1.0);
-    }
-    """
-    let lib = try device.makeLibrary(source: src, options: nil)
-    guard let fn = lib.makeFunction(name: "vertexShader") else { throw NSError(domain: "vertex", code: -1) }
-    return fn
 }
 
 private func saveTexture(_ texture: MTLTexture, to path: String) throws {
@@ -132,9 +128,38 @@ private func saveTexture(_ texture: MTLTexture, to path: String) throws {
 private let defaultShader = """
 #include <metal_stdlib>
 using namespace metal;
-fragment float4 fragmentShader(float4 pos [[position]], constant float &time [[buffer(0)]], constant float2 &resolution [[buffer(1)]], constant float2 &mouse [[buffer(2)]]) {
-    float2 uv = pos.xy / resolution;
-    float3 color = 0.5 + 0.5 * cos(time + uv.xyx + float3(0, 2, 4));
+
+struct VertexOut {
+    float4 position [[position]];
+    float2 texCoord;
+};
+
+vertex VertexOut vertexShader(uint vertexID [[vertex_id]]) {
+    VertexOut out;
+    float2 positions[4] = {
+        float2(-1, -1), float2(1, -1),
+        float2(-1, 1), float2(1, 1)
+    };
+    float2 texCoords[4] = {
+        float2(0, 1), float2(1, 1),
+        float2(0, 0), float2(1, 0)
+    };
+    out.position = float4(positions[vertexID], 0, 1);
+    out.texCoord = texCoords[vertexID];
+    return out;
+}
+
+struct Uniforms {
+    float time;
+    float2 resolution;
+    float2 mouse;
+    float complexity;
+    float colorShift;
+};
+
+fragment float4 fragmentShader(VertexOut in [[stage_in]], constant Uniforms& uniforms [[buffer(0)]]) {
+    float2 uv = in.texCoord;
+    float3 color = 0.5 + 0.5 * cos(uniforms.time + uv.xyx + float3(0, 2, 4));
     return float4(color, 1.0);
 }
 """

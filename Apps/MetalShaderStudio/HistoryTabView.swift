@@ -135,6 +135,7 @@ final class SessionStore: ObservableObject {
 struct HistoryTabView: View {
     @StateObject private var store = SessionStore()
     @State private var selectedKeys: Set<String> = []
+    @EnvironmentObject var bridgeContainer: BridgeContainer
     @State private var showCompare: Bool = false
     @State private var searchText: String = ""
 
@@ -270,53 +271,56 @@ struct SnapshotCard: View {
         // Read code
         guard let code = try? String(contentsOfFile: snapshot.codePath, encoding: .utf8) else { return }
         // Write uniforms.json if snapshot meta has uniforms (optional)
-        // Stepwise optional unwrapping with error handling
         if let jsonData = try? Data(contentsOf: URL(fileURLWithPath: snapshot.jsonPath)) {
             do {
-                if let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
-                    if let uniforms = jsonObject["uniforms"] as? [String: Any] {
-                        let obj: [String: Any] = ["uniforms": uniforms, "timestamp": Date().timeIntervalSince1970]
-                        if let data = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted]) {
-                            try? data.write(to: URL(fileURLWithPath: "Resources/communication/uniforms.json"))
-                        }
-                    } else {
-                        print("Warning: 'uniforms' key not found or not a dictionary in \(snapshot.jsonPath)")
+                if let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
+                   let uniforms = jsonObject["uniforms"] as? [String: Any] {
+                    let obj: [String: Any] = ["uniforms": uniforms, "timestamp": Date().timeIntervalSince1970]
+                    if let data = try? JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted]) {
+                        try? data.write(to: URL(fileURLWithPath: "Resources/communication/uniforms.json"))
                     }
-                } else {
-                    print("Warning: JSON root is not a dictionary in \(snapshot.jsonPath)")
                 }
             } catch {
                 print("Error parsing JSON from \(snapshot.jsonPath): \(error)")
             }
-        } else {
-            print("Warning: Could not read data from \(snapshot.jsonPath)")
         }
-        // Send set_shader command via bridge
-        let cmd: [String: Any] = [
-            "action": "set_shader",
-            "shader_code": code,
-            "description": "open_snapshot \(snapshot.id)",
-            "timestamp": Date().timeIntervalSince1970,
-            "no_snapshot": false
-        ]
-        if let data = try? JSONSerialization.data(withJSONObject: cmd, options: [.prettyPrinted]) {
-            try? FileManager.default.createDirectory(atPath: "Resources/communication", withIntermediateDirectories: true)
-            try? data.write(to: URL(fileURLWithPath: "Resources/communication/commands.json"))
+        // Prefer MCP bridge
+        do {
+            try bridgeContainer.bridge.setShader(code: code, description: "open_snapshot \(snapshot.id)", noSnapshot: false)
+            try? bridgeContainer.bridge.setTab("repl")
+        } catch {
+            // Fallback to legacy path if needed
+            let cmd: [String: Any] = [
+                "action": "set_shader",
+                "shader_code": code,
+                "description": "open_snapshot \(snapshot.id)",
+                "timestamp": Date().timeIntervalSince1970,
+                "no_snapshot": false
+            ]
+            if let data = try? JSONSerialization.data(withJSONObject: cmd, options: [.prettyPrinted]) {
+                try? FileManager.default.createDirectory(atPath: "Resources/communication", withIntermediateDirectories: true)
+                try? data.write(to: URL(fileURLWithPath: "Resources/communication/commands.json"))
+            }
         }
     }
 
     private func openInREPLSilent() {
         guard let code = try? String(contentsOfFile: snapshot.codePath, encoding: .utf8) else { return }
-        let cmd: [String: Any] = [
-            "action": "set_shader",
-            "shader_code": code,
-            "description": "open_snapshot_silent \(snapshot.id)",
-            "timestamp": Date().timeIntervalSince1970,
-            "no_snapshot": true
-        ]
-        if let data = try? JSONSerialization.data(withJSONObject: cmd, options: [.prettyPrinted]) {
-            try? FileManager.default.createDirectory(atPath: "Resources/communication", withIntermediateDirectories: true)
-            try? data.write(to: URL(fileURLWithPath: "Resources/communication/commands.json"))
+        do {
+            try bridgeContainer.bridge.setShader(code: code, description: "open_snapshot_silent \(snapshot.id)", noSnapshot: true)
+            try? bridgeContainer.bridge.setTab("repl")
+        } catch {
+            let cmd: [String: Any] = [
+                "action": "set_shader",
+                "shader_code": code,
+                "description": "open_snapshot_silent \(snapshot.id)",
+                "timestamp": Date().timeIntervalSince1970,
+                "no_snapshot": true
+            ]
+            if let data = try? JSONSerialization.data(withJSONObject: cmd, options: [.prettyPrinted]) {
+                try? FileManager.default.createDirectory(atPath: "Resources/communication", withIntermediateDirectories: true)
+                try? data.write(to: URL(fileURLWithPath: "Resources/communication/commands.json"))
+            }
         }
     }
 }

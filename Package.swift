@@ -15,47 +15,11 @@ let package = Package(
             name: "MetalShaderCore",
             path: "Sources/MetalShaderCore"
         ),
-        .executableTarget(
+.executableTarget(
             name: "MetalShaderStudio",
             dependencies: ["MetalShaderCore"],
-            path: ".",
-            sources: [
-                "ShaderPlayground.swift",
-                "AppShellView.swift",
-                "HistoryTabView.swift",
-                "SessionRecorder.swift"
-            ],
-            exclude: [
-                ".git",
-                ".github",
-                ".claude",
-                "node_modules",
-                "dist",
-                "build",
-                "docs",
-                "scripts",
-                "src",
-                "shaders",
-                "Tests",
-                "Resources/exports",
-                "Resources/screenshots",
-                "Resources/sessions",
-                "Resources/communication",
-                "Resources/Assets.xcassets",
-                "TestApp.xcodeproj",
-                "MetalShaderStudioMCP.xcodeproj",
-                "ShaderPlayground",
-                "MetalStudioMCPFixed",
-                "project.yml",
-                "project_basic.yml",
-                "project_min.yml",
-                "compile.sh",
-                "jest.config.cjs",
-                "tsconfig.json",
-                "package.json",
-                "package-lock.json"
-            ],
-linkerSettings: [
+            path: "Apps/MetalShaderStudio",
+            linkerSettings: [
                 .linkedFramework("SwiftUI"),
                 .linkedFramework("MetalKit"),
                 .linkedFramework("Metal"),
@@ -80,7 +44,10 @@ linkerSettings: [
         .testTarget(
             name: "MetalShaderTests",
             dependencies: ["MetalShaderCore"],
-            path: "Tests/MetalShaderTests"
+            path: "Tests/MetalShaderTests",
+            resources: [
+                .process("Fixtures")
+            ]
         )
     ]
 )

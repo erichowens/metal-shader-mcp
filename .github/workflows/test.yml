@@ -125,6 +125,47 @@ jobs:
         set -e
         swift test --enable-code-coverage
 
+    - name: Prepare visual diff HTML summary
+      if: always()
+      run: |
+        set -eo pipefail
+        OUT_DIR="Resources/screenshots/tests"
+        mkdir -p "$OUT_DIR"
+        REPORT="$OUT_DIR/report.html"
+        echo "<html><head><meta charset=\"utf-8\"><title>Visual Diff Report</title></head><body>" > "$REPORT"
+        echo "<h1>Visual Diff Report</h1>" >> "$REPORT"
+        echo "<p>Generated: $(date)</p>" >> "$REPORT"
+        if ls "$OUT_DIR"/*.png >/dev/null 2>&1; then
+          echo "<ul>" >> "$REPORT"
+          for f in "$OUT_DIR"/*.png; do
+            bn=$(basename "$f")
+            echo "<li><strong>$bn</strong><br><img src=\"$bn\" style=\"max-width:512px;border:1px solid #ccc\"></li>" >> "$REPORT"
+          done
+          echo "</ul>" >> "$REPORT"
+        else
+          echo "<p>No visual diff artifacts produced.</p>" >> "$REPORT"
+        fi
+        echo "</body></html>" >> "$REPORT"
+
+    - name: Upload visual diff artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: visual-diff-artifacts
+        path: |
+          Resources/screenshots/tests/
+        retention-days: 14
+
+    - name: Visual diff summary
+      if: always()
+      run: |
+        echo "## 🖼️ Visual Diff Summary" >> $GITHUB_STEP_SUMMARY
+        COUNT=$(find Resources/screenshots/tests -name "*.png" 2>/dev/null | wc -l | tr -d ' ')
+        echo "- Images: $COUNT" >> $GITHUB_STEP_SUMMARY
+        if [ -f Resources/screenshots/tests/report.html ]; then
+          echo "- HTML Report: Resources/screenshots/tests/report.html (in artifact)" >> $GITHUB_STEP_SUMMARY
+        fi
+
     - name: Generate coverage report (llvm-cov)
       run: |
         set -eo pipefail

@@ -10,11 +10,13 @@ import MetalShaderCore
 @main
 struct ShaderPlaygroundApp: App {
     @StateObject var appState = AppState()
+    @StateObject var bridgeContainer = BridgeContainer(bridge: BridgeFactory.make())
 
     var body: some Scene {
         WindowGroup("Claude's Shader Playground") {
             AppShellView(initialTab: Self.initialTabFromArgs())
                 .environmentObject(appState)
+                .environmentObject(bridgeContainer)
                 .frame(minWidth: 1000, minHeight: 700)
         }
     }
@@ -89,15 +91,37 @@ VStack {
                     .font(.headline)
                     .padding(.top)
                 // Shader name and description (from docstring)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(shaderMeta.name.isEmpty ? "Untitled Shader" : shaderMeta.name)
-                        .font(.title3).bold()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    if !shaderMeta.description.isEmpty {
-                        Text(shaderMeta.description)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .center, spacing: 8) {
+                        Text("Name:").font(.caption).foregroundStyle(.secondary)
+                        TextField("Untitled Shader", text: Binding(
+                            get: { shaderMeta.name },
+                            set: { shaderMeta.name = $0 }
+                        ))
+                        .textFieldStyle(.roundedBorder)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Description:").font(.caption).foregroundStyle(.secondary)
+                        TextEditor(text: Binding(
+                            get: { shaderMeta.description },
+                            set: { shaderMeta.description = $0 }
+                        ))
+                        .font(.system(.caption, design: .monospaced))
+                        .frame(height: 60)
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2)))
+                    }
+                    HStack(spacing: 12) {
+                        Button("Apply to Docstring") {
+                            applyMetadataToDocstring()
+                        }
+                        if let p = shaderMeta.path, !p.isEmpty {
+                            Text("Path: \(p)").font(.caption2).foregroundStyle(.secondary)
+                            Button("Save") { saveCurrentShader() }
+                        } else {
+                            Text("Unsaved").font(.caption2).foregroundStyle(.secondary)
+                            Button("Save As…") { saveAsShaderDialog() }
+                        }
+                        Spacer()
                     }
                 }
                 .padding(.horizontal)
@@ -138,7 +162,7 @@ VStack {
         try? FileManager.default.createDirectory(atPath: communicationDir, withIntermediateDirectories: true)
         
         // Initialize shader state file
-MCP.shared.writeText(shaderCode, to: shaderStateFile)
+        Self.writeTextSafely(shaderCode, toPath: shaderStateFile)
         
         // Initialize status file with current_tab so external scripts can verify immediately
         let status: [String: Any] = [
@@ -146,7 +170,7 @@ MCP.shared.writeText(shaderCode, to: shaderStateFile)
             "current_tab": appState.selectedTab.rawValue,
             "timestamp": Date().timeIntervalSince1970
         ]
-MCP.shared.writeJSON(status, to: statusFile)
+        writeJSONSafely(status, toPath: statusFile)
     }
     
 private func startMonitoringCommands() {
@@ -266,57 +290,39 @@ case "get_shader_meta":
             "error": error as Any
         ]
         
-MCP.shared.writeJSON(status, to: statusFile)
+        writeJSONSafely(status, toPath: statusFile)
         
         // Also update shader state file
-MCP.shared.writeText(shaderCode, to: shaderStateFile)
+        Self.writeTextSafely(shaderCode, toPath: shaderStateFile)
     }
 }
 
-// MARK: - Shader Metadata
-struct ShaderMetadata: Codable {
-    var name: String
-    var description: String
-    var path: String?
+// ShaderMetadata now lives in MetalShaderCore
 
-    static func from(code: String, path: String?) -> ShaderMetadata {
-        // Extract the first block comment /** ... */ as docstring
-        // Fallbacks if not present
-        let trimmed = code.trimmingCharacters(in: .whitespacesAndNewlines)
-        var title = ""
-        var desc = ""
-        if let startRange = trimmed.range(of: "/**"), let endRange = trimmed.range(of: "*/", range: startRange.upperBound..<trimmed.endIndex) {
-            let doc = String(trimmed[startRange.upperBound..<endRange.lowerBound])
-            // Split into lines, strip leading * and spaces
-            let lines = doc.split(separator: "\n").map { line -> String in
-                var s = String(line)
-                if s.trimmingCharacters(in: .whitespaces).hasPrefix("*") {
-                    s = s.replacingOccurrences(of: "*", with: "", options: [], range: s.range(of: "*"))
-                }
-                return s.trimmingCharacters(in: .whitespaces)
-            }
-            // First non-empty line as title, subsequent non-empty lines until blank as description (joined)
-            var i = 0
-            while i < lines.count && lines[i].isEmpty { i += 1 }
-            if i < lines.count { title = lines[i]; i += 1 }
-            var descLines: [String] = []
-            while i < lines.count {
-                let l = lines[i]
-                if l.isEmpty { break }
-                descLines.append(l)
-                i += 1
-            }
-            desc = descLines.joined(separator: " ")
-        }
-        if title.isEmpty { title = "Untitled Shader" }
-        return ShaderMetadata(name: title, description: desc, path: path)
+extension String {
+    fileprivate func lstripNewlines() -> String {
+        var s = self
+        while s.first == "\n" || s.first == "\r" { s.removeFirst() }
+        return s
     }
 }
 
 extension ContentView {
+    func saveCurrentShader() {
+        guard let path = shaderMeta.path, !path.isEmpty else {
+            saveAsShaderDialog(); return
+        }
+        Self.writeTextSafely(shaderCode, toPath: path)
+        writeCurrentShaderMeta()
+    }
+    
     func saveAsShaderDialog() {
         let panel = NSSavePanel()
-        panel.allowedFileTypes = ["metal"]
+        if let metalType = UTType(filenameExtension: "metal") {
+            panel.allowedContentTypes = [metalType]
+        } else {
+            panel.allowedContentTypes = [.plainText]
+        }
         panel.canCreateDirectories = true
         panel.title = "Save Shader As"
         // Default directory: ./shaders
@@ -335,12 +341,26 @@ extension ContentView {
 
     static func writeTextSafely(_ text: String, toPath path: String) {
         let dir = (path as NSString).deletingLastPathComponent
-        try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
-        // If file exists, replace
-        if FileManager.default.fileExists(atPath: path) {
-            _ = try? FileManager.default.removeItem(atPath: path)
+        do {
+            try FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+            if FileManager.default.fileExists(atPath: path) {
+                _ = try? FileManager.default.removeItem(atPath: path)
+            }
+            try text.write(toFile: path, atomically: true, encoding: .utf8)
+        } catch {
+            print("Failed to write text to \(path): \(error)")
         }
-        try? text.write(toFile: path, atomically: true, encoding: .utf8)
+    }
+    
+    func writeJSONSafely(_ obj: Any, toPath path: String) {
+        let dir = (path as NSString).deletingLastPathComponent
+        do {
+            try FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+            let data = try JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted])
+            try data.write(to: URL(fileURLWithPath: path))
+        } catch {
+            print("Failed to write JSON to \(path): \(error)")
+        }
     }
 
     func writeLibraryIndex() {
@@ -368,6 +388,32 @@ extension ContentView {
             try? data.write(to: URL(fileURLWithPath: communicationDir + "/library_index.json"))
         }
     }
+    private func applyMetadataToDocstring() {
+        let name = shaderMeta.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let desc = shaderMeta.description.trimmingCharacters(in: .whitespacesAndNewlines)
+        var lines: [String] = ["/**"]
+        if !name.isEmpty { lines.append(" * \(name)") }
+        if !desc.isEmpty {
+            for seg in desc.split(separator: "\n") { lines.append(" * \(seg)") }
+        }
+        lines.append(" */")
+        let newDoc = lines.joined(separator: "\n") + "\n"
+
+        // Remove existing leading docstring if present
+        let trimmed = shaderCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let start = trimmed.range(of: "/**"),
+           let end = trimmed.range(of: "*/", range: start.upperBound..<trimmed.endIndex) {
+            let after = String(trimmed[end.upperBound...])
+            shaderCode = newDoc + after.lstripNewlines()
+        } else {
+            shaderCode = newDoc + shaderCode.lstripNewlines()
+        }
+        // Reparse meta from updated code
+        shaderMeta = ShaderMetadata.from(code: shaderCode, path: shaderMeta.path)
+        writeCurrentShaderMeta()
+        renderer.updateShader(shaderCode)
+    }
+    
     func writeCurrentShaderMeta() {
         let meta = shaderMeta
         let obj: [String: Any] = [
@@ -377,7 +423,7 @@ extension ContentView {
             "timestamp": Date().timeIntervalSince1970
         ]
         // Write to a dedicated current shader metadata file (not the library index)
-        MCP.shared.writeJSON(obj, to: communicationDir + "/current_shader_meta.json")
+        writeJSONSafely(obj, toPath: communicationDir + "/current_shader_meta.json")
     }
 }
 
@@ -398,18 +444,6 @@ class MetalShaderRenderer: ObservableObject {
     // Optional Core ML post-processing
     private var coreMLPost: CoreMLPostProcessor?
     private var enableCoreMLForExport: Bool { coreMLPost?.isEnabled == true }
-    private let device: MTLDevice
-    private let commandQueue: MTLCommandQueue
-    @Published var fps: Double = 0
-    private var pipelineState: MTLRenderPipelineState?
-    private var startTime = CACurrentMediaTime()
-    
-    // Uniform override support (from Resources/communication/uniforms.json)
-    private let uniformsFile = "Resources/communication/uniforms.json"
-    private var overrideTime: Float?
-    private var overrideResolution: SIMD2<Float>?
-    private var overrideMouse: SIMD2<Float>?
-    
 init() {
         guard let device = MTLCreateSystemDefaultDevice(),
               let commandQueue = device.makeCommandQueue() else {
@@ -422,23 +456,6 @@ init() {
         
         // Optional Core ML post-processor (will enable if config/model present)
         self.coreMLPost = CoreMLPostProcessor(device: device)
-        
-        // Compile default shader
-        updateShader(defaultShader)
-        
-        // Start polling for uniform overrides
-        Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
-            self?.loadUniformOverrides()
-        }
-    }
-        guard let device = MTLCreateSystemDefaultDevice(),
-              let commandQueue = device.makeCommandQueue() else {
-            // In CI (or headless), Metal can be unavailable. Avoid crashing the build; provide a stub.
-            fatalError("Metal is not supported in this environment")
-        }
-        
-        self.device = device
-        self.commandQueue = commandQueue
         
         // Compile default shader
         updateShader(defaultShader)
@@ -652,7 +669,7 @@ func exportFrame(description: String, time: Float? = nil) {
             height: height,
             mipmapped: false
         )
-        textureDescriptor.usage = [.shaderWrite, .renderTarget, .shaderRead, .blit]
+textureDescriptor.usage = [.shaderWrite, .renderTarget, .shaderRead]
         
         guard let exportTexture = device.makeTexture(descriptor: textureDescriptor) else {
             print("❌ Failed to create export texture")
@@ -693,61 +710,6 @@ func exportFrame(description: String, time: Float? = nil) {
                 finalTexture = processed
             }
             self.saveTextureToFile(finalTexture, description: description, time: exportTime)
-        }
-        
-        commandBuffer.commit()
-    }
-        guard let pipelineState = pipelineState,
-              let commandBuffer = commandQueue.makeCommandBuffer() else {
-            print("❌ Cannot export - no valid pipeline state")
-            return
-        }
-        
-        let width = 1024
-        let height = 1024
-        
-        // Create export texture
-        let textureDescriptor = MTLTextureDescriptor.texture2DDescriptor(
-            pixelFormat: .bgra8Unorm,
-            width: width,
-            height: height,
-            mipmapped: false
-        )
-        textureDescriptor.usage = [.shaderWrite, .renderTarget]
-        
-        guard let exportTexture = device.makeTexture(descriptor: textureDescriptor) else {
-            print("❌ Failed to create export texture")
-            return
-        }
-        
-        // Create render pass
-        let renderPassDescriptor = MTLRenderPassDescriptor()
-        renderPassDescriptor.colorAttachments[0].texture = exportTexture
-        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
-        renderPassDescriptor.colorAttachments[0].loadAction = .clear
-        renderPassDescriptor.colorAttachments[0].storeAction = .store
-        
-        let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
-        encoder.setRenderPipelineState(pipelineState)
-        
-        // Set shader uniforms (respect overrides if provided)
-        var exportTime = time ?? Float(CACurrentMediaTime() - startTime)
-        if let t = overrideTime, time == nil { exportTime = t }
-        var resolution = SIMD2<Float>(Float(width), Float(height))
-        if let r = overrideResolution { resolution = r }
-        var mouse = SIMD2<Float>(0.5, 0.5) // Default center for export
-        if let m = overrideMouse { mouse = m }
-        
-        encoder.setFragmentBytes(&exportTime, length: MemoryLayout<Float>.size, index: 0)
-        encoder.setFragmentBytes(&resolution, length: MemoryLayout<SIMD2<Float>>.size, index: 1)
-        encoder.setFragmentBytes(&mouse, length: MemoryLayout<SIMD2<Float>>.size, index: 2)
-        
-        encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
-        encoder.endEncoding()
-        
-        // Save to file
-        commandBuffer.addCompletedHandler { _ in
-            self.saveTextureToFile(exportTexture, description: description, time: exportTime)
         }
         
         commandBuffer.commit()

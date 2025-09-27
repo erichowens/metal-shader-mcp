@@ -172,25 +172,25 @@ git push origin feature/plasma-enhancements
 
 ### Test Execution
 ```bash
-# Compile and run the Metal Shader app
-swiftc -o MetalShaderStudio ShaderPlayground.swift \
-  -framework SwiftUI \
-  -framework MetalKit \
-  -framework AppKit \
-  -framework UniformTypeIdentifiers \
-  -parse-as-library
-
-./MetalShaderStudio &
+# Build & run the app (via SPM target)
+swift run MetalShaderStudio --tab history
 
 # Capture screenshots for visual testing
 ./scripts/screenshot_app.sh "test_description"
 
-# Run Swift tests (when implemented)
+# Run Swift visual tests (now implemented)
 swift test --filter VisualRegressionTests
+
+# If a legitimate change is approved, regenerate goldens
+make regen-goldens
 
 # Verify screenshot capture works
 python3 scripts/find_window_id.py
 ```
+
+Notes:
+- Visual test diffs and actuals are saved under `Resources/screenshots/tests/` on failure.
+- Golden images are bundled as processed test resources under `Tests/MetalShaderTests/Fixtures/` and accessed via `Bundle.module`.
 
 ## 🚨 Critical Failure Points
 
@@ -213,6 +213,6 @@ python3 scripts/find_window_id.py
 
 ---
 
-**Last Updated**: 2025-09-07  
-**Project Structure**: ShaderPlayground.swift as main application file  
-**Key Changes**: Consolidated multi-agent workflow into single agent responsibilities
+**Last Updated**: 2025-09-26  
+**Project Structure**: Apps/MetalShaderStudio (SPM executable target)  
+**Key Changes**: Visual regression harness with goldens/diffs; Makefile target for goldens; workflow docs updated

@@ -1,6 +1,5 @@
 {
-  "timestamp" : 1757731713.2470579,
-  "last_action" : "export_frame",
-  "success" : true,
-  "error" : null
+  "status" : "ready",
+  "current_tab" : "repl",
+  "timestamp" : 1758933735.1615551
 }

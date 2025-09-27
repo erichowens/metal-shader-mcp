@@ -161,6 +161,43 @@ fragment float4 kaleidoscopeFragment(
 - **Memory**: Efficient memory usage
 - **Compilation**: <500ms
 
+## Shader metadata conventions
+
+Shaders should include a docstring that declares name and description at the top. This is parsed by `ShaderMetadata.from(code:path:)` and will power Library search, thumbnails, and metadata views.
+
+Example:
+```
+/**
+ * Kaleidoscope Blocks
+ * Geometric color blocks with animation controls.
+ */
+#include <metal_stdlib>
+using namespace metal;
+fragment float4 fragmentShader() { return float4(0,0,0,1); }
+```
+
+- First non-empty doc line → `name`
+- Following non-empty lines (until blank) → `description`
+- Source path is recorded when available for provenance
+
+## Library tab and thumbnails
+
+- Library entries derive their title/description from the shader docstring.
+- Thumbnails can be sourced from session snapshots or generated via the headless renderer for consistency.
+- As Library UX expands, expect search/filtering by tags and quick-compare overlays.
+
+## File-bridge communication contract (transitional)
+
+While the strict MCP client is being integrated, the app uses a simple file-bridge in `Resources/communication/`:
+- `commands.json` (input, optional in local workflows): queued actions (e.g., set_shader, export_frame)
+- `status.json` (output): last action status and diagnostics
+- `current_shader_meta.json`: active shader’s parsed name/description/path
+- `library_index.json`: indexed library metadata
+- `uniforms.json`: current uniform values
+- `compilation_errors.json`: last compile diagnostics
+
+Keys and exact shapes are subject to stabilization as the MCP transport replaces the bridge, but these files are the current source of truth for local tooling integrations.
+
 ## Architecture
 
 ```
@@ -223,18 +260,21 @@ Every significant development action must complete these steps:
 See `WARP.md` for detailed workflow documentation.
 
 ### Visual Testing
-This project uses visual evidence collection for shader development:
+This project includes a visual regression harness with shader fixtures and golden images.
 
 ```bash
-# Capture screenshots of current state
+# Capture screenshots of current state (optional manual evidence)
 ./scripts/screenshot_app.sh "feature_description"
 
-# Debug window capture issues
-python3 scripts/debug_window.py
-
-# Run visual tests (when implemented)
+# Run visual tests
 swift test --filter VisualRegressionTests
+
+# If you intentionally changed visuals, regenerate goldens
+make regen-goldens
 ```
+
+- On failure, artifacts are saved to `Resources/screenshots/tests/` (e.g., `actual_*.png`, `diff_*.png`, and a summary JSON).
+- Goldens live in `Tests/MetalShaderTests/Fixtures/` and are bundled via SPM resources.
 
 ### Documentation Files
 - **WARP.md** - Agent workflow requirements
