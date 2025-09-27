@@ -4,6 +4,11 @@
 - chore(scripts): Add open_bg.sh (launch app in background, no focus) and focus_app.sh (bring to foreground on demand)
 - docs(changelog): Record background-safe screenshot evidence path for UI smoke
   - Resources/screenshots/2025-09-26_15-48-28_ui_smoke_history_tab.png
+- docs(architecture): Add docs/ARCHITECTURE.md with target and transitional diagrams
+- docs(epic): Add docs/EPIC_1_PLAN.md with scope and acceptance for Strict MCP Client
+- chore(scripts): Add open_bg.sh (launch app in background, no focus) and focus_app.sh (bring to foreground on demand)
+- docs(changelog): Record background-safe screenshot evidence path for UI smoke
+  - Resources/screenshots/2025-09-26_15-48-28_ui_smoke_history_tab.png
 
 ## 2025-09-26
 - feat(tests): Add visual regression test harness with shader fixtures and golden images
