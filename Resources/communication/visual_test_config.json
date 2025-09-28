@@ -1,0 +1,12 @@
+{
+  "default": { "global": 2, "r": 2, "g": 2, "b": 2, "a": 0 },
+  "byResolution": {
+    "64x64": { "global": 2 },
+    "128x128": { "global": 3 },
+    "256x256": { "global": 4 }
+  },
+  "byTest": {
+    "VisualRegressionTests.testConstantColorImageMatchesGoldenWithinTolerance": { "global": 2 },
+    "VisualRegressionGradientTests.testGradientMatchesGoldenWithinTolerance": { "global": 12 }
+  }
+}

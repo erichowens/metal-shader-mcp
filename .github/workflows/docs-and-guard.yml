@@ -1,0 +1,35 @@
+name: Docs and Policy Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches: [ main ]
+
+jobs:
+  docs-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: VISUAL_TESTING presence
+        run: |
+          test -f VISUAL_TESTING.md || (echo "Missing VISUAL_TESTING.md" && exit 1)
+      - name: Markdown link check
+        run: |
+          python3 scripts/verify_markdown_links.py
+  single-flight:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          bash scripts/enforce_single_flight.sh
+  visual-env:
+    runs-on: macos-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check screenshot tooling
+        run: |
+          test -x scripts/screenshot_app.sh || (echo "screenshot_app.sh missing or not executable" && exit 1)
+          test -d Resources/screenshots || (echo "Resources/screenshots missing" && exit 1)

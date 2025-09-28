@@ -1,0 +1,1 @@
+Place baseline screenshots here. Use scripts/screenshot_app.sh to capture UI/shader states.

@@ -222,6 +222,7 @@ struct SnapshotCard: View {
     let snapshot: SessionStore.Snapshot
     let uniqueKey: String
     @Binding var selectedKeys: Set<String>
+    @EnvironmentObject var bridgeContainer: BridgeContainer
 
     var body: some View {
         VStack(spacing: 6) {

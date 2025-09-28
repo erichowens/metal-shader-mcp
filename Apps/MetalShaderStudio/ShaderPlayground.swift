@@ -43,8 +43,9 @@ struct ContentView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var renderer = MetalShaderRenderer()
     @StateObject private var session = SessionRecorder()
-@State private var shaderCode = defaultShader
+    @State private var shaderCode = defaultShader
     @State private var shaderMeta = ShaderMetadata.from(code: defaultShader, path: nil)
+    @State private var isMonitoringStarted = false
     
     let communicationDir = "Resources/communication"
     let shaderStateFile = "Resources/communication/current_shader.metal"
@@ -174,8 +175,29 @@ VStack {
     }
     
 private func startMonitoringCommands() {
+        // Prevent multiple monitoring instances
+        guard !isMonitoringStarted else {
+            print("📁 File monitoring already started, skipping")
+            return
+        }
+        
+        // Skip file polling if using live client to avoid conflicts
+        if let cmd = ProcessInfo.processInfo.environment["MCP_SERVER_CMD"], !cmd.trimmingCharacters(in: .whitespaces).isEmpty {
+            print("🔌 Live MCP client detected - skipping file polling")
+            return
+        }
+        
+        // Allow explicit disabling of file polling
+        if let disable = ProcessInfo.processInfo.environment["DISABLE_FILE_POLLING"], disable.lowercased() == "true" {
+            print("📁 File polling disabled by environment variable")
+            return
+        }
+        
         // Ensure communication dir exists
         try? FileManager.default.createDirectory(atPath: communicationDir, withIntermediateDirectories: true)
+        print("📁 Starting file-based command monitoring")
+        
+        isMonitoringStarted = true
         Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             checkForCommands()
         }
@@ -590,11 +612,13 @@ init() {
     }
     
     private func createVertexFunction() -> MTLFunction? {
+        // Use a uniquely named passthrough vertex function to avoid collisions with
+        // user-provided shaders that may also define `vertexShader` with a different signature.
         let vertexSource = """
         #include <metal_stdlib>
         using namespace metal;
         
-        vertex float4 vertexShader(uint vertexID [[vertex_id]]) {
+        vertex float4 passthroughVertex(uint vertexID [[vertex_id]]) {
             float2 positions[4] = {
                 float2(-1, -1),
                 float2( 1, -1),
@@ -607,7 +631,7 @@ init() {
         
         do {
             let library = try device.makeLibrary(source: vertexSource, options: nil)
-            return library.makeFunction(name: "vertexShader")
+            return library.makeFunction(name: "passthroughVertex")
         } catch {
             print("Failed to create vertex function: \(error)")
             return nil

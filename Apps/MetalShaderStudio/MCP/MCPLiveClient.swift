@@ -123,14 +123,14 @@ final class MCPLiveClient: MCPBridge {
 
         let deadline = DispatchTime.now() + timeout
         if sem.wait(timeout: deadline) == .timedOut {
-            rpcQueue.sync { pending.removeValue(forKey: id) }
+            rpcQueue.sync { _ = pending.removeValue(forKey: id) }
             throw makeError(code: 4, "MCP request timed out: \(method)")
         }
 
         // Grab and decode response
         var resultAny: Any?
         rpcQueue.sync {
-            if var entry = pending.removeValue(forKey: id) {
+            if let entry = pending.removeValue(forKey: id) {
                 resultAny = entry.storage.obj
             }
         }

@@ -1,13 +1,9 @@
 {
-  "errors" : [
-    {
-      "line" : 0,
-      "message" : "Fragment input(s) `texCoord` mismatching vertex shader output type(s) or not written by vertex shader",
-      "suggestion" : "Review Metal shading language documentation for correct syntax."
-    }
-  ],
   "warnings" : [
 
   ],
-  "timestamp" : 1758933739.101753
+  "timestamp" : 1759033111.22735,
+  "errors" : [
+
+  ]
 }
