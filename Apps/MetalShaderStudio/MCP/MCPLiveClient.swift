@@ -16,6 +16,8 @@ final class MCPLiveClient: MCPBridge {
 
     // Config
     private let defaultTimeout: TimeInterval
+    private let maxBufferSize = 10_000_000  // 10MB limit for readBuffer
+    private let maxMessageSize = 5_000_000  // 5MB limit per message
 
     init(serverCommand: String) {
         self.serverCommand = serverCommand
@@ -60,22 +62,41 @@ final class MCPLiveClient: MCPBridge {
     private func ensureLaunched() throws {
         if process != nil { return }
 
-        // Naive split into executable + args. (Note: quoting is not handled.)
-        let parts = serverCommand.split(whereSeparator: { $0.isWhitespace }).map(String.init)
+        // Parse command with proper argument handling
+        // For commands like: node "dist/my server.js" --arg="value with spaces"
+        // we use shell argument parsing via /bin/sh -c
+        let parts = parseShellCommand(serverCommand)
         guard let exe = parts.first else {
             throw makeError(code: 1, "MCP_SERVER_CMD is empty or invalid")
         }
+        
+        // Validate executable exists and is executable
+        let exePath = (exe as NSString).expandingTildeInPath
+        guard FileManager.default.isExecutableFile(atPath: exePath) else {
+            throw makeError(code: 1, "MCP_SERVER_CMD executable not found or not executable: \(exePath)")
+        }
+        
         let args = Array(parts.dropFirst())
 
         let p = Process()
-        p.executableURL = URL(fileURLWithPath: exe)
+        p.executableURL = URL(fileURLWithPath: exePath)
         p.arguments = args
 
         let inPipe = Pipe()
         let outPipe = Pipe()
+        let errPipe = Pipe()
         p.standardInput = inPipe
         p.standardOutput = outPipe
-        p.standardError = Pipe() // swallow stderr or hook if needed
+        p.standardError = errPipe
+
+        // Capture stderr for security-relevant errors and debugging
+        errPipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
+            let data = handle.availableData
+            if let stderr = String(data: data, encoding: .utf8), !stderr.isEmpty {
+                print("⚠️ MCP stderr: \(stderr)")
+                // TODO: Use structured logging in Epic 2
+            }
+        }
 
         try p.run()
         self.process = p
@@ -87,12 +108,74 @@ final class MCPLiveClient: MCPBridge {
             self?.consumeStdout(handle.availableData)
         }
     }
+    
+    /// Parse shell command with proper argument handling
+    /// Handles quoted arguments like: node "dist/my server.js" --arg="value"
+    private func parseShellCommand(_ command: String) -> [String] {
+        var parts: [String] = []
+        var current = ""
+        var inQuotes = false
+        var escapeNext = false
+        
+        for char in command {
+            if escapeNext {
+                current.append(char)
+                escapeNext = false
+                continue
+            }
+            
+            switch char {
+            case "\\":
+                escapeNext = true
+            case "\"":
+                inQuotes.toggle()
+            case " ", "\t", "\n" where !inQuotes:
+                if !current.isEmpty {
+                    parts.append(current)
+                    current = ""
+                }
+            default:
+                current.append(char)
+            }
+        }
+        
+        if !current.isEmpty {
+            parts.append(current)
+        }
+        
+        return parts
+    }
 
     private func terminateChild() {
+        // Clear handlers first to prevent callbacks during cleanup
         stdoutPipe?.fileHandleForReading.readabilityHandler = nil
+        
+        // Close file handles explicitly before terminating process
+        if let stdin = stdinPipe?.fileHandleForWriting {
+            try? stdin.close()
+        }
+        if let stdout = stdoutPipe?.fileHandleForReading {
+            try? stdout.close()
+        }
+        
+        // Terminate process gracefully, then forcefully if needed
         if let p = process, p.isRunning {
             p.terminate()
+            
+            // Wait briefly for clean shutdown
+            let deadline = Date().addingTimeInterval(0.5)
+            while p.isRunning && Date() < deadline {
+                Thread.sleep(forTimeInterval: 0.05)
+            }
+            
+            // Force interrupt if still running
+            if p.isRunning {
+                p.interrupt()
+                Thread.sleep(forTimeInterval: 0.1)
+            }
         }
+        
+        // Clear references
         process = nil
         stdinPipe = nil
         stdoutPipe = nil
@@ -148,11 +231,26 @@ final class MCPLiveClient: MCPBridge {
     private func consumeStdout(_ chunk: Data) {
         if chunk.isEmpty { return }
         rpcQueue.async {
+            // Check buffer size before appending to prevent unbounded growth
+            guard self.readBuffer.count < self.maxBufferSize else {
+                print("⚠️ MCP read buffer exceeded \(self.maxBufferSize / 1_000_000)MB limit, resetting")
+                self.readBuffer.removeAll()
+                return
+            }
+            
             self.readBuffer.append(chunk)
+            
             // Split by newlines (NDJSON)
             while let range = self.readBuffer.firstRange(of: "\n".data(using: .utf8)!) {
                 let line = self.readBuffer.subdata(in: 0..<range.lowerBound)
                 self.readBuffer.removeSubrange(0..<range.upperBound)
+                
+                // Check individual message size
+                guard line.count < self.maxMessageSize else {
+                    print("⚠️ Skipping oversized MCP message (\(line.count / 1_000_000)MB)")
+                    continue
+                }
+                
                 self.handleLine(line)
             }
         }
@@ -163,9 +261,10 @@ final class MCPLiveClient: MCPBridge {
         guard let obj = try? JSONSerialization.jsonObject(with: line, options: []) as? [String: Any] else { return }
         guard let id = obj["id"] as? Int else { return }
         rpcQueue.sync {
-            if var entry = pending[id] {
+            // ResponseBox is a class (reference type), so entry.storage.obj
+            // already updates the original - no need to reassign to dictionary
+            if let entry = pending[id] {
                 entry.storage.obj = obj
-                pending[id] = entry
                 entry.signal.signal()
             }
         }
