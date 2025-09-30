@@ -61,11 +61,13 @@ shaders/compiled/
 archive/
 old-versions/
 
-# Compiled Swift executables
+# Compiled Swift executables (in .build directory)
 MetalStudioMCPEnhanced
 MetalStudio*
-MetalShaderStudio
+.build/debug/MetalShaderStudio
+.build/release/MetalShaderStudio
 !MetalStudioMCP*.swift
+!Apps/MetalShaderStudio/
 *.dSYM/
 # Swift build artifacts
 .build/
