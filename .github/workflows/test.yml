@@ -218,19 +218,30 @@ jobs:
     
     - name: Install Metal Toolchain (best-effort)
       id: metalinstall
+      continue-on-error: true
       run: |
-        set -eo pipefail
+        set +e  # Disable exit on error for best-effort
+        echo "🔍 Checking for Metal CLI..."
         if ! xcrun -sdk macosx -f metal >/dev/null 2>&1; then
-          echo "Attempting to install Metal Toolchain..."
-          xcodebuild -downloadComponent MetalToolchain || true
+          echo "⚠️  Metal CLI not found, attempting to install Metal Toolchain..."
+          xcodebuild -downloadComponent MetalToolchain 2>&1 || echo "Installation attempt completed with errors (non-fatal)"
         fi
+        
+        # Check if metal is available and working
         if xcrun -sdk macosx -f metal >/dev/null 2>&1; then
-          echo "present=true" >> $GITHUB_OUTPUT
-          xcrun -sdk macosx metal --version
+          if xcrun -sdk macosx metal --version >/dev/null 2>&1; then
+            echo "present=true" >> $GITHUB_OUTPUT
+            echo "✅ Metal compiler available"
+            xcrun -sdk macosx metal --version || true
+          else
+            echo "present=false" >> $GITHUB_OUTPUT
+            echo "⚠️  Metal CLI found but not functional"
+          fi
         else
           echo "present=false" >> $GITHUB_OUTPUT
-          echo "Metal toolchain not present on runner after install attempt"
+          echo "ℹ️  Metal toolchain not available on this runner (non-fatal)"
         fi
+        exit 0  # Always succeed
 
     - name: Validate Metal shader files compilation
       if: steps.metalinstall.outputs.present == 'true'
