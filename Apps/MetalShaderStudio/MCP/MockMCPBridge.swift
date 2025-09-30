@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 /// Mock implementation of MCPBridge for testing
 class MockMCPBridge: MCPBridge {
@@ -10,6 +11,10 @@ class MockMCPBridge: MCPBridge {
     }
     
     private(set) var callHistory: [CallRecord] = []
+    
+    // MARK: - Health & Connection State (Epic 2)
+    let connectionState = CurrentValueSubject<ConnectionState, Never>(.connected)
+    var mockIsHealthy: Bool = true
     
     // MARK: - Response Configuration
     var shouldThrowError: Bool = false
@@ -94,6 +99,11 @@ class MockMCPBridge: MCPBridge {
         }
         
         simulateDelay()
+    }
+    
+    // MARK: - Health Check (Epic 2)
+    func isHealthy() async -> Bool {
+        return mockIsHealthy
     }
     
     // MARK: - Test Utilities

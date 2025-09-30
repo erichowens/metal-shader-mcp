@@ -1,12 +1,27 @@
 import Foundation
 import SwiftUI
+import Combine
+
+// Connection state for MCP client
+enum ConnectionState: String, Equatable {
+    case disconnected   // Not connected
+    case connecting     // Attempting to connect
+    case connected      // Connected and healthy
+    case unhealthy      // Connected but failing health checks
+    case reconnecting   // Attempting to reconnect after failure
+}
 
 // Protocol defining the minimal MCP surface area used by the current UI.
 protocol MCPBridge {
+    // Core operations
     func setShader(code: String, description: String?, noSnapshot: Bool) throws
     func setShaderWithMeta(name: String?, description: String?, path: String?, code: String?, save: Bool, noSnapshot: Bool) throws
     func exportFrame(description: String, time: Float?) throws
     func setTab(_ tab: String) throws
+    
+    // Health & connection monitoring (Epic 2)
+    func isHealthy() async -> Bool
+    var connectionState: CurrentValueSubject<ConnectionState, Never> { get }
 }
 
 // Observable container so we can inject via Environment and swap implementations.

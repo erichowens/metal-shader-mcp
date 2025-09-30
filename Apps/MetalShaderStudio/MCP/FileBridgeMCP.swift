@@ -1,8 +1,12 @@
 import Foundation
+import Combine
 
 // File-bridge implementation that writes to Resources/communication/*.json
 final class FileBridgeMCP: MCPBridge {
     private let commDir = "Resources/communication"
+    
+    // File bridge is always "connected" since it just writes files
+    let connectionState = CurrentValueSubject<ConnectionState, Never>(.connected)
 
     func setShader(code: String, description: String?, noSnapshot: Bool) throws {
         var cmd: [String: Any] = [
@@ -46,6 +50,12 @@ final class FileBridgeMCP: MCPBridge {
             "timestamp": Date().timeIntervalSince1970
         ]
         try writeCommand(cmd)
+    }
+    
+    // Health check - file bridge is always healthy if directory is writable
+    func isHealthy() async -> Bool {
+        return FileManager.default.isWritableFile(atPath: commDir) ||
+               ((try? FileManager.default.createDirectory(atPath: commDir, withIntermediateDirectories: true)) != nil)
     }
 
     private func writeCommand(_ obj: [String: Any]) throws {

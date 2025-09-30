@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 // Live stdio JSON-RPC client for MCP tools. This wires a long-lived child process
 // (MCP_SERVER_CMD) with stdin/stdout pipes, sends JSON-RPC requests, and waits for
@@ -18,6 +19,14 @@ final class MCPLiveClient: MCPBridge {
     private let defaultTimeout: TimeInterval
     private let maxBufferSize = 10_000_000  // 10MB limit for readBuffer
     private let maxMessageSize = 5_000_000  // 5MB limit per message
+    
+    // Health check & connection state (Epic 2)
+    let connectionState = CurrentValueSubject<ConnectionState, Never>(.disconnected)
+    private var healthCheckTimer: Timer?
+    private var consecutiveFailures: Int = 0
+    private let maxFailures = 3
+    private let healthCheckInterval: TimeInterval = 30.0
+    private let healthCheckTimeout: TimeInterval = 2.0
 
     init(serverCommand: String) {
         self.serverCommand = serverCommand
@@ -25,6 +34,7 @@ final class MCPLiveClient: MCPBridge {
     }
 
     deinit {
+        stopHealthCheck()
         terminateChild()
     }
 
@@ -61,6 +71,8 @@ final class MCPLiveClient: MCPBridge {
     // MARK: - Launch & Transport
     private func ensureLaunched() throws {
         if process != nil { return }
+        
+        connectionState.send(.connecting)
 
         // Parse command with proper argument handling
         // For commands like: node "dist/my server.js" --arg="value with spaces"
@@ -107,6 +119,12 @@ final class MCPLiveClient: MCPBridge {
         outPipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
             self?.consumeStdout(handle.availableData)
         }
+        
+        // Update connection state and start health monitoring
+        connectionState.send(.connected)
+        startHealthCheck()
+        
+        print("✅ MCP server launched: \(serverCommand)")
     }
     
     /// Parse shell command with proper argument handling
@@ -147,6 +165,9 @@ final class MCPLiveClient: MCPBridge {
     }
 
     private func terminateChild() {
+        // Stop health checks
+        stopHealthCheck()
+        
         // Clear handlers first to prevent callbacks during cleanup
         stdoutPipe?.fileHandleForReading.readabilityHandler = nil
         
@@ -179,6 +200,11 @@ final class MCPLiveClient: MCPBridge {
         process = nil
         stdinPipe = nil
         stdoutPipe = nil
+        
+        // Update connection state
+        if connectionState.value != .reconnecting {
+            connectionState.send(.disconnected)
+        }
     }
 
     // MARK: - JSON-RPC
@@ -255,21 +281,101 @@ final class MCPLiveClient: MCPBridge {
             }
         }
     }
-
+    
     private func handleLine(_ line: Data) {
         guard !line.isEmpty else { return }
         guard let obj = try? JSONSerialization.jsonObject(with: line, options: []) as? [String: Any] else { return }
         guard let id = obj["id"] as? Int else { return }
         rpcQueue.sync {
-            // ResponseBox is a class (reference type), so entry.storage.obj
-            // already updates the original - no need to reassign to dictionary
-            if let entry = pending[id] {
+            // Get tuple and signal - storage is mutable since it's a class
+            if var entry = pending[id] {
                 entry.storage.obj = obj
                 entry.signal.signal()
             }
         }
     }
 
+    // MARK: - Health Checks & Connection Management (Epic 2)
+    
+    func isHealthy() async -> Bool {
+        // Don't check health if not connected
+        guard process != nil else {
+            return false
+        }
+        
+        do {
+            // Send a lightweight ping request
+            _ = try sendRequest(method: "ping", params: nil, timeout: healthCheckTimeout)
+            consecutiveFailures = 0
+            
+            // Update state to connected if we were unhealthy
+            if connectionState.value == .unhealthy {
+                connectionState.send(.connected)
+            }
+            
+            return true
+        } catch {
+            consecutiveFailures += 1
+            print("⚠️ Health check failed (attempt \(consecutiveFailures)/\(maxFailures)): \(error.localizedDescription)")
+            
+            if consecutiveFailures >= maxFailures && connectionState.value != .unhealthy {
+                connectionState.send(.unhealthy)
+            }
+            
+            return false
+        }
+    }
+    
+    func startHealthCheck() {
+        // Stop any existing timer
+        stopHealthCheck()
+        
+        // Schedule periodic health checks on the main thread
+        healthCheckTimer = Timer.scheduledTimer(withTimeInterval: healthCheckInterval, repeats: true) { [weak self] _ in
+            Task { [weak self] in
+                guard let self = self else { return }
+                
+                if !(await self.isHealthy()) {
+                    await self.handleUnhealthyState()
+                }
+            }
+        }
+        
+        // Ensure timer fires on common run loop modes (including tracking mode for UI)
+        if let timer = healthCheckTimer {
+            RunLoop.main.add(timer, forMode: .common)
+        }
+        
+        print("✅ Health check started (interval: \(healthCheckInterval)s)")
+    }
+    
+    func stopHealthCheck() {
+        healthCheckTimer?.invalidate()
+        healthCheckTimer = nil
+    }
+    
+    private func handleUnhealthyState() async {
+        guard consecutiveFailures >= maxFailures else { return }
+        
+        print("❌ MCP client unhealthy after \(maxFailures) failures, attempting restart...")
+        connectionState.send(.reconnecting)
+        
+        // Terminate the unhealthy process
+        terminateChild()
+        
+        // Reset failure counter
+        consecutiveFailures = 0
+        
+        // Attempt to relaunch
+        do {
+            try ensureLaunched()
+            print("✅ MCP client restarted successfully")
+        } catch {
+            print("❌ Failed to restart MCP client: \(error.localizedDescription)")
+            connectionState.send(.disconnected)
+        }
+    }
+    
     // MARK: - Errors
     private func makeError(code: Int, _ message: String) -> NSError {
         return NSError(domain: "MCPLiveClient", code: code, userInfo: [NSLocalizedDescriptionKey: message])
