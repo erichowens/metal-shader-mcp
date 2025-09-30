@@ -48,6 +48,14 @@ let package = Package(
             resources: [
                 .process("Fixtures")
             ]
+        ),
+        .testTarget(
+            name: "IntegrationTests",
+            dependencies: ["MetalShaderStudio"],
+            path: "Tests/Integration",
+            resources: [
+                .copy("mock-mcp-server.js")
+            ]
         )
     ]
 )
