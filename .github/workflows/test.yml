@@ -394,7 +394,7 @@ jobs:
         
         # Check for required files
         REQUIRED_FILES=(
-          "ShaderPlayground.swift"
+          "Apps/MetalShaderStudio/ShaderPlayground.swift"
           "Resources/communication"
           "WARP.md"
           "CHANGELOG.md"
@@ -439,8 +439,8 @@ jobs:
       run: |
         echo "Enforcing MCP policy in UI files..."
         FAIL=0
-        for f in ShaderPlayground.swift AppShellView.swift; do
-          if grep -nE "write\(toFile:|FileManager\.default\.createDirectory\(" "$f"; then
+        for f in Apps/MetalShaderStudio/ShaderPlayground.swift Apps/MetalShaderStudio/AppShellView.swift; do
+          if [ -f "$f" ] && grep -nE "write\(toFile:|FileManager\.default\.createDirectory\(" "$f"; then
             echo "❌ Direct file system writes found in $f. Route via MCP.shared instead."
             FAIL=1
           fi
