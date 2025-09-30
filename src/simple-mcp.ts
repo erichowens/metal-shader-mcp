@@ -9,6 +9,7 @@ import {
 import { execSync } from 'child_process';
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { getCommunicationDir, getScreenshotsDir } from './paths.js';
 
 const server = new Server(
   {
@@ -22,8 +23,9 @@ const server = new Server(
   }
 );
 
-// Paths
-const SCREENSHOTS_DIR = join(process.cwd(), 'Resources/screenshots');
+// Paths resolved relative to project root (not process.cwd())
+const COMM_DIR = getCommunicationDir();
+const SCREENSHOTS_DIR = getScreenshotsDir();
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
@@ -223,12 +225,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           timestamp: Date.now()
         };
         
-        const commandFile = 'Resources/communication/commands.json';
-        const statusFile = 'Resources/communication/status.json';
+const commandFile = join(COMM_DIR, 'commands.json');
+        const statusFile = join(COMM_DIR, 'status.json');
         
         try {
           // Ensure communication directory exists (avoid shell exec for safety)
-          try { mkdirSync('Resources/communication', { recursive: true }); } catch { /* ignore */ }
+try { mkdirSync(COMM_DIR, { recursive: true }); } catch { /* ignore */ }
           
           // Write command
           writeFileSync(commandFile, JSON.stringify(command, null, 2));
@@ -296,7 +298,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       
       case 'get_current_shader': {
         try {
-          const shaderFile = 'Resources/communication/current_shader.metal';
+const shaderFile = join(COMM_DIR, 'current_shader.metal');
           if (existsSync(shaderFile)) {
             const currentShader = readFileSync(shaderFile, 'utf8');
             return {
@@ -353,8 +355,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             ...(time !== undefined ? { time } : {}),
             timestamp: Date.now()
           };
-          const commandFile = 'Resources/communication/commands.json';
-          execSync('mkdir -p Resources/communication');
+const commandFile = join(COMM_DIR, 'commands.json');
+          mkdirSync(COMM_DIR, { recursive: true });
           writeFileSync(commandFile, JSON.stringify(command, null, 2));
 
           // Wait for command to be processed and screenshot to appear in Resources/screenshots
@@ -400,9 +402,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const duration = (args.duration as number) ?? 5.0;
         const fps = (args.fps as number) ?? 30;
         try {
-          const command = { action: 'export_sequence', description, duration, fps, timestamp: Date.now() };
-          const commandFile = 'Resources/communication/commands.json';
-          execSync('mkdir -p Resources/communication');
+const command = { action: 'export_sequence', description, duration, fps, timestamp: Date.now() };
+          const commandFile = join(COMM_DIR, 'commands.json');
+          mkdirSync(COMM_DIR, { recursive: true });
           writeFileSync(commandFile, JSON.stringify(command, null, 2));
           return {
             content: [ { type: 'text', text: `🎬 Exporting sequence '${description}' (${duration}s @ ${fps}fps).` } ]
@@ -417,8 +419,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const tab = args.tab as string;
         try {
           const command = { action: 'set_tab', tab, timestamp: Date.now() };
-          execSync('mkdir -p Resources/communication');
-          writeFileSync('Resources/communication/commands.json', JSON.stringify(command, null, 2));
+mkdirSync(COMM_DIR, { recursive: true });
+          writeFileSync(join(COMM_DIR, 'commands.json'), JSON.stringify(command, null, 2));
           // best-effort wait for status
           await new Promise(r => setTimeout(r, 200));
           return { content: [ { type: 'text', text: `✅ Tab set to ${tab}` } ] } as any;
@@ -429,11 +431,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'list_library_entries': {
         try {
-          const idxPath = 'Resources/communication/library_index.json';
+const idxPath = join(COMM_DIR, 'library_index.json');
           if (!existsSync(idxPath)) {
             const command = { action: 'list_library_entries', timestamp: Date.now() };
-            execSync('mkdir -p Resources/communication');
-            writeFileSync('Resources/communication/commands.json', JSON.stringify(command, null, 2));
+mkdirSync(COMM_DIR, { recursive: true });
+            writeFileSync(join(COMM_DIR, 'commands.json'), JSON.stringify(command, null, 2));
             await new Promise(r => setTimeout(r, 200));
           }
           if (existsSync(idxPath)) {
@@ -448,7 +450,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       
       case 'get_compilation_errors': {
         try {
-          const errorsFile = 'Resources/communication/compilation_errors.json';
+const errorsFile = join(COMM_DIR, 'compilation_errors.json');
           if (existsSync(errorsFile)) {
             const errorsData = JSON.parse(readFileSync(errorsFile, 'utf8'));
             
@@ -512,9 +514,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const uniforms = args.uniforms as Record<string, number | number[]>;
         
         // Write uniforms to communication file for ShaderPlayground to pick up
-        const uniformsFile = 'Resources/communication/uniforms.json';
+const uniformsFile = join(COMM_DIR, 'uniforms.json');
         try {
-          execSync('mkdir -p Resources/communication');
+          mkdirSync(COMM_DIR, { recursive: true });
           writeFileSync(uniformsFile, JSON.stringify({ uniforms, timestamp: Date.now() }, null, 2));
           
           let response = '✅ **Uniforms Updated:**\n\n';
@@ -545,7 +547,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       
       case 'list_uniforms': {
         try {
-          const uniformsFile = 'Resources/communication/uniforms.json';
+const uniformsFile = join(COMM_DIR, 'uniforms.json');
           if (existsSync(uniformsFile)) {
             const uniformsData = JSON.parse(readFileSync(uniformsFile, 'utf8'));
             
@@ -745,8 +747,8 @@ fragment float4 fragmentShader(float4 position [[position]],
         try {
           const description = (args && (args as any).description) || 'snapshot';
           const fs = await import('fs');
-          await fs.promises.mkdir('Resources/communication', { recursive: true });
-          await fs.promises.writeFile('Resources/communication/commands.json', JSON.stringify({ action: 'save_snapshot', description, timestamp: Date.now() }, null, 2));
+await fs.promises.mkdir(COMM_DIR, { recursive: true });
+          await fs.promises.writeFile(join(COMM_DIR, 'commands.json'), JSON.stringify({ action: 'save_snapshot', description, timestamp: Date.now() }, null, 2));
           return { content: [{ type: 'text', text: '🖼️ Snapshot requested. App will capture code+image+meta.' }] };
         } catch (e: any) {
           return { content: [{ type: 'text', text: `❌ Failed to request snapshot: ${e.message}` }], isError: true };

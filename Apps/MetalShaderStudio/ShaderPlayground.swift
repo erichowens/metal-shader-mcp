@@ -41,11 +41,14 @@ struct ShaderPlaygroundApp: App {
 
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var bridgeContainer: BridgeContainer
     @StateObject private var renderer = MetalShaderRenderer()
     @StateObject private var session = SessionRecorder()
     @State private var shaderCode = defaultShader
     @State private var shaderMeta = ShaderMetadata.from(code: defaultShader, path: nil)
     @State private var isMonitoringStarted = false
+    @State private var errorMessage: String? = nil
+    @State private var showError = false
     
     let communicationDir = "Resources/communication"
     let shaderStateFile = "Resources/communication/current_shader.metal"
@@ -54,9 +57,10 @@ struct ContentView: View {
     let errorsFile = "Resources/communication/compilation_errors.json"
     
     var body: some View {
-        HStack(spacing: 0) {
-            // Left: Code Editor
-            VStack {
+        ZStack {
+            HStack(spacing: 0) {
+                // Left: Code Editor
+                VStack {
                 Text("Shader Code")
                     .font(.headline)
                     .padding()
@@ -134,11 +138,15 @@ VStack {
                 
                 HStack {
                     Button("Export Frame") {
-                        renderer.saveScreenshot()
+                        Task {
+                            await exportFrameWithBridge()
+                        }
                     }
                     
                     Button("Export Sequence") {
-                        renderer.exportFrameSequence(description: "animation_sequence")
+                        Task {
+                            await exportSequenceWithBridge()
+                        }
                     }
                     
                     Text("FPS: \(Int(renderer.fps))")
@@ -147,10 +155,38 @@ VStack {
                 .padding()
             }
             .frame(maxWidth: .infinity)
-        }
-        .onAppear {
-            setupCommunication()
-            startMonitoringCommands()
+            }
+            .onAppear {
+                setupCommunication()
+                startMonitoringCommands()
+            }
+            
+            // Error Banner Overlay
+            if showError, let message = errorMessage {
+                VStack {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.yellow)
+                        Text(message)
+                            .foregroundColor(.white)
+                            .font(.system(.caption, design: .rounded))
+                        Spacer()
+                        Button(action: { showError = false }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(12)
+                    .background(Color.red.opacity(0.9))
+                    .cornerRadius(8)
+                    .shadow(radius: 4)
+                    .padding()
+                    Spacer()
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .animation(.spring(), value: showError)
+            }
         }
     }
     
@@ -446,6 +482,102 @@ extension ContentView {
         ]
         // Write to a dedicated current shader metadata file (not the library index)
         writeJSONSafely(obj, toPath: communicationDir + "/current_shader_meta.json")
+    }
+    
+    // MARK: - Bridge Methods
+    @MainActor
+    func exportFrameWithBridge() async {
+        let bridge = bridgeContainer.bridge
+        do {
+            let description = "mcp_export_\(Date().timeIntervalSince1970)"
+            try bridge.exportFrame(description: description, time: nil)
+            // Also tell renderer to save screenshot for consistency
+            renderer.saveScreenshot()
+        } catch {
+            errorMessage = "Failed to export frame: \(error.localizedDescription)"
+            showError = true
+        }
+    }
+    
+    @MainActor
+    func exportSequenceWithBridge() async {
+        let description = "animation_sequence"
+        // For now, still use the renderer directly for sequence export
+        // Will be replaced when MCP server supports export_sequence
+        renderer.exportFrameSequence(description: description)
+    }
+    
+    @MainActor
+    func setShaderWithBridge(code: String, description: String?, noSnapshot: Bool = false) async {
+        let bridge = bridgeContainer.bridge
+        do {
+            try bridge.setShader(code: code, description: description, noSnapshot: noSnapshot)
+            // Update local state
+            self.shaderCode = code
+            self.renderer.updateShader(code)
+            if !noSnapshot {
+                self.session.recordSnapshot(code: code, renderer: renderer, label: description)
+            }
+        } catch {
+            errorMessage = "Failed to set shader: \(error.localizedDescription)"
+            showError = true
+        }
+    }
+    
+    @MainActor
+    func setShaderWithMetaBridge(name: String?, description: String?, path: String?, code: String?, save: Bool, noSnapshot: Bool = false) async {
+        let bridge = bridgeContainer.bridge
+        do {
+            try bridge.setShaderWithMeta(
+                name: name,
+                description: description,
+                path: path,
+                code: code,
+                save: save,
+                noSnapshot: noSnapshot
+            )
+            // Update local state if code was provided
+            if let code = code {
+                self.shaderCode = code
+                self.renderer.updateShader(code)
+            }
+            // Update metadata
+            var meta = ShaderMetadata.from(code: self.shaderCode, path: self.shaderStateFile)
+            if let name = name { meta.name = name }
+            if let desc = description { meta.description = desc }
+            if let path = path, !path.isEmpty { meta.path = path }
+            self.shaderMeta = meta
+            self.writeCurrentShaderMeta()
+            
+            // Save to path if requested
+            if save, let p = meta.path, !p.isEmpty {
+                Self.writeTextSafely(self.shaderCode, toPath: p)
+            }
+            if !noSnapshot {
+                self.session.recordSnapshot(code: self.shaderCode, renderer: renderer, label: "set_shader_with_meta")
+            }
+        } catch {
+            errorMessage = "Failed to set shader with meta: \(error.localizedDescription)"
+            showError = true
+        }
+    }
+    
+    @MainActor
+    func setTabWithBridge(_ tab: String) async {
+        let bridge = bridgeContainer.bridge
+        do {
+            try bridge.setTab(tab)
+            // Update local state
+            let lower = tab.lowercased()
+            if lower == "repl" { self.appState.selectedTab = .repl }
+            else if lower == "library" { self.appState.selectedTab = .library }
+            else if lower == "projects" { self.appState.selectedTab = .projects }
+            else if lower == "tools" || lower == "mcp" || lower == "mcp-tools" { self.appState.selectedTab = .tools }
+            else if lower == "history" || lower == "sessions" { self.appState.selectedTab = .history }
+        } catch {
+            errorMessage = "Failed to set tab: \(error.localizedDescription)"
+            showError = true
+        }
     }
 }
 

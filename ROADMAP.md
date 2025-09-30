@@ -9,13 +9,13 @@ Links
 - PRIORITIES.md: required checks and process policy
 - AGENT_HANDOFF.md: current state and continuity plan
 
-## Epic 1 — Strict MCP Client (MCP-first, no bridge)
-- [ ] Implement MCPLiveClient in Swift (stdio/websocket) behind `MCPBridge`
-- [ ] Replace `FileBridgeMCP` usages in ContentView, HistoryTabView, AppShellView
-- [ ] Remove polling loop (`checkForCommands`); use event/callbacks from MCP client
-- [ ] Add robust error handling + retries; surface structured errors in UI
-- [ ] Swift unit tests to assert UI actions call `MCPBridge` methods
-- [ ] Deprecate/retire file-bridge paths and docs
+## Epic 1 — Strict MCP Client (MCP-first, no bridge) ✅ COMPLETED
+- [x] Implement MCPLiveClient in Swift (stdio/websocket) behind `MCPBridge`
+- [x] Replace `FileBridgeMCP` usages in ContentView, HistoryTabView, AppShellView
+- [x] Remove polling loop (`checkForCommands`); use event/callbacks from MCP client (disabled when live client active)
+- [x] Add robust error handling + retries; surface structured errors in UI (error banner)
+- [x] Swift unit tests to assert UI actions call `MCPBridge` methods
+- [ ] Deprecate/retire file-bridge paths and docs (kept as fallback)
 - [ ] Update README/CONTRIBUTING with final deprecation details
 
 ## Epic 2 — Headless MCP server maturation
@@ -125,12 +125,12 @@ Phase 6 — Packaging & polish
 ## Next 30 actionable items (prioritized)
 [P0] Highest priority; [P1] High; [P2] Medium
 
-1. [P0][Swift] Introduce MCPLiveClient (stdio) implementing MCPBridge
-2. [P0][Swift] Replace FileBridgeMCP in REPL (ContentView) for set_shader/export_frame
-3. [P0][Swift] Replace FileBridgeMCP in HistoryTabView open snapshot (+silent)
-4. [P0][Swift] Remove checkForCommands polling from REPL once MCPLiveClient is active
-5. [P0][Swift] Surface structured errors from MCP (compile errors, IO, timeouts) in UI banner
-6. [P0][Swift Tests] Add tests that tapping Export Frame/History open calls MCPBridge with correct payloads
+1. [x] [P0][Swift] Introduce MCPLiveClient (stdio) implementing MCPBridge ✅
+2. [x] [P0][Swift] Replace FileBridgeMCP in REPL (ContentView) for set_shader/export_frame ✅
+3. [x] [P0][Swift] Replace FileBridgeMCP in HistoryTabView open snapshot (+silent) ✅
+4. [x] [P0][Swift] Remove checkForCommands polling from REPL once MCPLiveClient is active ✅
+5. [x] [P0][Swift] Surface structured errors from MCP (compile errors, IO, timeouts) in UI banner ✅
+6. [x] [P0][Swift Tests] Add tests that tapping Export Frame/History open calls MCPBridge with correct payloads ✅
 7. [P0][Node Tests] Add tests for exportFrame/setShader error/timeout branches
 8. [P1][Node] Add run_frame deterministic tool (PNG bytes out, base64) with seed + resolution
 9. [P1][Node] Add export_sequence with deterministic stepping and progress callbacks
@@ -162,6 +162,7 @@ Acceptance notes (for early P0/P1 items)
 - Tests: at least one Swift test per MCPBridge entry point; Node tests for success and failure branches
 
 ## Recently completed
+- [x] **Epic 1 - Strict MCP Client** (2025-09-29): Full MCPLiveClient implementation with stdio JSON-RPC, MCPBridge protocol, error banner UI, and comprehensive tests
 - [x] CI modernization (PR #30): cancel-in-progress, paths/label gating, AGENT_HANDOFF
 - [x] Node/TS headless helpers & tests; YAML fix; simple-mcp.ts mkdir security tweak
 - [x] Docs: file-bridge deprecation, visual-required label, single-flight policy

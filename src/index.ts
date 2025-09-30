@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { PNG } from 'pngjs';
+import { getCommunicationDir, getScreenshotsDir } from './paths.js';
 
 export type ShaderMeta = {
   name: string;
@@ -8,8 +9,8 @@ export type ShaderMeta = {
   path?: string;
 };
 
-const COMM_DIR = path.join(process.cwd(), 'Resources', 'communication');
-const SCREENSHOTS_DIR = path.join(process.cwd(), 'Resources', 'screenshots');
+const COMM_DIR = getCommunicationDir();
+const SCREENSHOTS_DIR = getScreenshotsDir();
 
 function ensureDir(p: string) {
   fs.mkdirSync(p, { recursive: true });

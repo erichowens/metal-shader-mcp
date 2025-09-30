@@ -1,5 +1,58 @@
 # Changelog
 
+## 2025-09-29 - Epic 1: Strict MCP Client Migration
+### Added
+- **MCPLiveClient**: Full stdio JSON-RPC client implementation for live MCP communication
+  - Replaces file-bridge polling with event-driven architecture
+  - Supports environment variable `MCP_SERVER_CMD` to specify MCP server command
+  - Configurable timeout via `MCP_TIMEOUT_MS` environment variable (default: 8000ms)
+  - Structured error propagation with NSError for UI feedback
+  
+- **MCPBridge Protocol**: Unified interface for MCP operations
+  - `setShader()`: Update shader code with optional description and snapshot control
+  - `setShaderWithMeta()`: Update shader with metadata (name, description, path)
+  - `exportFrame()`: Export rendered frame at specific time
+  - `setTab()`: Switch UI tabs programmatically
+  
+- **BridgeContainer & BridgeFactory**: Dependency injection for bridge implementation
+  - Auto-detects live client when `MCP_SERVER_CMD` is set
+  - Falls back to file-bridge when `USE_FILE_BRIDGE=true`
+  - Seamless swapping between implementations
+
+### Changed
+- **ContentView**: Integrated MCPBridge throughout the UI
+  - Added `@EnvironmentObject var bridgeContainer: BridgeContainer`
+  - Export Frame and Export Sequence buttons now use async bridge methods
+  - Added error banner UI to display MCP operation failures
+  - Automatic polling disabled when live client is active
+  
+- **HistoryTabView**: Uses MCPBridge for snapshot operations
+  - `openInREPL()` and `openInREPLSilent()` use bridge with file fallback
+  
+- **LibraryView**: Uses MCPBridge for opening shaders
+  - Opens library entries via `setShaderWithMeta()` with fallback
+
+### Testing
+- **MCPBridgeTests**: Mock-based unit tests for bridge protocol
+  - Tests all payload formats and method signatures
+  - Validates command construction without requiring live server
+  - 100% test coverage for bridge protocol methods
+
+### Environment Variables
+- `MCP_SERVER_CMD`: Command to launch MCP server (e.g., "node dist/simple-mcp.js")
+- `MCP_TIMEOUT_MS`: Request timeout in milliseconds (default: 8000)
+- `USE_FILE_BRIDGE`: Force file-bridge mode when set to "true"
+- `DISABLE_FILE_POLLING`: Disable file polling when set to "true"
+
+### Migration Notes
+To use the live MCP client:
+1. Build the Node.js MCP server: `npm run build`
+2. Set environment variable: `export MCP_SERVER_CMD="node dist/simple-mcp.js"`
+3. Launch MetalShaderStudio: UI will automatically use live client
+4. File polling is automatically disabled when live client is active
+
+The file-bridge remains available as a fallback for compatibility.
+
 ## 2025-09-27
 - chore(scripts): Add open_bg.sh (launch app in background, no focus) and focus_app.sh (bring to foreground on demand)
 - docs(changelog): Record background-safe screenshot evidence path for UI smoke

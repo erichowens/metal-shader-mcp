@@ -246,7 +246,30 @@ The profiler measures:
 - Memory usage
 - Power consumption estimate
 
-## Development Workflow
+## Development
+
+### Important: Stable paths regardless of launch directory
+This project previously resolved Resources paths using the current working directory, which caused mismatched behavior when launching the MCP from different folders (e.g., animation works but library/history don’t, or vice‑versa). Paths are now resolved relative to the project root, detected as follows:
+
+1) If METAL_SHADER_MCP_ROOT is set, that directory is used (expects a Resources subfolder)
+2) Otherwise, we walk up from the MCP source location until we find a Resources directory
+3) Fallback: process.cwd() (only if the above fail)
+
+If you need to override, set an environment variable before launching:
+
+- macOS/zsh
+  export METAL_SHADER_MCP_ROOT="/Users/erichowens/coding/metal-shader-mcp"
+
+This ensures the MCP and app read/write the same Resources/communication and Resources/screenshots folders regardless of where you run the CLI.
+
+### Service keys / secrets
+This repository does not require external service keys to run the core ShaderPlayground + MCP flow. If you add integrations that require secrets, store them in one of the following, in order of preference:
+- Local development: .env.local (gitignored)
+- Shared dev on the same machine: .env (gitignored)
+- CI: Configure secrets in the CI provider’s encrypted secret store
+- Production: Use your deployment platform’s secret manager (e.g., GitHub Actions Secrets, 1Password, AWS/GCP secret managers)
+
+Never commit secrets to the repo. Use environment variables in code (e.g., process.env.MY_KEY) and document any required variables here.
 
 ### After-Action Requirements
 Every significant development action must complete these steps:
