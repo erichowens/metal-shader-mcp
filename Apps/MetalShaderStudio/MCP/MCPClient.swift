@@ -34,6 +34,7 @@ final class MCPClient: MCPBridge {
     private let transport: MCPTransport
     private let defaultTimeout: TimeInterval
     private var isInitialized = false
+    private var initializationTask: Task<Void, Error>?
     
     // MARK: - Initialization
     
@@ -59,6 +60,7 @@ final class MCPClient: MCPBridge {
     
     /// Initialize the client and its transport. This must be called before using the client.
     /// This method is idempotent - calling it multiple times is safe.
+    /// Note: Initialization happens automatically on first request if not explicitly called.
     func initialize() async throws {
         guard !isInitialized else { return }
         
@@ -66,8 +68,66 @@ final class MCPClient: MCPBridge {
         isInitialized = true
     }
     
+    /// Ensures the client is initialized, performing lazy initialization if needed.
+    /// This method blocks synchronously until initialization completes.
+    private func ensureInitializedLazy() throws {
+        // Fast path: already initialized
+        if isInitialized {
+            return
+        }
+        
+        // Check if initialization is already in progress
+        if let existingTask = initializationTask {
+            let semaphore = DispatchSemaphore(value: 0)
+            var error: Error?
+            
+            Task {
+                do {
+                    try await existingTask.value
+                } catch let e {
+                    error = e
+                }
+                semaphore.signal()
+            }
+            
+            semaphore.wait()
+            if let error = error {
+                throw error
+            }
+            return
+        }
+        
+        // Start new initialization
+        let task = Task {
+            try await initialize()
+        }
+        initializationTask = task
+        
+        let semaphore = DispatchSemaphore(value: 0)
+        var error: Error?
+        
+        Task {
+            do {
+                try await task.value
+            } catch let e {
+                error = e
+            }
+            semaphore.signal()
+        }
+        
+        semaphore.wait()
+        if let error = error {
+            initializationTask = nil
+            throw error
+        }
+    }
+    
     /// Shutdown the client and its transport gracefully.
     func shutdown() async {
+        // Cancel any in-flight initialization
+        initializationTask?.cancel()
+        initializationTask = nil
+        
         await transport.shutdown()
         isInitialized = false
     }
@@ -222,8 +282,7 @@ final class MCPClient: MCPBridge {
     // MARK: - Private Helpers
     
     private func ensureInitialized() throws {
-        guard isInitialized else {
-            throw MCPError.notConnected
-        }
+        // Use lazy initialization instead of throwing immediately
+        try ensureInitializedLazy()
     }
 }

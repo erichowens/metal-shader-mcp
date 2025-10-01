@@ -32,9 +32,10 @@ final class BridgeContainer: ObservableObject {
 
 enum BridgeFactory {
     static func make() -> MCPBridge {
-        // If an explicit live server command is provided, prefer attempting live.
+        // If an explicit live server command is provided, use MCPClient with stdio transport
         if let cmd = ProcessInfo.processInfo.environment["MCP_SERVER_CMD"], !cmd.trimmingCharacters(in: .whitespaces).isEmpty {
-            return MCPLiveClient(serverCommand: cmd)
+            // Use new architecture: MCPClient with MCPStdioTransport
+            return MCPClient(serverCommand: cmd)
         }
         // Respect explicit file-bridge opt-in
         if let useFile = ProcessInfo.processInfo.environment["USE_FILE_BRIDGE"], useFile.lowercased() == "true" {

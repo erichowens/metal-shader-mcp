@@ -1,5 +1,17 @@
 # Changelog
 
+## 2025-10-01 - Bug Fix: CoreML Model Loading
+### Fixed
+- **CoreML Model Loading Error**: App no longer shows error on startup for missing StyleTransfer.mlmodelc
+  - Added file existence check in `CoreMLPostProcessor.swift` before attempting to load model
+  - Feature now fails silently when model file is absent (as it's optional functionality)
+  - Updated `coreml_config.json` with comment noting feature is disabled
+  - App starts cleanly without error messages
+
+### Notes
+- CoreML post-processing remains available when a valid model is provided
+- To enable: place compiled `.mlmodelc` model at path specified in config
+
 ## 2025-09-29 - Epic 1: Strict MCP Client Migration
 ### Added
 - **MCPLiveClient**: Full stdio JSON-RPC client implementation for live MCP communication

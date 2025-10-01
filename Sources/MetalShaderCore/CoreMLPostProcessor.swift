@@ -36,6 +36,17 @@ public final class CoreMLPostProcessor {
             let data = try Data(contentsOf: url)
             let cfg = try JSONDecoder().decode(Config.self, from: data)
             let modelURL = URL(fileURLWithPath: cfg.modelPath)
+            
+            // Check if model file actually exists before attempting to load
+            guard FileManager.default.fileExists(atPath: cfg.modelPath) ||
+                  FileManager.default.fileExists(atPath: modelURL.path) else {
+                // Model file doesn't exist - this is expected if CoreML feature is not being used
+                // Fail silently without error message
+                self.model = nil
+                self.config = nil
+                return
+            }
+            
             let compiledURL: URL
             if modelURL.pathExtension == "mlmodelc" {
                 compiledURL = modelURL

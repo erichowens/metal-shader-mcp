@@ -98,15 +98,16 @@ final class MCPClientIntegrationTests: XCTestCase {
     }
     
     func testSetShaderWithoutInitialization() throws {
-        // Should fail if not initialized
-        XCTAssertThrowsError(try client.setShader(code: "test", description: nil, noSnapshot: true)) { error in
-            XCTAssertTrue(error is MCPError)
-            if case MCPError.notConnected = error {
-                // Expected error
-            } else {
-                XCTFail("Wrong error type: \(error)")
-            }
-        }
+        // With lazy initialization, calling methods without explicit init should succeed
+        // The client auto-initializes on first request
+        mockTransport.setResponse(for: "set_shader", result: ["status": "ok"])
+        
+        // Should NOT fail - lazy initialization happens automatically
+        XCTAssertNoThrow(try client.setShader(code: "test", description: nil, noSnapshot: true))
+        
+        // Verify transport was initialized and request was made
+        XCTAssertTrue(mockTransport.wasCalled("set_shader"))
+        XCTAssertEqual(mockTransport.connectionState.value, .connected)
     }
     
     func testSetShaderWithMeta() async throws {

@@ -8,29 +8,39 @@ This document explains the current and target architecture of Metal Shader MCP, 
 - Keep a safe fallback (legacy file-bridge) to avoid breaking workflows during the migration.
 - Elevate evidence and reliability with structured errors and visual regression.
 
-## Components (target)
+## Components (current)
 
 ```text
-+-------------------------+      +------------------+      +---------------------------+
-|  SwiftUI App (macOS)    |      | MCPBridge (DI)   |      |   MCP Live Client (STDIO) |
-|  - ContentView (REPL)   | ---> | - protocol       | ---> | - Spawn server process    |
-|  - HistoryTabView       |      | - BridgeContainer|      | - JSON-RPC over pipes     |
-|  - LibraryView          |      | - FileBridgeMCP  |      | - Timeouts, retries       |
-+-------------------------+      +------------------+      +-------------+-------------+
++-------------------------+      +--------------------+      +---------------------------+
+|  SwiftUI App (macOS)    |      | MCPBridge (DI)     |      | MCPClient (high-level)    |
+|  - ContentView (REPL)   | ---> | - protocol         | ---> | - Lazy initialization     |
+|  - HistoryTabView       |      | - BridgeContainer  |      | - Health monitoring       |
+|  - LibraryView          |      | - BridgeFactory    |      | - Error handling          |
++-------------------------+      +--------------------+      +-------------+-------------+
           ^                                |                              |
-          |                                +------------------------------+
-          |                                         (fallback)
-          |
-          | if MCP_SERVER_CMD unset or USE_FILE_BRIDGE=true
-          |
-          v
-+----------------------+              +--------------------------------------+
-|  File Bridge (today) |              |   Node/TS MCP Server (headless)      |
-|  - commands.json     | <----------> | - Tools: set_shader, export_frame,   |
-|  - status.json       |              |   export_sequence, extractDocstring  |
-+----------------------+              | - Deterministic rendering hooks      |
-                                      | - Structured errors + diagnostics    |
-                                      +--------------------------------------+
+          |                                |                              v
+          |                                |               +---------------------------+
+          |                                |               | MCPTransport (protocol)   |
+          |                                |               +-------------+-------------+
+          |                                |                             |
+          | if MCP_SERVER_CMD unset        |                             |
+          | or USE_FILE_BRIDGE=true        +-----------------------------+
+          |                                         (fallback)           |
+          v                                                              v
++----------------------+              +------------------+   +------------------------+
+|  FileBridgeMCP       |              | MCPStdioTransport|   | MockMCPTransport       |
+|  - commands.json     | <--------->  | - stdio pipes    |   | - testing only         |
+|  - status.json       |              | - JSON-RPC       |   | - no subprocess        |
++----------------------+              +------------------+   +------------------------+
+          |                                     |                       |
+          v                                     v                       v
++--------------------------------------+                     +-----------------------+
+|   Node/TS MCP Server (headless)      |                     | Unit/Integration Tests|
+| - Tools: set_shader, export_frame,   |                     | - Fast, reliable      |
+|   export_sequence, extractDocstring  |                     | - No side effects     |
+| - Deterministic rendering hooks      |                     +-----------------------+
+| - Structured errors + diagnostics    |
++--------------------------------------+
 ```
 
 ## Data flows
@@ -51,30 +61,41 @@ status.json, current_shader_meta.json, compilation_errors.json (UI/renderer writ
 
 Limitations: polling latency, implicit file contracts, race conditions, silent failures.
 
-### Target (live MCP)
+### Current (live MCP with lazy initialization)
 
 ```text
 SwiftUI UI
   |
   | MCPBridge (selected by BridgeFactory)
   v
-MCPLiveClient (JSON-RPC over stdio)
+MCPClient (automatic lazy initialization on first request)
+  |
+  | MCPTransport protocol
+  v
+MCPStdioTransport (JSON-RPC over stdio)
   |
   v
 Node MCP Server -> compile / render / post-process -> structured JSON result
 ```
 
-Benefits: request/response semantics, timeouts/retries, structured error propagation, optional streaming/progress.
+Benefits: 
+- Request/response semantics with timeouts/retries
+- Structured error propagation
+- Lazy initialization (no explicit async init required)
+- Testable via dependency injection (MockMCPTransport)
+- Clean separation: high-level client logic vs. low-level transport
 
 ## Key sequences
 
-### set_shader (target)
+### set_shader (current implementation)
 
 ```text
 User action -> ContentView.setShader()
    -> MCPBridge.setShader(code, desc, noSnapshot)
-     -> MCPLiveClient: { "method":"set_shader", "params":{...} }
-       -> Node compiles, parses docstrings, returns meta/errors
+     -> MCPClient.setShader() [auto-initializes if needed]
+       -> MCPStdioTransport.sendRequest(method: "set_shader", params: {...})
+         -> Node compiles, parses docstrings, returns meta/errors
+       -> MCPClient returns success/error
      -> Swift UI updates preview + metadata or shows error banner
 ```
 
@@ -82,8 +103,10 @@ User action -> ContentView.setShader()
 
 ```text
 User clicks Export -> MCPBridge.exportFrame(desc, time?)
-  -> MCPLiveClient: { "method":"export_frame", "params":{...} }
-  -> Node renders with fixed seed/time -> { pngBase64, diagnostics }
+  -> MCPClient.exportFrame() [auto-initializes if needed]
+    -> MCPStdioTransport.sendRequest(method: "export_frame", params: {...})
+      -> Node renders with fixed seed/time -> { pngBase64, diagnostics }
+    -> MCPClient returns success/error
   -> Swift saves PNG to Resources/screenshots/ and records to timeline
 ```
 
@@ -108,15 +131,40 @@ Swift shows ErrorBannerView:
 
 ## Configuration toggles
 
-- `MCP_SERVER_CMD`: when set, the app prefers `MCPLiveClient` (live stdio JSON-RPC).
+- `MCP_SERVER_CMD`: when set, the app uses `MCPClient` with `MCPStdioTransport` (live stdio JSON-RPC).
 - `USE_FILE_BRIDGE=true`: force legacy file-bridge implementation.
+- `DISABLE_FILE_POLLING=true`: disable file polling when using live MCP client.
 - `Resources/communication/coreml_config.json`: optional Core ML post-processing; missing model is benign.
+
+## Lazy Initialization
+
+The `MCPClient` implements **lazy initialization** to simplify app startup:
+
+- No explicit async initialization is required at app launch
+- First call to any bridge method automatically initializes the transport
+- Subsequent calls use the already-initialized connection
+- Thread-safe: multiple concurrent first calls are handled correctly
+- Idempotent: calling `initialize()` explicitly is safe but optional
+
+This design eliminates the need for complex async app startup logic while maintaining correctness.
 
 ## Test strategy
 
-- Swift unit tests at the UI boundary: inject a MockBridge to assert payloads, and verify error banner behavior.
-- Node tests for MCP tools: success/failure/timeout cases; deterministic seeds.
-- Visual regression: canonical shaders with multi-resolution baselines and pixel diff thresholds.
+### Integration tests (Swift)
+- `MCPClientIntegrationTests`: Tests `MCPClient` with `MockMCPTransport`
+  - No subprocess overhead (fast, reliable)
+  - Tests lazy initialization, health checks, error handling, timeouts
+  - Tests all MCPBridge protocol methods
+  - Validates connection state transitions
+  - 19 comprehensive test cases
+
+### Unit tests (future)
+- UI boundary tests: inject a MockBridge to assert payloads and verify error banner behavior
+- Transport tests: verify stdio protocol implementation
+
+### Node/server tests
+- MCP tools: success/failure/timeout cases; deterministic seeds
+- Visual regression: canonical shaders with multi-resolution baselines and pixel diff thresholds
 
 ## Security rationale
 
