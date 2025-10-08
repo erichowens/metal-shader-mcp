@@ -34,4 +34,5 @@ jobs:
       - name: Check screenshot tooling
         run: |
           test -x scripts/screenshot_app.sh || (echo "screenshot_app.sh missing or not executable" && exit 1)
+          mkdir -p Resources/screenshots
           test -d Resources/screenshots || (echo "Resources/screenshots missing" && exit 1)

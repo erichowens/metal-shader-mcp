@@ -1,6 +1,5 @@
 import { existsSync } from 'fs';
 import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 
 // Resolve the project root regardless of current working directory.
 // Priority:
@@ -11,9 +10,8 @@ export function getProjectRoot(): string {
   const envRoot = process.env.METAL_SHADER_MCP_ROOT;
   if (envRoot && existsSync(join(envRoot, 'Resources'))) return envRoot;
 
-  // __dirname equivalent in ESM
-  const __filename = fileURLToPath(import.meta.url);
-  let dir = dirname(__filename);
+  // Use __dirname (works in CommonJS, which is what tsconfig targets)
+  let dir = __dirname;
 
   // Walk up a few levels to find Resources
   for (let i = 0; i < 6; i++) {

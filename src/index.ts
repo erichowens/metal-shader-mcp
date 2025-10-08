@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { PNG } from 'pngjs';
-import { getCommunicationDir, getScreenshotsDir } from './paths.js';
+import { getCommunicationDir, getScreenshotsDir } from './paths';
 
 export type ShaderMeta = {
   name: string;

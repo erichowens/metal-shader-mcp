@@ -5,5 +5,11 @@ module.exports = {
   testMatch: ['**/?(*.)+(spec|test).[tj]s?(x)'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   collectCoverageFrom: ['src/**/*.{ts,tsx,js,jsx}'],
-  maxWorkers: 1
+  maxWorkers: 1,
+  globals: {
+    'ts-jest': {
+      tsconfig: 'tsconfig.test.json',
+      isolatedModules: true
+    }
+  }
 };
