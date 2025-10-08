@@ -59,7 +59,7 @@ struct ShaderRenderCLI {
 
             // Output texture
             let tdesc = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: .bgra8Unorm, width: width, height: height, mipmapped: false)
-            tdesc.usage = [.renderTarget, .shaderRead, .blit]
+            tdesc.usage = [.renderTarget, .shaderRead]
             guard let tex = device.makeTexture(descriptor: tdesc) else { fatalError("texture") }
 
             let rpd = MTLRenderPassDescriptor()
@@ -86,7 +86,7 @@ struct ShaderRenderCLI {
             cb.waitUntilCompleted()
 
             try saveTexture(tex, to: outPath)
-            print("[ShaderRenderCLI] Saved \(outPath) ("] + String(width) + "x" + String(height) + ")")
+            print("[ShaderRenderCLI] Saved \(outPath) (\(width)x\(height))")
         } catch {
             fputs("[ShaderRenderCLI] Error: \(error)\n", stderr)
             exit(3)
