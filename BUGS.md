@@ -67,3 +67,25 @@ When debugging issues, ALWAYS do a web search first:
 - Screenshot scripts available in scripts/
 - Documentation workflow per WARP.md
 - Git workflow optimized for iterative development
+## [RESOLVED] ShaderRenderCLI Compilation Errors
+
+**Status:** ✅ RESOLVED (2025-10-08)
+
+**Issues Fixed:**
+1. Invalid `.blit` usage in MTLTextureUsage (line 62)
+   - **Fix:** Removed `.blit` from texture descriptor
+   - **Correct usage:** `.usage = [.renderTarget, .shaderRead]`
+
+2. Invalid string interpolation syntax (line 89)
+   - **Fix:** Changed from `\(outPath) (\(width)x\(height))` to proper interpolation
+   - **Correct syntax:** Properly escaped string interpolation
+
+**Resolution:**
+- Committed fix in commit 125ca71
+- All CI checks now passing
+- PR #51 successfully merged to main
+
+**Prevention:**
+- Visual regression tests in place
+- Compilation checks in CI
+- Swift tests validate shader rendering
