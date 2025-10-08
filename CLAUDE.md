@@ -1,3 +1,21 @@
+# CLAUDE.md — Creative Direction and Assistant Guidance
+
+This project follows an MCP‑first, evidence‑driven workflow. For upcoming work and priorities, consult the living roadmap.
+
+- Roadmap (single source of truth): ROADMAP.md
+- Priorities/process policy: PRIORITIES.md (required checks, single‑flight PRs)
+- Handoff/state: AGENT_HANDOFF.md
+
+Guidance for Claude and other assistants
+- Always check ROADMAP.md first to understand what’s next.
+- If you discover future work, write it down in ROADMAP.md under the appropriate epic and open an issue/PR as needed.
+- Keep the roadmap living: re‑consider scope weekly; prune, promote, or defer.
+- Follow the single‑flight PR policy to reduce cognitive load.
+
+Notes
+- File‑bridge is being deprecated in favor of a strict MCP client. See README for the deprecation timeline.
+- Visual tests on PR require the label `visual-required`; they always run on main.
+
 # Claude Shader REPL Guide
 
 A pragmatic guide for building beautiful shaders with fast, visual iteration. This replaces the previous aspirational document and aligns with our WARP.md single-agent workflow.
@@ -50,6 +68,32 @@ See DESIGN.md and WARP.md for details.
 - Screenshots: Resources/screenshots/YYYY-MM-DD_HH-MM-SS_<desc>.png
 - Projects, snapshots, variants, presets: Resources/projects/<project-id>/*.json
 - Educational shader library: Resources/library/*.metal + metadata.json
+
+### Shader metadata conventions (required)
+Every shader must include a docstring at the top that encodes name and description. This is parsed by `ShaderMetadata.from(code:path:)` and later powers Library indexing/search.
+
+Example:
+```
+/**
+ * Wavy Plasma
+ * A smooth oscillating color field demonstrating uniforms.
+ */
+#include <metal_stdlib>
+using namespace metal;
+fragment float4 fragmentShader() { return float4(0,0,0,1); }
+```
+
+- First non-empty line becomes the shader name.
+- Subsequent non-empty lines until the first blank line become the description.
+- The absolute path (when known) is stored in `path` for provenance.
+
+### Visual regression harness (now live)
+- Tests render canonical shaders and compare against bundled goldens (processed resources under `Tests/MetalShaderTests/Fixtures`).
+- On failure, tests write artifacts to `Resources/screenshots/tests/`:
+  - `actual_*.png` (current actual)
+  - `diff_*.png` (highlighting mismatches)
+  - `*_summary.json` (quick diagnostics)
+- Approve changes by refreshing goldens: `make regen-goldens`.
 
 ## WARP Alignment (must-do after each significant change)
 1. Update BUGS.md if issues discovered

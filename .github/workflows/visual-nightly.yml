@@ -1,0 +1,77 @@
+name: Nightly Visual Matrix
+
+on:
+  schedule:
+    - cron: "0 7 * * *" # 07:00 UTC daily
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nightly-visual-matrix:
+    name: Nightly Visual Matrix (multi-resolution)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build (swift)
+        run: swift build --configuration debug
+
+      - name: Prepare output
+        run: |
+          rm -rf Resources/screenshots/tests || true
+          mkdir -p Resources/screenshots/tests
+
+      - name: Run visual tests across matrix
+        shell: bash
+        run: |
+          set -eo pipefail
+          RES_LIST=(64 128 256)
+          for RES in "${RES_LIST[@]}"; do
+            echo "Running visual tests at ${RES}x${RES}"
+            VIS_RES_W=$RES VIS_RES_H=$RES swift test --filter "VisualRegression(Tests|GradientTests)" || true
+          done
+
+      - name: Consolidate HTML report
+        run: |
+          OUT_DIR="Resources/screenshots/tests"
+          REPORT="$OUT_DIR/consolidated-report.html"
+          echo "<html><head><meta charset=\"utf-8\"><title>Nightly Visual Matrix</title></head><body>" > "$REPORT"
+          echo "<h1>Nightly Visual Matrix</h1>" >> "$REPORT"
+          echo "<p>Date: $(date)</p>" >> "$REPORT"
+          for RES in 64 128 256; do
+            echo "<h2>Resolution ${RES}x${RES}</h2>" >> "$REPORT"
+            echo "<ul>" >> "$REPORT"
+            for f in $(ls "$OUT_DIR"/*_${RES}x${RES}.png 2>/dev/null | sort); do
+              bn=$(basename "$f")
+              echo "<li><strong>$bn</strong><br><img src=\"$bn\" style=\"max-width:512px;border:1px solid #ccc\"></li>" >> "$REPORT"
+            done
+            echo "</ul>" >> "$REPORT"
+          done
+          echo "</body></html>" >> "$REPORT"
+
+      - name: Upload nightly visual artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-visual-report
+          path: |
+            Resources/screenshots/tests/
+          retention-days: 14
+
+      - name: Nightly summary
+        run: |
+          echo "## 🌙 Nightly Visual Matrix" >> $GITHUB_STEP_SUMMARY
+          echo "- Resolutions: 64, 128, 256" >> $GITHUB_STEP_SUMMARY
+          COUNT=$(find Resources/screenshots/tests -name "*.png" 2>/dev/null | wc -l | tr -d ' ')
+          echo "- Images: $COUNT" >> $GITHUB_STEP_SUMMARY
+          if [ -f Resources/screenshots/tests/consolidated-report.html ]; then
+            echo "- Consolidated Report: Resources/screenshots/tests/consolidated-report.html (in artifact)" >> $GITHUB_STEP_SUMMARY
+          fi

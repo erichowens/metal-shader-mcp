@@ -15,27 +15,47 @@ let package = Package(
             name: "MetalShaderCore",
             path: "Sources/MetalShaderCore"
         ),
-        .executableTarget(
+.executableTarget(
             name: "MetalShaderStudio",
             dependencies: ["MetalShaderCore"],
-            path: ".",
-            sources: [
-                "ShaderPlayground.swift",
-                "AppShellView.swift",
-                "HistoryTabView.swift",
-                "SessionRecorder.swift"
-            ],
+            path: "Apps/MetalShaderStudio",
             linkerSettings: [
                 .linkedFramework("SwiftUI"),
                 .linkedFramework("MetalKit"),
+                .linkedFramework("Metal"),
                 .linkedFramework("AppKit"),
-                .linkedFramework("UniformTypeIdentifiers")
+                .linkedFramework("UniformTypeIdentifiers"),
+                .linkedFramework("CoreML"),
+                .linkedFramework("CoreVideo")
+            ]
+        ),
+        .executableTarget(
+            name: "ShaderRenderCLI",
+            dependencies: ["MetalShaderCore"],
+            path: "Tools/ShaderRenderCLI",
+            linkerSettings: [
+                .linkedFramework("MetalKit"),
+                .linkedFramework("Metal"),
+                .linkedFramework("AppKit"),
+                .linkedFramework("CoreGraphics"),
+                .linkedFramework("ImageIO")
             ]
         ),
         .testTarget(
             name: "MetalShaderTests",
             dependencies: ["MetalShaderCore"],
-            path: "Tests/MetalShaderTests"
+            path: "Tests/MetalShaderTests",
+            resources: [
+                .process("Fixtures")
+            ]
+        ),
+        .testTarget(
+            name: "IntegrationTests",
+            dependencies: ["MetalShaderStudio"],
+            path: "Tests/Integration",
+            resources: [
+                .copy("mock-mcp-server.js")
+            ]
         )
     ]
 )

@@ -7,8 +7,9 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { execSync } from 'child_process';
-import { writeFileSync, readFileSync, existsSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
+import { getCommunicationDir, getScreenshotsDir } from './paths.js';
 
 const server = new Server(
   {
@@ -22,8 +23,9 @@ const server = new Server(
   }
 );
 
-// Paths
-const SCREENSHOTS_DIR = join(process.cwd(), 'Resources/screenshots');
+// Paths resolved relative to project root (not process.cwd())
+const COMM_DIR = getCommunicationDir();
+const SCREENSHOTS_DIR = getScreenshotsDir();
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
@@ -101,6 +103,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           },
           required: ['description'],
         },
+      },
+      {
+        name: 'set_tab',
+        description: 'Set the current UI tab (repl, library, projects, tools, history)',
+        inputSchema: {
+          type: 'object',
+          properties: { tab: { type: 'string', enum: ['repl','library','projects','tools','history'] } },
+          required: ['tab']
+        }
+      },
+      {
+        name: 'list_library_entries',
+        description: 'List library entries parsed from the shaders directory',
+        inputSchema: { type: 'object', properties: {} }
       },
       {
         name: 'set_uniforms',
@@ -190,6 +206,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case 'set_shader': {
+        // Basic input validation
+        if (!args || typeof args.shader_code !== 'string' || args.shader_code.length < 1) {
+          return { content: [{ type: 'text', text: 'Invalid shader_code' }], isError: true } as any;
+        }
         if (!args) {
             return { text: [{ text: 'Missing arguments for set_shader' }] };
         }
@@ -205,12 +225,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           timestamp: Date.now()
         };
         
-        const commandFile = 'Resources/communication/commands.json';
-        const statusFile = 'Resources/communication/status.json';
+const commandFile = join(COMM_DIR, 'commands.json');
+        const statusFile = join(COMM_DIR, 'status.json');
         
         try {
-          // Ensure communication directory exists
-          execSync('mkdir -p Resources/communication');
+          // Ensure communication directory exists (avoid shell exec for safety)
+try { mkdirSync(COMM_DIR, { recursive: true }); } catch { /* ignore */ }
           
           // Write command
           writeFileSync(commandFile, JSON.stringify(command, null, 2));
@@ -278,7 +298,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       
       case 'get_current_shader': {
         try {
-          const shaderFile = 'Resources/communication/current_shader.metal';
+const shaderFile = join(COMM_DIR, 'current_shader.metal');
           if (existsSync(shaderFile)) {
             const currentShader = readFileSync(shaderFile, 'utf8');
             return {
@@ -314,6 +334,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
       
       case 'export_frame': {
+        if (!args || typeof args.description !== 'string' || args.description.length < 1) {
+          return { content: [{ type: 'text', text: 'Invalid description' }], isError: true } as any;
+        }
+        if (args.time != null && typeof args.time !== 'number') {
+          return { content: [{ type: 'text', text: 'time must be number' }], isError: true } as any;
+        }
         if (!args) {
             return { text: [{ text: 'Missing arguments for export_frame' }] };
         }
@@ -321,55 +347,110 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const description = args.description as string;
         const time = args.time as number | undefined;
         
-        // Trigger frame export via AppleScript to call app function
-        const timeParam = time !== undefined ? `, time: ${time}` : '';
-        const appleScriptCmd = `osascript -e 'tell application "ShaderPlayground" to activate' -e 'delay 0.5' -e 'tell application "System Events" to tell process "ShaderPlayground" to click button "Export Frame" of window 1'`;
-        
         try {
-          execSync(appleScriptCmd, { encoding: 'utf8' });
-          
-          // Wait a moment for export to complete
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          // Find the latest export
-          const exportsDir = 'Resources/exports';
-          const latestFile = execSync(`ls -t ${exportsDir}/*.png | head -1`, { encoding: 'utf8' }).trim();
-          
-          if (existsSync(latestFile)) {
-            const imageBuffer = readFileSync(latestFile);
-            
-            return {
-              content: [
-                {
-                  type: 'image',
-                  data: imageBuffer.toString('base64'),
-                  mimeType: 'image/png',
-                },
-                {
-                  type: 'text',
-                  text: `🎨 Frame exported: ${description}\n\nFile: ${latestFile}\n\nThis is a direct render from the Metal shader at ${time !== undefined ? `t=${time}s` : 'current time'}.`,
-                },
-              ],
-            };
-          } else {
-            throw new Error('Export file not found');
+          // Write command for the app to process
+          const command = {
+            action: 'export_frame',
+            description,
+            ...(time !== undefined ? { time } : {}),
+            timestamp: Date.now()
+          };
+const commandFile = join(COMM_DIR, 'commands.json');
+          mkdirSync(COMM_DIR, { recursive: true });
+          writeFileSync(commandFile, JSON.stringify(command, null, 2));
+
+          // Wait for command to be processed and screenshot to appear in Resources/screenshots
+          const patternSuffix = `_${description}.png`;
+          let attempts = 0;
+          const maxAttempts = 100; // 10s
+          let latestFile = '';
+          while (attempts < maxAttempts) {
+            await new Promise(r => setTimeout(r, 100));
+            try {
+              const out = execSync(`ls -t ${SCREENSHOTS_DIR}/*.png 2>/dev/null | head -20`, { encoding: 'utf8' }).trim();
+              const files = out ? out.split('\n') : [];
+              const match = files.find(f => f.endsWith(patternSuffix));
+              if (match && existsSync(match)) { latestFile = match; break; }
+            } catch {}
+            attempts++;
           }
-        } catch (error) {
+
+          if (!latestFile) {
+            throw new Error('Timed out waiting for exported frame');
+          }
+
+          const imageBuffer = readFileSync(latestFile);
           return {
             content: [
-              {
-                type: 'text',
-                text: `❌ Export failed: ${error}\n\nMake sure ShaderPlayground app is running and visible.`,
-              },
-            ],
+              { type: 'image', data: imageBuffer.toString('base64'), mimeType: 'image/png' },
+              { type: 'text', text: `🎨 Frame exported: ${description}\n\nFile: ${latestFile}\n\n${time !== undefined ? `t=${time}s` : ''}` }
+            ]
+          };
+        } catch (error) {
+          return {
+            content: [ { type: 'text', text: `❌ Export failed: ${error}` } ],
             isError: true,
           };
         }
       }
 
+      case 'export_sequence': {
+        if (!args) {
+          return { content: [ { type: 'text', text: 'Missing arguments for export_sequence' } ], isError: true } as any;
+        }
+        const description = args.description as string;
+        const duration = (args.duration as number) ?? 5.0;
+        const fps = (args.fps as number) ?? 30;
+        try {
+const command = { action: 'export_sequence', description, duration, fps, timestamp: Date.now() };
+          const commandFile = join(COMM_DIR, 'commands.json');
+          mkdirSync(COMM_DIR, { recursive: true });
+          writeFileSync(commandFile, JSON.stringify(command, null, 2));
+          return {
+            content: [ { type: 'text', text: `🎬 Exporting sequence '${description}' (${duration}s @ ${fps}fps).` } ]
+          };
+        } catch (error) {
+          return { content: [ { type: 'text', text: `❌ Failed to export sequence: ${error}` } ], isError: true } as any;
+        }
+      }
+      
+      case 'set_tab': {
+        if (!args) return { content: [ { type: 'text', text: 'Missing tab' } ], isError: true } as any;
+        const tab = args.tab as string;
+        try {
+          const command = { action: 'set_tab', tab, timestamp: Date.now() };
+mkdirSync(COMM_DIR, { recursive: true });
+          writeFileSync(join(COMM_DIR, 'commands.json'), JSON.stringify(command, null, 2));
+          // best-effort wait for status
+          await new Promise(r => setTimeout(r, 200));
+          return { content: [ { type: 'text', text: `✅ Tab set to ${tab}` } ] } as any;
+        } catch (error) {
+          return { content: [ { type: 'text', text: `❌ Failed to set tab: ${error}` } ], isError: true } as any;
+        }
+      }
+
+      case 'list_library_entries': {
+        try {
+const idxPath = join(COMM_DIR, 'library_index.json');
+          if (!existsSync(idxPath)) {
+            const command = { action: 'list_library_entries', timestamp: Date.now() };
+mkdirSync(COMM_DIR, { recursive: true });
+            writeFileSync(join(COMM_DIR, 'commands.json'), JSON.stringify(command, null, 2));
+            await new Promise(r => setTimeout(r, 200));
+          }
+          if (existsSync(idxPath)) {
+            const data = readFileSync(idxPath, 'utf8');
+            return { content: [ { type: 'text', text: data } ] } as any;
+          }
+          return { content: [ { type: 'text', text: 'No library index found' } ] } as any;
+        } catch (error) {
+          return { content: [ { type: 'text', text: `❌ Failed to list library entries: ${error}` } ], isError: true } as any;
+        }
+      }
+      
       case 'get_compilation_errors': {
         try {
-          const errorsFile = 'Resources/communication/compilation_errors.json';
+const errorsFile = join(COMM_DIR, 'compilation_errors.json');
           if (existsSync(errorsFile)) {
             const errorsData = JSON.parse(readFileSync(errorsFile, 'utf8'));
             
@@ -433,9 +514,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const uniforms = args.uniforms as Record<string, number | number[]>;
         
         // Write uniforms to communication file for ShaderPlayground to pick up
-        const uniformsFile = 'Resources/communication/uniforms.json';
+const uniformsFile = join(COMM_DIR, 'uniforms.json');
         try {
-          execSync('mkdir -p Resources/communication');
+          mkdirSync(COMM_DIR, { recursive: true });
           writeFileSync(uniformsFile, JSON.stringify({ uniforms, timestamp: Date.now() }, null, 2));
           
           let response = '✅ **Uniforms Updated:**\n\n';
@@ -466,7 +547,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       
       case 'list_uniforms': {
         try {
-          const uniformsFile = 'Resources/communication/uniforms.json';
+const uniformsFile = join(COMM_DIR, 'uniforms.json');
           if (existsSync(uniformsFile)) {
             const uniformsData = JSON.parse(readFileSync(uniformsFile, 'utf8'));
             
@@ -666,8 +747,8 @@ fragment float4 fragmentShader(float4 position [[position]],
         try {
           const description = (args && (args as any).description) || 'snapshot';
           const fs = await import('fs');
-          await fs.promises.mkdir('Resources/communication', { recursive: true });
-          await fs.promises.writeFile('Resources/communication/commands.json', JSON.stringify({ action: 'save_snapshot', description, timestamp: Date.now() }, null, 2));
+await fs.promises.mkdir(COMM_DIR, { recursive: true });
+          await fs.promises.writeFile(join(COMM_DIR, 'commands.json'), JSON.stringify({ action: 'save_snapshot', description, timestamp: Date.now() }, null, 2));
           return { content: [{ type: 'text', text: '🖼️ Snapshot requested. App will capture code+image+meta.' }] };
         } catch (e: any) {
           return { content: [{ type: 'text', text: `❌ Failed to request snapshot: ${e.message}` }], isError: true };

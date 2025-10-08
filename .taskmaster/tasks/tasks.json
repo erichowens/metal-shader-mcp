@@ -1,0 +1,117 @@
+{
+  "version": "1.0",
+  "tasks": [
+    {
+      "id": "triage-open-prs",
+      "title": "Triage all open PRs to enforce MCP-first and single-flight",
+      "status": "todo",
+      "labels": ["p0", "mcp-first"],
+      "owner": "erichowens",
+      "links": ["ROADMAP.md", "PRIORITIES.md"],
+      "acceptance": [
+        "Only one PR labeled core-active",
+        "Non P0/P1 or non-MCP-first PRs in draft",
+        "Active PR has bot-review label and screenshots if UI/shader"
+      ]
+    },
+    {
+      "id": "claude-weekly-audit",
+      "title": "Enable and validate weekly Claude repo audit workflow",
+      "status": "todo",
+      "labels": ["p0", "ci"],
+      "owner": "erichowens",
+      "links": [".github/workflows/claude-weekly-audit.yml"],
+      "acceptance": [
+        "Workflow runs on schedule and manual dispatch",
+        "Issue created or updated with audit results"
+      ]
+    },
+    {
+      "id": "bot-review-on-demand",
+      "title": "Activate PR label-triggered Claude/Copilot reviews",
+      "status": "todo",
+      "labels": ["p1", "ci"],
+      "owner": "erichowens",
+      "links": [".github/workflows/claude-code-review.yml", ".github/copilot.yml"],
+      "acceptance": [
+        "Labeling PR with bot-review triggers a Claude comment",
+        "Copilot PR Reviewer summarizes PRs automatically"
+      ]
+    },
+    {
+      "id": "visual-testing-docs",
+      "title": "Create VISUAL_TESTING.md and verify screenshot tooling",
+      "status": "todo",
+      "labels": ["p0", "tests"],
+      "owner": "erichowens",
+      "links": ["VISUAL_TESTING.md", "scripts/screenshot_app.sh"],
+      "acceptance": [
+        "VISUAL_TESTING.md present",
+        "screenshot_app.sh works on macOS",
+        "CI visual-env job passes"
+      ]
+    },
+    {
+      "id": "repo-cleanup-archive",
+      "title": "Archive dead code/docs into archive/DATE and fix references",
+      "status": "todo",
+      "labels": ["p0", "cleanup"],
+      "owner": "erichowens",
+      "links": ["archive/"],
+      "acceptance": [
+        "No live references to archived files",
+        "Docs link check passes"
+      ]
+    },
+    {
+      "id": "secrets-setup",
+      "title": "Set up .env and GitHub Secrets with required keys",
+      "status": "todo",
+      "labels": ["p0", "security"],
+      "owner": "erichowens",
+      "links": [".env.example", "tools/mcp/config.example.json"],
+      "acceptance": [
+        "Local .env populated",
+        "GitHub Secrets set for CI",
+        "Workflows requiring secrets succeed"
+      ]
+    },
+    {
+      "id": "figma-program",
+      "title": "Stand up Figma file structure and export assets",
+      "status": "todo",
+      "labels": ["p1", "design"],
+      "owner": "erichowens",
+      "links": ["Resources/Branding/", "docs/site/assets/"],
+      "acceptance": [
+        "Exports present in repo",
+        "Screenshots of key frames attached to PR"
+      ]
+    },
+    {
+      "id": "headless-metal-renderer",
+      "title": "Implement headless Metal renderer for CI visual regression",
+      "status": "todo",
+      "labels": ["p1", "tests"],
+      "owner": "erichowens",
+      "links": ["VISUAL_TESTING.md"],
+      "acceptance": [
+        "CI can render baseline images without UI",
+        "Pixel-diff threshold asserts regressions"
+      ]
+    },
+
+    { "id": "m1-aesthetic-param-suggestion", "title": "M1: Aesthetic Parameter Suggestion Engine (dataset, metrics, training, Core ML export, export-only integration)", "status": "todo", "labels": ["ml", "M1"], "owner": "erichowens", "links": ["Tools/ShaderRenderCLI", "ml/aesthetics/metrics.py", "CHANGELOG.md"], "acceptance": ["Headless renderer produces PNGs", "Composite score computed for samples", "First model exported to .mlmodelc", "Export-only inference logs suggested deltas", "Screenshots captured"] },
+    { "id": "m1-cli-renderer", "title": "M1 Subtask: Create ShaderRenderCLI to render .metal to PNG offscreen", "status": "todo", "labels": ["ml", "M1"], "owner": "erichowens", "links": ["Tools/ShaderRenderCLI/main.swift"], "acceptance": ["CLI renders sample shader", "Image saved at requested size", "Non-zero exit status on error"] },
+    { "id": "m1-metrics", "title": "M1 Subtask: Bootstrap aesthetic metrics (contrast, saturation, edges, LAB harmony, composite)", "status": "todo", "labels": ["ml", "M1"], "owner": "erichowens", "links": ["ml/aesthetics/metrics.py"], "acceptance": ["Deterministic outputs for a test image", "Composite in [0,1]"] },
+    { "id": "m1-task-sync", "title": "M1 Subtask: Add GitHub Action for Task Master ↔ Issues sync", "status": "todo", "labels": ["ci", "M1"], "owner": "erichowens", "links": [".github/workflows/task-sync.yml", "scripts/task_sync.py"], "acceptance": ["Issues created on push", "Closed with proof comments when status=done"] },
+
+    { "id": "m2-palette-harmonization", "title": "M2: Palette Transfer + Harmonization Assistant (baseline labeler, dataset, curve predictor, Core ML, UI)", "status": "todo", "labels": ["ml", "M2"], "owner": "erichowens", "links": ["docs/PALETTE_ASSISTANT_SPEC.md"], "acceptance": ["Baseline palette mapper produces targets", "Model outputs compact transform", "UI applies mode on export", "Screenshots captured"] },
+
+    { "id": "m3-assistant-ui", "title": "M3: Assistant UI (score, deltas, Apply/Revert/Auto, screenshots, tests)", "status": "todo", "labels": ["ui", "M3"], "owner": "erichowens", "links": ["CHANGELOG.md"], "acceptance": ["Panel displays predictions", "Apply changes updates shader", "Before/after screenshots captured"] },
+
+    { "id": "m4-perf-quality", "title": "M4: Performance and Quality (latency profiling, fp16, input sizing, feature cache, baselines)", "status": "todo", "labels": ["perf", "M4"], "owner": "erichowens", "links": ["reports/perf_profile.md"], "acceptance": ["<=3ms inference at 128px", "Parity within tolerance", "Baselines established"] },
+
+    { "id": "m1-nima-vlm", "title": "Track A enhancement: NIMA-like aesthetic head + optional local VLM pseudo-labels", "status": "todo", "labels": ["ml", "M1"], "owner": "erichowens", "links": ["docs/ML_MODEL_SPEC.md"], "acceptance": ["Aesthetic head exported", "Pseudo-labels JSON stored", "Improved ranking quality"] }
+  ]
+}

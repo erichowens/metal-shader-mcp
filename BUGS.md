@@ -4,7 +4,15 @@
 Starting clean implementation of Metal Shader MCP with three-phase approach.
 
 ## Current Issues
-*No issues yet - project freshly started*
+
+### 2025-10-01 — CoreML Model Loading Error (RESOLVED)
+- **Problem**: App showed error `[CoreML] Failed to load config/model: Error Domain=com.apple.CoreML...` on startup because the StyleTransfer.mlmodelc model file referenced in coreml_config.json didn't exist.
+- **Fix**: Modified CoreMLPostProcessor to check if model file exists before attempting to load. If file doesn't exist, the feature fails silently as it's optional functionality.
+- **Changes**: 
+  - Added file existence check in `Sources/MetalShaderCore/CoreMLPostProcessor.swift`
+  - Added comment to `Resources/communication/coreml_config.json` noting feature is disabled
+- **Status**: Resolved - app now starts cleanly without error messages
+- **Follow-up**: Create task to implement actual StyleTransfer CoreML model if/when this feature is needed
 
 ### 2025-09-11 — PR test check blocked (missing SPM)
 - Problem: Required check "Swift Tests and Quality Checks" on PRs never reached green because the repository lacked a Swift Package, causing `swift test` to fail or not report properly.

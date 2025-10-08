@@ -1,0 +1,8 @@
+{
+  "modelPath": "Resources/models/StyleTransfer.mlmodelc",
+  "inputName": "image",
+  "outputName": "stylizedImage",
+  "width": 512,
+  "height": 512,
+  "_comment": "CoreML feature disabled - model file not present. This is optional functionality."
+}

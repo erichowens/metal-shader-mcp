@@ -2,6 +2,7 @@
 
 [![Swift/Metal Build](https://github.com/erichowens/metal-shader-mcp/actions/workflows/swift-build.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/swift-build.yml)
 [![Tests](https://github.com/erichowens/metal-shader-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/test.yml)
+[![MCP Node/TypeScript Tests](https://github.com/erichowens/metal-shader-mcp/actions/workflows/node-tests.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/node-tests.yml)
 [![Documentation](https://github.com/erichowens/metal-shader-mcp/actions/workflows/documentation.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/documentation.yml)
 [![Visual Tests](https://github.com/erichowens/metal-shader-mcp/actions/workflows/visual-tests.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/visual-tests.yml)
 [![WARP Compliance](https://github.com/erichowens/metal-shader-mcp/actions/workflows/warp-compliance.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/warp-compliance.yml)
@@ -10,6 +11,10 @@
 A complete system for AI-assisted Metal shader development where Claude can write, modify, and visually iterate on shaders in real-time.
 
 ## Project overview
+
+New: Optional Core ML post-processing on exported frames. See section below for configuration.
+
+Note: The legacy file-bridge (writing commands to Resources/communication) is being deprecated in favor of a strict MCP client. See Deprecation notice below.
 Metal Shader MCP is a macOS SwiftUI + Metal playground with a disciplined workflow for shader iteration, visual evidence, and CI. An MCP layer is planned to let AI assistants interact with the app (compile, preview, snapshot), but today the primary entry point is the macOS app you can compile and run locally.
 
 ## Current state (as of 2025-09-08)
@@ -33,6 +38,7 @@ Metal Shader MCP is a macOS SwiftUI + Metal playground with a disciplined workfl
 ```bash
 swiftc -o MetalShaderStudio \
   ShaderPlayground.swift AppShellView.swift HistoryTabView.swift SessionRecorder.swift \
+  Sources/MetalShaderCore/MCPClient.swift \
   -framework SwiftUI -framework MetalKit -framework AppKit -framework UniformTypeIdentifiers \
   -parse-as-library
 
@@ -58,6 +64,28 @@ swiftc -o MetalShaderStudio \
 npm install
 npm run build
 ```
+
+## Headless renderer (for dataset and CI)
+
+Render a shader to PNG without launching the app:
+
+```bash
+swift run ShaderRenderCLI --shader-file shaders/plasma_fractal.metal --out data/sample.png --width 256 --height 256 --time 0.0
+```
+
+## Core ML post-processing (optional)
+
+- Configure at `Resources/communication/coreml_config.json` (template provided).
+- Provide a model at `Resources/models/YourModel.mlmodelc` or `.mlmodel`.
+- When present and valid, exports will be passed through the model before saving.
+
+Config fields:
+- `modelPath`: path to model (e.g., `Resources/models/StyleTransfer.mlmodelc`)
+- `inputName`: image input feature name (e.g., `image`)
+- `outputName`: output image feature name (e.g., `stylizedImage`)
+- `width`, `height`: model input dimensions
+
+Note: UI remains unchanged; this affects exported frames and session snapshots only.
 
 ## Usage
 
@@ -133,6 +161,43 @@ fragment float4 kaleidoscopeFragment(
 - **Memory**: Efficient memory usage
 - **Compilation**: <500ms
 
+## Shader metadata conventions
+
+Shaders should include a docstring that declares name and description at the top. This is parsed by `ShaderMetadata.from(code:path:)` and will power Library search, thumbnails, and metadata views.
+
+Example:
+```
+/**
+ * Kaleidoscope Blocks
+ * Geometric color blocks with animation controls.
+ */
+#include <metal_stdlib>
+using namespace metal;
+fragment float4 fragmentShader() { return float4(0,0,0,1); }
+```
+
+- First non-empty doc line → `name`
+- Following non-empty lines (until blank) → `description`
+- Source path is recorded when available for provenance
+
+## Library tab and thumbnails
+
+- Library entries derive their title/description from the shader docstring.
+- Thumbnails can be sourced from session snapshots or generated via the headless renderer for consistency.
+- As Library UX expands, expect search/filtering by tags and quick-compare overlays.
+
+## File-bridge communication contract (transitional)
+
+While the strict MCP client is being integrated, the app uses a simple file-bridge in `Resources/communication/`:
+- `commands.json` (input, optional in local workflows): queued actions (e.g., set_shader, export_frame)
+- `status.json` (output): last action status and diagnostics
+- `current_shader_meta.json`: active shader’s parsed name/description/path
+- `library_index.json`: indexed library metadata
+- `uniforms.json`: current uniform values
+- `compilation_errors.json`: last compile diagnostics
+
+Keys and exact shapes are subject to stabilization as the MCP transport replaces the bridge, but these files are the current source of truth for local tooling integrations.
+
 ## Architecture
 
 ```
@@ -181,7 +246,30 @@ The profiler measures:
 - Memory usage
 - Power consumption estimate
 
-## Development Workflow
+## Development
+
+### Important: Stable paths regardless of launch directory
+This project previously resolved Resources paths using the current working directory, which caused mismatched behavior when launching the MCP from different folders (e.g., animation works but library/history don’t, or vice‑versa). Paths are now resolved relative to the project root, detected as follows:
+
+1) If METAL_SHADER_MCP_ROOT is set, that directory is used (expects a Resources subfolder)
+2) Otherwise, we walk up from the MCP source location until we find a Resources directory
+3) Fallback: process.cwd() (only if the above fail)
+
+If you need to override, set an environment variable before launching:
+
+- macOS/zsh
+  export METAL_SHADER_MCP_ROOT="/Users/erichowens/coding/metal-shader-mcp"
+
+This ensures the MCP and app read/write the same Resources/communication and Resources/screenshots folders regardless of where you run the CLI.
+
+### Service keys / secrets
+This repository does not require external service keys to run the core ShaderPlayground + MCP flow. If you add integrations that require secrets, store them in one of the following, in order of preference:
+- Local development: .env.local (gitignored)
+- Shared dev on the same machine: .env (gitignored)
+- CI: Configure secrets in the CI provider’s encrypted secret store
+- Production: Use your deployment platform’s secret manager (e.g., GitHub Actions Secrets, 1Password, AWS/GCP secret managers)
+
+Never commit secrets to the repo. Use environment variables in code (e.g., process.env.MY_KEY) and document any required variables here.
 
 ### After-Action Requirements
 Every significant development action must complete these steps:
@@ -195,18 +283,21 @@ Every significant development action must complete these steps:
 See `WARP.md` for detailed workflow documentation.
 
 ### Visual Testing
-This project uses visual evidence collection for shader development:
+This project includes a visual regression harness with shader fixtures and golden images.
 
 ```bash
-# Capture screenshots of current state
+# Capture screenshots of current state (optional manual evidence)
 ./scripts/screenshot_app.sh "feature_description"
 
-# Debug window capture issues
-python3 scripts/debug_window.py
-
-# Run visual tests (when implemented)
+# Run visual tests
 swift test --filter VisualRegressionTests
+
+# If you intentionally changed visuals, regenerate goldens
+make regen-goldens
 ```
+
+- On failure, artifacts are saved to `Resources/screenshots/tests/` (e.g., `actual_*.png`, `diff_*.png`, and a summary JSON).
+- Goldens live in `Tests/MetalShaderTests/Fixtures/` and are bundled via SPM resources.
 
 ### Documentation Files
 - **WARP.md** - Agent workflow requirements
@@ -214,6 +305,12 @@ swift test --filter VisualRegressionTests
 - **VISUAL_TESTING.md** - Visual testing framework
 - **BUGS.md** - Current issues and solutions
 - **CHANGELOG.md** - Project evolution history
+
+## Deprecation notice (file-bridge)
+
+- The file-bridge (commands.json polling) is transitional and will be removed once the strict MCP client (MCPLiveClient) is integrated into the Swift app via MCPBridge.
+- Target: replace bridge with proper MCP transport (stdio/websocket), remove polling, add robust error handling.
+- Timeline: as soon as PR #29 merges, we’ll proceed with PR #32 to complete this migration.
 
 ## Contributing
 

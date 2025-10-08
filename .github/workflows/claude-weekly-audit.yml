@@ -1,0 +1,50 @@
+name: Claude Weekly Repo Audit
+on:
+  schedule:
+    - cron: "0 15 * * 1"  # Mondays 15:00 UTC
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.ANTHROPIC_API_KEY || secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare audit prompt
+        run: |
+          echo "# Weekly Repo Audit Prompt" > audit_prompt.md
+          echo "" >> audit_prompt.md
+          echo "Repository: $GITHUB_REPOSITORY" >> audit_prompt.md
+          echo "Branch: $GITHUB_REF_NAME" >> audit_prompt.md
+          echo "" >> audit_prompt.md
+          echo "Please review repository structure, open PRs, labels, CI status, dead code/docs, and VISUAL_TESTING coverage. Enforce MCP-first, P0/P1 focus, and single-flight PR policy. Output actionable checklist with priorities and file paths." >> audit_prompt.md
+          echo "" >> audit_prompt.md
+          echo "Directory tree (first 400 files):" >> audit_prompt.md
+          git ls-files | sed -n '1,400p' >> audit_prompt.md
+      - name: Run Claude
+        id: claude
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          PROMPT=$(cat audit_prompt.md | jq -Rs .)
+          curl -sS https://api.anthropic.com/v1/messages \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "{\"model\":\"claude-3-5-sonnet-latest\",\"max_tokens\":2000,\"messages\":[{\"role\":\"user\",\"content\":${PROMPT}}]}" \
+            | jq -r '.content[].text' > audit_result.md
+      - name: Open or update tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TITLE="Weekly Claude Repo Audit ($(date +%F))"
+          NUM=$(gh issue list --search "$TITLE" --state open --json number | jq -r '.[0].number // empty')
+          if [ -n "$NUM" ]; then
+            gh issue comment "$NUM" -F audit_result.md
+          else
+            gh issue create -t "$TITLE" -F audit_result.md -l ci
+          fi

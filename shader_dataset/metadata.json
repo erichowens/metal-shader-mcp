@@ -1,0 +1,1752 @@
+[
+  {
+    "image_path": "shader_dataset/render_0.png",
+    "time": 0.0,
+    "complexity": 0.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_1.png",
+    "time": 0.0,
+    "complexity": 0.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_2.png",
+    "time": 0.0,
+    "complexity": 0.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_3.png",
+    "time": 0.0,
+    "complexity": 0.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_4.png",
+    "time": 0.0,
+    "complexity": 0.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_5.png",
+    "time": 0.0,
+    "complexity": 0.25,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_6.png",
+    "time": 0.0,
+    "complexity": 0.25,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_7.png",
+    "time": 0.0,
+    "complexity": 0.25,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_8.png",
+    "time": 0.0,
+    "complexity": 0.25,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_9.png",
+    "time": 0.0,
+    "complexity": 0.25,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_10.png",
+    "time": 0.0,
+    "complexity": 0.5,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_11.png",
+    "time": 0.0,
+    "complexity": 0.5,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_12.png",
+    "time": 0.0,
+    "complexity": 0.5,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_13.png",
+    "time": 0.0,
+    "complexity": 0.5,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_14.png",
+    "time": 0.0,
+    "complexity": 0.5,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_15.png",
+    "time": 0.0,
+    "complexity": 0.75,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_16.png",
+    "time": 0.0,
+    "complexity": 0.75,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_17.png",
+    "time": 0.0,
+    "complexity": 0.75,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_18.png",
+    "time": 0.0,
+    "complexity": 0.75,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_19.png",
+    "time": 0.0,
+    "complexity": 0.75,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_20.png",
+    "time": 0.0,
+    "complexity": 1.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_21.png",
+    "time": 0.0,
+    "complexity": 1.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_22.png",
+    "time": 0.0,
+    "complexity": 1.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_23.png",
+    "time": 0.0,
+    "complexity": 1.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_24.png",
+    "time": 0.0,
+    "complexity": 1.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_25.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_26.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_27.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_28.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_29.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_30.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.25,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_31.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.25,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_32.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.25,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_33.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.25,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_34.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.25,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_35.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.5,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_36.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.5,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_37.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.5,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_38.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.5,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_39.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.5,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_40.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.75,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_41.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.75,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_42.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.75,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_43.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.75,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_44.png",
+    "time": 1.1111111111111112,
+    "complexity": 0.75,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_45.png",
+    "time": 1.1111111111111112,
+    "complexity": 1.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_46.png",
+    "time": 1.1111111111111112,
+    "complexity": 1.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_47.png",
+    "time": 1.1111111111111112,
+    "complexity": 1.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_48.png",
+    "time": 1.1111111111111112,
+    "complexity": 1.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_49.png",
+    "time": 1.1111111111111112,
+    "complexity": 1.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_50.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_51.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_52.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_53.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_54.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_55.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.25,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_56.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.25,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_57.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.25,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_58.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.25,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_59.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.25,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_60.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.5,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_61.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.5,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_62.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.5,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_63.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.5,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_64.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.5,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_65.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.75,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_66.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.75,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_67.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.75,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_68.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.75,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_69.png",
+    "time": 2.2222222222222223,
+    "complexity": 0.75,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_70.png",
+    "time": 2.2222222222222223,
+    "complexity": 1.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_71.png",
+    "time": 2.2222222222222223,
+    "complexity": 1.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_72.png",
+    "time": 2.2222222222222223,
+    "complexity": 1.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_73.png",
+    "time": 2.2222222222222223,
+    "complexity": 1.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_74.png",
+    "time": 2.2222222222222223,
+    "complexity": 1.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_75.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_76.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_77.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_78.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_79.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_80.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.25,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_81.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.25,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_82.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.25,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_83.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.25,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_84.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.25,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_85.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.5,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_86.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.5,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_87.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.5,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_88.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.5,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_89.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.5,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_90.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.75,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_91.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.75,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_92.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.75,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_93.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.75,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_94.png",
+    "time": 3.3333333333333335,
+    "complexity": 0.75,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_95.png",
+    "time": 3.3333333333333335,
+    "complexity": 1.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_96.png",
+    "time": 3.3333333333333335,
+    "complexity": 1.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_97.png",
+    "time": 3.3333333333333335,
+    "complexity": 1.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_98.png",
+    "time": 3.3333333333333335,
+    "complexity": 1.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_99.png",
+    "time": 3.3333333333333335,
+    "complexity": 1.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_100.png",
+    "time": 4.444444444444445,
+    "complexity": 0.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_101.png",
+    "time": 4.444444444444445,
+    "complexity": 0.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_102.png",
+    "time": 4.444444444444445,
+    "complexity": 0.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_103.png",
+    "time": 4.444444444444445,
+    "complexity": 0.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_104.png",
+    "time": 4.444444444444445,
+    "complexity": 0.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_105.png",
+    "time": 4.444444444444445,
+    "complexity": 0.25,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_106.png",
+    "time": 4.444444444444445,
+    "complexity": 0.25,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_107.png",
+    "time": 4.444444444444445,
+    "complexity": 0.25,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_108.png",
+    "time": 4.444444444444445,
+    "complexity": 0.25,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_109.png",
+    "time": 4.444444444444445,
+    "complexity": 0.25,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_110.png",
+    "time": 4.444444444444445,
+    "complexity": 0.5,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_111.png",
+    "time": 4.444444444444445,
+    "complexity": 0.5,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_112.png",
+    "time": 4.444444444444445,
+    "complexity": 0.5,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_113.png",
+    "time": 4.444444444444445,
+    "complexity": 0.5,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_114.png",
+    "time": 4.444444444444445,
+    "complexity": 0.5,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_115.png",
+    "time": 4.444444444444445,
+    "complexity": 0.75,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_116.png",
+    "time": 4.444444444444445,
+    "complexity": 0.75,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_117.png",
+    "time": 4.444444444444445,
+    "complexity": 0.75,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_118.png",
+    "time": 4.444444444444445,
+    "complexity": 0.75,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_119.png",
+    "time": 4.444444444444445,
+    "complexity": 0.75,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_120.png",
+    "time": 4.444444444444445,
+    "complexity": 1.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_121.png",
+    "time": 4.444444444444445,
+    "complexity": 1.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_122.png",
+    "time": 4.444444444444445,
+    "complexity": 1.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_123.png",
+    "time": 4.444444444444445,
+    "complexity": 1.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_124.png",
+    "time": 4.444444444444445,
+    "complexity": 1.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_125.png",
+    "time": 5.555555555555555,
+    "complexity": 0.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_126.png",
+    "time": 5.555555555555555,
+    "complexity": 0.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_127.png",
+    "time": 5.555555555555555,
+    "complexity": 0.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_128.png",
+    "time": 5.555555555555555,
+    "complexity": 0.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_129.png",
+    "time": 5.555555555555555,
+    "complexity": 0.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_130.png",
+    "time": 5.555555555555555,
+    "complexity": 0.25,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_131.png",
+    "time": 5.555555555555555,
+    "complexity": 0.25,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_132.png",
+    "time": 5.555555555555555,
+    "complexity": 0.25,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_133.png",
+    "time": 5.555555555555555,
+    "complexity": 0.25,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_134.png",
+    "time": 5.555555555555555,
+    "complexity": 0.25,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_135.png",
+    "time": 5.555555555555555,
+    "complexity": 0.5,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_136.png",
+    "time": 5.555555555555555,
+    "complexity": 0.5,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_137.png",
+    "time": 5.555555555555555,
+    "complexity": 0.5,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_138.png",
+    "time": 5.555555555555555,
+    "complexity": 0.5,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_139.png",
+    "time": 5.555555555555555,
+    "complexity": 0.5,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_140.png",
+    "time": 5.555555555555555,
+    "complexity": 0.75,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_141.png",
+    "time": 5.555555555555555,
+    "complexity": 0.75,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_142.png",
+    "time": 5.555555555555555,
+    "complexity": 0.75,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_143.png",
+    "time": 5.555555555555555,
+    "complexity": 0.75,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_144.png",
+    "time": 5.555555555555555,
+    "complexity": 0.75,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_145.png",
+    "time": 5.555555555555555,
+    "complexity": 1.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_146.png",
+    "time": 5.555555555555555,
+    "complexity": 1.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_147.png",
+    "time": 5.555555555555555,
+    "complexity": 1.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_148.png",
+    "time": 5.555555555555555,
+    "complexity": 1.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_149.png",
+    "time": 5.555555555555555,
+    "complexity": 1.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_150.png",
+    "time": 6.666666666666667,
+    "complexity": 0.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_151.png",
+    "time": 6.666666666666667,
+    "complexity": 0.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_152.png",
+    "time": 6.666666666666667,
+    "complexity": 0.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_153.png",
+    "time": 6.666666666666667,
+    "complexity": 0.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_154.png",
+    "time": 6.666666666666667,
+    "complexity": 0.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_155.png",
+    "time": 6.666666666666667,
+    "complexity": 0.25,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_156.png",
+    "time": 6.666666666666667,
+    "complexity": 0.25,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_157.png",
+    "time": 6.666666666666667,
+    "complexity": 0.25,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_158.png",
+    "time": 6.666666666666667,
+    "complexity": 0.25,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_159.png",
+    "time": 6.666666666666667,
+    "complexity": 0.25,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_160.png",
+    "time": 6.666666666666667,
+    "complexity": 0.5,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_161.png",
+    "time": 6.666666666666667,
+    "complexity": 0.5,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_162.png",
+    "time": 6.666666666666667,
+    "complexity": 0.5,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_163.png",
+    "time": 6.666666666666667,
+    "complexity": 0.5,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_164.png",
+    "time": 6.666666666666667,
+    "complexity": 0.5,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_165.png",
+    "time": 6.666666666666667,
+    "complexity": 0.75,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_166.png",
+    "time": 6.666666666666667,
+    "complexity": 0.75,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_167.png",
+    "time": 6.666666666666667,
+    "complexity": 0.75,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_168.png",
+    "time": 6.666666666666667,
+    "complexity": 0.75,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_169.png",
+    "time": 6.666666666666667,
+    "complexity": 0.75,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_170.png",
+    "time": 6.666666666666667,
+    "complexity": 1.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_171.png",
+    "time": 6.666666666666667,
+    "complexity": 1.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_172.png",
+    "time": 6.666666666666667,
+    "complexity": 1.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_173.png",
+    "time": 6.666666666666667,
+    "complexity": 1.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_174.png",
+    "time": 6.666666666666667,
+    "complexity": 1.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_175.png",
+    "time": 7.777777777777779,
+    "complexity": 0.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_176.png",
+    "time": 7.777777777777779,
+    "complexity": 0.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_177.png",
+    "time": 7.777777777777779,
+    "complexity": 0.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_178.png",
+    "time": 7.777777777777779,
+    "complexity": 0.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_179.png",
+    "time": 7.777777777777779,
+    "complexity": 0.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_180.png",
+    "time": 7.777777777777779,
+    "complexity": 0.25,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_181.png",
+    "time": 7.777777777777779,
+    "complexity": 0.25,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_182.png",
+    "time": 7.777777777777779,
+    "complexity": 0.25,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_183.png",
+    "time": 7.777777777777779,
+    "complexity": 0.25,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_184.png",
+    "time": 7.777777777777779,
+    "complexity": 0.25,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_185.png",
+    "time": 7.777777777777779,
+    "complexity": 0.5,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_186.png",
+    "time": 7.777777777777779,
+    "complexity": 0.5,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_187.png",
+    "time": 7.777777777777779,
+    "complexity": 0.5,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_188.png",
+    "time": 7.777777777777779,
+    "complexity": 0.5,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_189.png",
+    "time": 7.777777777777779,
+    "complexity": 0.5,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_190.png",
+    "time": 7.777777777777779,
+    "complexity": 0.75,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_191.png",
+    "time": 7.777777777777779,
+    "complexity": 0.75,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_192.png",
+    "time": 7.777777777777779,
+    "complexity": 0.75,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_193.png",
+    "time": 7.777777777777779,
+    "complexity": 0.75,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_194.png",
+    "time": 7.777777777777779,
+    "complexity": 0.75,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_195.png",
+    "time": 7.777777777777779,
+    "complexity": 1.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_196.png",
+    "time": 7.777777777777779,
+    "complexity": 1.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_197.png",
+    "time": 7.777777777777779,
+    "complexity": 1.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_198.png",
+    "time": 7.777777777777779,
+    "complexity": 1.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_199.png",
+    "time": 7.777777777777779,
+    "complexity": 1.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_200.png",
+    "time": 8.88888888888889,
+    "complexity": 0.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_201.png",
+    "time": 8.88888888888889,
+    "complexity": 0.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_202.png",
+    "time": 8.88888888888889,
+    "complexity": 0.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_203.png",
+    "time": 8.88888888888889,
+    "complexity": 0.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_204.png",
+    "time": 8.88888888888889,
+    "complexity": 0.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_205.png",
+    "time": 8.88888888888889,
+    "complexity": 0.25,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_206.png",
+    "time": 8.88888888888889,
+    "complexity": 0.25,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_207.png",
+    "time": 8.88888888888889,
+    "complexity": 0.25,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_208.png",
+    "time": 8.88888888888889,
+    "complexity": 0.25,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_209.png",
+    "time": 8.88888888888889,
+    "complexity": 0.25,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_210.png",
+    "time": 8.88888888888889,
+    "complexity": 0.5,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_211.png",
+    "time": 8.88888888888889,
+    "complexity": 0.5,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_212.png",
+    "time": 8.88888888888889,
+    "complexity": 0.5,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_213.png",
+    "time": 8.88888888888889,
+    "complexity": 0.5,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_214.png",
+    "time": 8.88888888888889,
+    "complexity": 0.5,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_215.png",
+    "time": 8.88888888888889,
+    "complexity": 0.75,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_216.png",
+    "time": 8.88888888888889,
+    "complexity": 0.75,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_217.png",
+    "time": 8.88888888888889,
+    "complexity": 0.75,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_218.png",
+    "time": 8.88888888888889,
+    "complexity": 0.75,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_219.png",
+    "time": 8.88888888888889,
+    "complexity": 0.75,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_220.png",
+    "time": 8.88888888888889,
+    "complexity": 1.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_221.png",
+    "time": 8.88888888888889,
+    "complexity": 1.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_222.png",
+    "time": 8.88888888888889,
+    "complexity": 1.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_223.png",
+    "time": 8.88888888888889,
+    "complexity": 1.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_224.png",
+    "time": 8.88888888888889,
+    "complexity": 1.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_225.png",
+    "time": 10.0,
+    "complexity": 0.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_226.png",
+    "time": 10.0,
+    "complexity": 0.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_227.png",
+    "time": 10.0,
+    "complexity": 0.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_228.png",
+    "time": 10.0,
+    "complexity": 0.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_229.png",
+    "time": 10.0,
+    "complexity": 0.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_230.png",
+    "time": 10.0,
+    "complexity": 0.25,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_231.png",
+    "time": 10.0,
+    "complexity": 0.25,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_232.png",
+    "time": 10.0,
+    "complexity": 0.25,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_233.png",
+    "time": 10.0,
+    "complexity": 0.25,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_234.png",
+    "time": 10.0,
+    "complexity": 0.25,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_235.png",
+    "time": 10.0,
+    "complexity": 0.5,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_236.png",
+    "time": 10.0,
+    "complexity": 0.5,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_237.png",
+    "time": 10.0,
+    "complexity": 0.5,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_238.png",
+    "time": 10.0,
+    "complexity": 0.5,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_239.png",
+    "time": 10.0,
+    "complexity": 0.5,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_240.png",
+    "time": 10.0,
+    "complexity": 0.75,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_241.png",
+    "time": 10.0,
+    "complexity": 0.75,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_242.png",
+    "time": 10.0,
+    "complexity": 0.75,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_243.png",
+    "time": 10.0,
+    "complexity": 0.75,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_244.png",
+    "time": 10.0,
+    "complexity": 0.75,
+    "colorShift": 1.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_245.png",
+    "time": 10.0,
+    "complexity": 1.0,
+    "colorShift": 0.0,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_246.png",
+    "time": 10.0,
+    "complexity": 1.0,
+    "colorShift": 0.25,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_247.png",
+    "time": 10.0,
+    "complexity": 1.0,
+    "colorShift": 0.5,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_248.png",
+    "time": 10.0,
+    "complexity": 1.0,
+    "colorShift": 0.75,
+    "score": 1.0
+  },
+  {
+    "image_path": "shader_dataset/render_249.png",
+    "time": 10.0,
+    "complexity": 1.0,
+    "colorShift": 1.0,
+    "score": 1.0
+  }
+]

@@ -1,5 +1,148 @@
 # Changelog
 
+## 2025-10-01 - Bug Fix: CoreML Model Loading
+### Fixed
+- **CoreML Model Loading Error**: App no longer shows error on startup for missing StyleTransfer.mlmodelc
+  - Added file existence check in `CoreMLPostProcessor.swift` before attempting to load model
+  - Feature now fails silently when model file is absent (as it's optional functionality)
+  - Updated `coreml_config.json` with comment noting feature is disabled
+  - App starts cleanly without error messages
+
+### Notes
+- CoreML post-processing remains available when a valid model is provided
+- To enable: place compiled `.mlmodelc` model at path specified in config
+
+## 2025-09-29 - Epic 1: Strict MCP Client Migration
+### Added
+- **MCPLiveClient**: Full stdio JSON-RPC client implementation for live MCP communication
+  - Replaces file-bridge polling with event-driven architecture
+  - Supports environment variable `MCP_SERVER_CMD` to specify MCP server command
+  - Configurable timeout via `MCP_TIMEOUT_MS` environment variable (default: 8000ms)
+  - Structured error propagation with NSError for UI feedback
+  
+- **MCPBridge Protocol**: Unified interface for MCP operations
+  - `setShader()`: Update shader code with optional description and snapshot control
+  - `setShaderWithMeta()`: Update shader with metadata (name, description, path)
+  - `exportFrame()`: Export rendered frame at specific time
+  - `setTab()`: Switch UI tabs programmatically
+  
+- **BridgeContainer & BridgeFactory**: Dependency injection for bridge implementation
+  - Auto-detects live client when `MCP_SERVER_CMD` is set
+  - Falls back to file-bridge when `USE_FILE_BRIDGE=true`
+  - Seamless swapping between implementations
+
+### Changed
+- **ContentView**: Integrated MCPBridge throughout the UI
+  - Added `@EnvironmentObject var bridgeContainer: BridgeContainer`
+  - Export Frame and Export Sequence buttons now use async bridge methods
+  - Added error banner UI to display MCP operation failures
+  - Automatic polling disabled when live client is active
+  
+- **HistoryTabView**: Uses MCPBridge for snapshot operations
+  - `openInREPL()` and `openInREPLSilent()` use bridge with file fallback
+  
+- **LibraryView**: Uses MCPBridge for opening shaders
+  - Opens library entries via `setShaderWithMeta()` with fallback
+
+### Testing
+- **MCPBridgeTests**: Mock-based unit tests for bridge protocol
+  - Tests all payload formats and method signatures
+  - Validates command construction without requiring live server
+  - 100% test coverage for bridge protocol methods
+
+### Environment Variables
+- `MCP_SERVER_CMD`: Command to launch MCP server (e.g., "node dist/simple-mcp.js")
+- `MCP_TIMEOUT_MS`: Request timeout in milliseconds (default: 8000)
+- `USE_FILE_BRIDGE`: Force file-bridge mode when set to "true"
+- `DISABLE_FILE_POLLING`: Disable file polling when set to "true"
+
+### Migration Notes
+To use the live MCP client:
+1. Build the Node.js MCP server: `npm run build`
+2. Set environment variable: `export MCP_SERVER_CMD="node dist/simple-mcp.js"`
+3. Launch MetalShaderStudio: UI will automatically use live client
+4. File polling is automatically disabled when live client is active
+
+The file-bridge remains available as a fallback for compatibility.
+
+## 2025-09-27
+- chore(scripts): Add open_bg.sh (launch app in background, no focus) and focus_app.sh (bring to foreground on demand)
+- docs(changelog): Record background-safe screenshot evidence path for UI smoke
+  - Resources/screenshots/2025-09-26_15-48-28_ui_smoke_history_tab.png
+- docs(architecture): Add docs/ARCHITECTURE.md with target and transitional diagrams
+- docs(epic): Add docs/EPIC_1_PLAN.md with scope and acceptance for Strict MCP Client
+- chore(scripts): Add open_bg.sh (launch app in background, no focus) and focus_app.sh (bring to foreground on demand)
+- docs(changelog): Record background-safe screenshot evidence path for UI smoke
+  - Resources/screenshots/2025-09-26_15-48-28_ui_smoke_history_tab.png
+
+## 2025-09-26
+- feat(tests): Add visual regression test harness with shader fixtures and golden images
+  - Pixel-level diff generation on failure with artifacts written to `Resources/screenshots/tests`
+    - `actual_*.png`, `diff_*.png`, and a `*_summary.json` for quick diagnostics
+  - Tests render inline shaders and compare against bundled goldens via `Bundle.module`
+- chore(build): Relocate app target to `Apps/MetalShaderStudio` and wire it as an SPM executable target
+- chore(make): Add `make regen-goldens` using `ShaderRenderCLI` to rebuild golden images deterministically
+- docs: Update WARP.md, CLAUDE.md, and README.md with:
+  - How to run visual tests and where diffs are saved
+  - Regenerating goldens workflow
+  - Shader metadata conventions (docstrings for name/description)
+  - Library/metadata notes and file-bridge contract (status/commands JSON)
+
+## 2025-09-16
+- feat(cli): Add ShaderRenderCLI headless renderer to generate PNGs from .metal shaders for dataset/CI
+- chore(ci): Add task-sync GitHub Action to mirror Task Master tasks to GitHub issues and close with proof comments
+- feat(ml): Add bootstrap aesthetic metrics module for dataset labeling
+- feat(coreml): Integrate optional Core ML post-processing into export pipeline
+  - Added `CoreMLPostProcessor` (config-driven via `Resources/communication/coreml_config.json`)
+  - Post-processes rendered textures (e.g., style transfer or super-resolution) and saves the ML-processed result
+  - Linked CoreML and CoreVideo frameworks in Package.swift
+  - Scaffolded config template and documented default keys
+- docs: Added config template at `Resources/communication/coreml_config.json`
+
+Usage:
+- Place a compiled `.mlmodelc` (or `.mlmodel` which will be compiled at runtime) under `Resources/models/`
+- Edit `Resources/communication/coreml_config.json`:
+  - `modelPath`: path to `.mlmodelc` or `.mlmodel`
+  - `inputName` / `outputName`: feature names in your model
+  - `width` / `height`: model’s expected input size
+- Exports (Export Frame/Sequence or session snapshots) will run through the model when config is present and valid.
+
+
+# Changelog
+
+## 2025-09-16
+- feat(coreml): Integrate optional Core ML post-processing into export pipeline
+  - Added `CoreMLPostProcessor` (config-driven via `Resources/communication/coreml_config.json`)
+  - Post-processes rendered textures (e.g., style transfer or super-resolution) and saves the ML-processed result
+  - Linked CoreML and CoreVideo frameworks in Package.swift
+  - Scaffolded config template and documented default keys
+- docs: Added config template at `Resources/communication/coreml_config.json`
+
+Usage:
+- Place a compiled `.mlmodelc` (or `.mlmodel` which will be compiled at runtime) under `Resources/models/`
+- Edit `Resources/communication/coreml_config.json`:
+  - `modelPath`: path to `.mlmodelc` or `.mlmodel`
+  - `inputName` / `outputName`: feature names in your model
+  - `width` / `height`: model’s expected input size
+- Exports (Export Frame/Sequence or session snapshots) will run through the model when config is present and valid.
+
+# Changelog
+
+## [2025-09-12] - Headless MCP scaffold, priorities, and CI speedups
+
+### Added
+- Node/TypeScript headless MCP scaffold (`src/index.ts`) with tools: `set_shader`, `export_frame`, `extractDocstring`.
+- Jest tests under `tests/` and a fast CI workflow `.github/workflows/node-tests.yml` (runs with MCP_FAKE_RENDER=1).
+- PRIORITIES.md as the single source of truth for Must/Should/Shouldn’t/Can’t/Won’t and Required Checks.
+- Scheduled weekly “Priorities Review” workflow to detect drift between branch protection required checks and PRIORITIES.md.
+
+### Changed
+- README: Added badge for MCP Node/TypeScript Tests.
+- Swift: `writeCurrentShaderMeta()` now writes to `Resources/communication/current_shader_meta.json` instead of clobbering `library_index.json`.
+
+### Notes
+- The Node MCP currently interoperates with the existing UI via the file bridge (commands.json) while the strict MCP client is being finalized. Visual outputs are faked in CI for speed and determinism.
+
 ## [2025-09-11] - Fix CI required test check for PRs
 
 ### Added

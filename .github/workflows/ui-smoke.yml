@@ -3,10 +3,7 @@ name: UI Smoke (tab + status)
 on:
   pull_request:
     paths:
-      - 'ShaderPlayground.swift'
-      - 'AppShellView.swift'
-      - 'HistoryTabView.swift'
-      - 'SessionRecorder.swift'
+      - 'Apps/MetalShaderStudio/**/*.swift'
       - 'scripts/screenshot_app.sh'
       - 'scripts/set_tab.sh'
       - 'scripts/ci/ui_smoke.sh'

@@ -14,7 +14,7 @@ concurrency:
 jobs:
   swift-metal-build:
     name: Swift/Metal Compilation
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - name: Checkout code
@@ -59,18 +59,63 @@ jobs:
     - name: Check Swift version
       run: swift --version
     
-    - name: Verify Metal framework availability
+    - name: Install/Detect Metal Toolchain (best-effort, non-fatal)
+      shell: bash
       run: |
-        xcrun -sdk macosx metal --version
-        echo "Metal compiler available"
+        set +e
+        echo "🔎 Checking for Metal CLI..."
+        if xcrun -sdk macosx -f metal >/dev/null 2>&1; then
+          # Try to invoke the tool; if it fails, attempt install
+          if xcrun -sdk macosx metal --version >/dev/null 2>&1; then
+            echo "METAL_PRESENT=1" >> "$GITHUB_ENV"
+            echo "✅ Metal compiler available"
+          else
+            echo "⚠️ metal found but not usable; attempting installation"
+            xcodebuild -downloadComponent MetalToolchain >/dev/null 2>&1 || true
+            if xcrun -sdk macosx metal --version >/dev/null 2>&1; then
+              echo "METAL_PRESENT=1" >> "$GITHUB_ENV"
+              echo "✅ Metal compiler available after installation"
+            else
+              echo "METAL_PRESENT=0" >> "$GITHUB_ENV"
+              echo "❌ Metal toolchain still not usable; continuing without shader validation"
+            fi
+          fi
+        else
+          echo "⚠️ metal CLI not found; attempting installation"
+          xcodebuild -downloadComponent MetalToolchain >/dev/null 2>&1 || true
+          if xcrun -sdk macosx -f metal >/dev/null 2>&1 && xcrun -sdk macosx metal --version >/dev/null 2>&1; then
+            echo "METAL_PRESENT=1" >> "$GITHUB_ENV"
+            echo "✅ Metal compiler available after installation"
+          else
+            echo "METAL_PRESENT=0" >> "$GITHUB_ENV"
+            echo "❌ Metal toolchain not present on runner after install attempt; continuing"
+          fi
+        fi
+        set -e
     
     - name: Build with SwiftPM
       run: |
         echo "Building with Swift Package Manager..."
-        swift build --configuration debug
+        set -o pipefail
+        swift build --configuration debug -v | tee build-swift.log
+        exit_code=${PIPESTATUS[0]}
+        if [ $exit_code -ne 0 ]; then
+          echo "❌ swift build failed with exit code $exit_code"
+          echo "Last 200 lines of build log:" && tail -n 200 build-swift.log || true
+          exit $exit_code
+        fi
         echo "✅ swift build completed"
     
+    - name: Upload build log (always)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: swift-build-log
+        path: build-swift.log
+        retention-days: 7
+    
     - name: Validate Metal shader files
+      if: env.METAL_PRESENT == '1'
       run: |
         echo "Validating Metal shader files..."
         SHADER_ERRORS=0

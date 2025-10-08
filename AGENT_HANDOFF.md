@@ -16,6 +16,10 @@ Owner: Automated Agent (this file is maintained so any agent can resume work)
   - visual-tests.yml: added concurrency + label-gating (visual-required)
   - ui-smoke.yml: added concurrency block
 
+## Local-first rule
+- You MUST run local tests before pushing. Use CI as confirmation, not discovery.
+- Minimum: MCP_FAKE_RENDER=1 npm test; swift build (and swift test where applicable).
+
 ## Next Steps
 1) Update branch protection on main to require (see PRIORITIES.md):
    - MCP Node/TypeScript Tests

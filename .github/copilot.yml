@@ -1,0 +1,8 @@
+# Request Copilot reviews automatically on PR open/sync.
+pull_requests:
+  enabled: true
+  reviewers:
+    - copilot
+  require_review_on:
+    - opened
+    - synchronize

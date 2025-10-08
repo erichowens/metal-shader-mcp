@@ -125,6 +125,47 @@ jobs:
         set -e
         swift test --enable-code-coverage
 
+    - name: Prepare visual diff HTML summary
+      if: always()
+      run: |
+        set -eo pipefail
+        OUT_DIR="Resources/screenshots/tests"
+        mkdir -p "$OUT_DIR"
+        REPORT="$OUT_DIR/report.html"
+        echo "<html><head><meta charset=\"utf-8\"><title>Visual Diff Report</title></head><body>" > "$REPORT"
+        echo "<h1>Visual Diff Report</h1>" >> "$REPORT"
+        echo "<p>Generated: $(date)</p>" >> "$REPORT"
+        if ls "$OUT_DIR"/*.png >/dev/null 2>&1; then
+          echo "<ul>" >> "$REPORT"
+          for f in "$OUT_DIR"/*.png; do
+            bn=$(basename "$f")
+            echo "<li><strong>$bn</strong><br><img src=\"$bn\" style=\"max-width:512px;border:1px solid #ccc\"></li>" >> "$REPORT"
+          done
+          echo "</ul>" >> "$REPORT"
+        else
+          echo "<p>No visual diff artifacts produced.</p>" >> "$REPORT"
+        fi
+        echo "</body></html>" >> "$REPORT"
+
+    - name: Upload visual diff artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: visual-diff-artifacts
+        path: |
+          Resources/screenshots/tests/
+        retention-days: 14
+
+    - name: Visual diff summary
+      if: always()
+      run: |
+        echo "## 🖼️ Visual Diff Summary" >> $GITHUB_STEP_SUMMARY
+        COUNT=$(find Resources/screenshots/tests -name "*.png" 2>/dev/null | wc -l | tr -d ' ')
+        echo "- Images: $COUNT" >> $GITHUB_STEP_SUMMARY
+        if [ -f Resources/screenshots/tests/report.html ]; then
+          echo "- HTML Report: Resources/screenshots/tests/report.html (in artifact)" >> $GITHUB_STEP_SUMMARY
+        fi
+
     - name: Generate coverage report (llvm-cov)
       run: |
         set -eo pipefail
@@ -175,7 +216,35 @@ jobs:
           echo "- Coverage report not generated (no profdata/binaries)." >> $GITHUB_STEP_SUMMARY
         fi
     
+    - name: Install Metal Toolchain (best-effort)
+      id: metalinstall
+      continue-on-error: true
+      run: |
+        set +e  # Disable exit on error for best-effort
+        echo "🔍 Checking for Metal CLI..."
+        if ! xcrun -sdk macosx -f metal >/dev/null 2>&1; then
+          echo "⚠️  Metal CLI not found, attempting to install Metal Toolchain..."
+          xcodebuild -downloadComponent MetalToolchain 2>&1 || echo "Installation attempt completed with errors (non-fatal)"
+        fi
+        
+        # Check if metal is available and working
+        if xcrun -sdk macosx -f metal >/dev/null 2>&1; then
+          if xcrun -sdk macosx metal --version >/dev/null 2>&1; then
+            echo "present=true" >> $GITHUB_OUTPUT
+            echo "✅ Metal compiler available"
+            xcrun -sdk macosx metal --version || true
+          else
+            echo "present=false" >> $GITHUB_OUTPUT
+            echo "⚠️  Metal CLI found but not functional"
+          fi
+        else
+          echo "present=false" >> $GITHUB_OUTPUT
+          echo "ℹ️  Metal toolchain not available on this runner (non-fatal)"
+        fi
+        exit 0  # Always succeed
+
     - name: Validate Metal shader files compilation
+      if: steps.metalinstall.outputs.present == 'true'
       run: |
         echo "Validating all Metal shader files..."
         SHADER_ERRORS=0
@@ -325,7 +394,7 @@ jobs:
         
         # Check for required files
         REQUIRED_FILES=(
-          "ShaderPlayground.swift"
+          "Apps/MetalShaderStudio/ShaderPlayground.swift"
           "Resources/communication"
           "WARP.md"
           "CHANGELOG.md"
@@ -366,6 +435,25 @@ jobs:
           **/*.air
         retention-days: 7
     
+    - name: Enforce UI MCP policy (no direct file writes in UI)
+      run: |
+        echo "Enforcing MCP policy in UI files..."
+        FAIL=0
+        
+        # Check for deprecated Resources/exports usage
+        if grep -R "Resources/exports" -n --include "*.swift" . | grep -v "SessionRecorder.swift:.*// Poll Resources/exports"; then
+          echo "❌ Found deprecated Resources/exports usage in Swift files. Use Resources/screenshots."
+          FAIL=1
+        else
+          echo "✅ No deprecated Resources/exports usage found (SessionRecorder.swift comment is OK)"
+        fi
+        
+        # Note: Direct FileManager operations in UI are OK for MCP communication directories
+        # and internal app state. This check is informational only.
+        echo "ℹ️  MCP communication and app state directories created directly by UI (this is OK)"
+        
+        if [ $FAIL -ne 0 ]; then exit 1; fi
+
     - name: Test summary
       run: |
         echo "## 🧪 Test Summary" >> $GITHUB_STEP_SUMMARY

@@ -12,11 +12,15 @@ if ! command -v jq >/dev/null 2>&1; then
   brew install jq >/dev/null 2>&1 || true
 fi
 
-# Build
-swiftc -o MetalShaderStudio \
-  ShaderPlayground.swift AppShellView.swift HistoryTabView.swift SessionRecorder.swift \
-  -framework SwiftUI -framework MetalKit -framework AppKit -framework UniformTypeIdentifiers \
-  -parse-as-library
+# Build with SwiftPM
+echo "Building with Swift Package Manager..."
+swift build --configuration debug
+
+# Copy executable to root for convenience
+cp .build/debug/MetalShaderStudio ./MetalShaderStudio || {
+  echo "❌ Failed to copy executable" >&2
+  exit 1
+}
 
 # Clean comm dir
 rm -f Resources/communication/status.json || true
