@@ -4,6 +4,7 @@
 [![Tests](https://github.com/erichowens/metal-shader-mcp/actions/workflows/test.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/test.yml)
 [![MCP Node/TypeScript Tests](https://github.com/erichowens/metal-shader-mcp/actions/workflows/node-tests.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/node-tests.yml)
 [![Documentation](https://github.com/erichowens/metal-shader-mcp/actions/workflows/documentation.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/documentation.yml)
+[![Docs & Guard](https://github.com/erichowens/metal-shader-mcp/actions/workflows/docs-and-guard.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/docs-and-guard.yml)
 [![Visual Tests](https://github.com/erichowens/metal-shader-mcp/actions/workflows/visual-tests.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/visual-tests.yml)
 [![WARP Compliance](https://github.com/erichowens/metal-shader-mcp/actions/workflows/warp-compliance.yml/badge.svg)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/warp-compliance.yml)
 [![EPIC Progress Sync](https://github.com/erichowens/metal-shader-mcp/actions/workflows/epic-sync.yml/badge.svg?branch=main)](https://github.com/erichowens/metal-shader-mcp/actions/workflows/epic-sync.yml)
@@ -17,12 +18,13 @@ New: Optional Core ML post-processing on exported frames. See section below for 
 Note: The legacy file-bridge (writing commands to Resources/communication) is being deprecated in favor of a strict MCP client. See Deprecation notice below.
 Metal Shader MCP is a macOS SwiftUI + Metal playground with a disciplined workflow for shader iteration, visual evidence, and CI. An MCP layer is planned to let AI assistants interact with the app (compile, preview, snapshot), but today the primary entry point is the macOS app you can compile and run locally.
 
-## Current state (as of 2025-09-08)
+## Current state (as of 2025-10-02)
 - macOS app (SwiftUI + Metal) builds and runs locally and in CI.
 - Live shader editing with a simple renderer and screenshot/export helpers.
 - Session Browser (History tab) captures per-session snapshots (code + image + meta).
 - CI enforces: build, tests, visual-evidence capture, WARP workflow compliance, UI smoke (tab selection/status), docs checks.
-- Branch protection requires all status checks to pass and branches to be up-to-date (no required external review since this is solo-maintained).
+- **Branch protection & merge policy**: All CI checks must pass before merging to main. Direct pushes to main are rejected. Changes must go through PRs with green checks. Overriding requires explicit user decision and is discouraged.
+- Single-flight PR policy: One active (non-draft) core PR at a time; others remain draft until the active one merges.
 
 ## Roadmap
 - MCP server integration to drive the macOS app (compile/preview/snapshot) from tools.
