@@ -118,45 +118,29 @@ The file-bridge remains available as a fallback for compatibility.
   - Shader metadata conventions (docstrings for name/description)
   - Library/metadata notes and file-bridge contract (status/commands JSON)
 
-## 2025-09-16
-- feat(cli): Add ShaderRenderCLI headless renderer to generate PNGs from .metal shaders for dataset/CI
-- chore(ci): Add task-sync GitHub Action to mirror Task Master tasks to GitHub issues and close with proof comments
-- feat(ml): Add bootstrap aesthetic metrics module for dataset labeling
-- feat(coreml): Integrate optional Core ML post-processing into export pipeline
-  - Added `CoreMLPostProcessor` (config-driven via `Resources/communication/coreml_config.json`)
-  - Post-processes rendered textures (e.g., style transfer or super-resolution) and saves the ML-processed result
-  - Linked CoreML and CoreVideo frameworks in Package.swift
-  - Scaffolded config template and documented default keys
-- docs: Added config template at `Resources/communication/coreml_config.json`
+## 2025-09-22 - Task Master Integration and ML Pipeline
+### Added
+- **Task Master↔GitHub Issue Sync**: Workflow `.github/workflows/task-sync.yml`
+  - Opens issues from `.taskmaster/tasks/tasks.json` with task metadata
+  - Closes issues with proof-of-work comments (commit, changed files, code excerpt)
+  - Python script `scripts/task_sync.py` handles bidirectional sync
+  
+- **ShaderRenderCLI**: Headless renderer at `Tools/ShaderRenderCLI/main.swift`
+  - Generates PNG from `.metal` shaders for dataset/CI
+  - Deterministic output for reproducible visual testing
+  - Integrated with SPM as executable target
+  
+- **ML Aesthetics Metrics**: Bootstrap module at `ml/aesthetics/metrics.py`
+  - Initial composite scoring: contrast, saturation, edges, LAB harmony
+  - Foundation for dataset labeling pipeline
+  - Track A enhancement: NIMA/VLM pseudo-labels task added for future work
+  
+- **Task Master Tasks**: Added M1–M4 tasks in `.taskmaster/tasks/tasks.json`
+  - Structured workflow for aesthetic engine development
+  - Integration with GitHub issue tracking
 
-Usage:
-- Place a compiled `.mlmodelc` (or `.mlmodel` which will be compiled at runtime) under `Resources/models/`
-- Edit `Resources/communication/coreml_config.json`:
-  - `modelPath`: path to `.mlmodelc` or `.mlmodel`
-  - `inputName` / `outputName`: feature names in your model
-  - `width` / `height`: model’s expected input size
-- Exports (Export Frame/Sequence or session snapshots) will run through the model when config is present and valid.
-
-
-# Changelog
-
-## 2025-09-16
-- feat(coreml): Integrate optional Core ML post-processing into export pipeline
-  - Added `CoreMLPostProcessor` (config-driven via `Resources/communication/coreml_config.json`)
-  - Post-processes rendered textures (e.g., style transfer or super-resolution) and saves the ML-processed result
-  - Linked CoreML and CoreVideo frameworks in Package.swift
-  - Scaffolded config template and documented default keys
-- docs: Added config template at `Resources/communication/coreml_config.json`
-
-Usage:
-- Place a compiled `.mlmodelc` (or `.mlmodel` which will be compiled at runtime) under `Resources/models/`
-- Edit `Resources/communication/coreml_config.json`:
-  - `modelPath`: path to `.mlmodelc` or `.mlmodel`
-  - `inputName` / `outputName`: feature names in your model
-  - `width` / `height`: model’s expected input size
-- Exports (Export Frame/Sequence or session snapshots) will run through the model when config is present and valid.
-
-# Changelog
+### Changed
+- **Package.swift**: Added `ShaderRenderCLI` executable target with Metal/CoreGraphics frameworks
 
 ## [2025-09-12] - Headless MCP scaffold, priorities, and CI speedups
 
