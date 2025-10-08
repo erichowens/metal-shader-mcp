@@ -36,6 +36,17 @@ public final class CoreMLPostProcessor {
             let data = try Data(contentsOf: url)
             let cfg = try JSONDecoder().decode(Config.self, from: data)
             let modelURL = URL(fileURLWithPath: cfg.modelPath)
+            
+            // Check if model file actually exists before attempting to load
+            guard FileManager.default.fileExists(atPath: cfg.modelPath) ||
+                  FileManager.default.fileExists(atPath: modelURL.path) else {
+                // Model file doesn't exist - this is expected if CoreML feature is not being used
+                // Fail silently without error message
+                self.model = nil
+                self.config = nil
+                return
+            }
+            
             let compiledURL: URL
             if modelURL.pathExtension == "mlmodelc" {
                 compiledURL = modelURL
@@ -79,9 +90,9 @@ public final class CoreMLPostProcessor {
 
         // Run Core ML prediction
         do {
-            let input = MLDictionaryFeatureProvider(dictionary: [cfg.inputName: MLFeatureValue(pixelBuffer: inputPB)])
+            let input = try MLDictionaryFeatureProvider(dictionary: [cfg.inputName: MLFeatureValue(pixelBuffer: inputPB)])
             let out = try model.prediction(from: input)
-            guard let outPB = out.featureValue(for: cfg.outputName)?.imageBufferValue ?? out.featureValue(for: cfg.outputName)?.pixelBufferValue else {
+            guard let outPB = out.featureValue(for: cfg.outputName)?.imageBufferValue else {
                 fputs("[CoreML] Output feature not found: \(cfg.outputName)\n", stderr)
                 return nil
             }
@@ -91,7 +102,7 @@ public final class CoreMLPostProcessor {
 
             // If output texture is already fine, return a dedicated copy in Private storage for downstream usage
             let desc = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: outTex.pixelFormat, width: outTex.width, height: outTex.height, mipmapped: false)
-            desc.usage = [.shaderRead, .shaderWrite, .renderTarget, .blit]
+            desc.usage = MTLTextureUsage(rawValue: MTLTextureUsage.shaderRead.rawValue | MTLTextureUsage.shaderWrite.rawValue | MTLTextureUsage.renderTarget.rawValue)
             desc.storageMode = .private
             guard let finalTex = device.makeTexture(descriptor: desc),
                   let cq = device.makeCommandQueue(), let bcb = cq.makeCommandBuffer(), let bl = bcb.makeBlitCommandEncoder() else { return nil }
