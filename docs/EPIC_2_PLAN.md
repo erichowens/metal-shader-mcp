@@ -129,6 +129,7 @@ rl.on('line', (line) => {
   try {
     const req = JSON.parse(line);
     const scenario = process.env.TEST_SCENARIO || 'success';
+    // Access request metadata
     scenarios[scenario](req.id, req.method);
   } catch (e) {
     // Malformed input

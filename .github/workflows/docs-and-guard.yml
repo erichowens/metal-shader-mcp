@@ -20,10 +20,12 @@ jobs:
   single-flight:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          bash scripts/enforce_single_flight.sh
+      - name: Enforce single-flight policy
+        run: bash scripts/enforce_single_flight.sh
   visual-env:
     runs-on: macos-latest
     if: github.event_name == 'pull_request'
