@@ -3,8 +3,10 @@
 This file enumerates the major epics and concrete tasks ahead. We operate with a single-flight PR policy for core work: only one active (non-draft) PR at a time; others remain draft and are rebased after merge.
 
 Links
-- Latest Merged: PR #49 (MCP live client fixes and CI hardening)
-- Active branches: main, chore/bg-launch-helpers, feature/m1-aesthetic-engine
+- Latest Merged: PR #52 (post-PR51 BUGS.md documentation update)
+- Previous: PR #51 (M1 Aesthetic Engine - CoreML metrics, Task Master sync, headless renderer)
+- Previous: PR #49 (MCP live client fixes and CI hardening)
+- Active branches: main (clean, all feature branches merged and deleted)
 - Branch protection: enforced via single-flight policy
 - PRIORITIES.md: required checks and process policy
 - AGENT_HANDOFF.md: current state and continuity plan
@@ -90,8 +92,12 @@ Links
 
 ## Near-term checklist (next 1–2 PRs)
 - [x] Merge PR #49 (MCP live client fixes and CI hardening) ✅
+- [x] Merge PR #51 (M1 Aesthetic Engine features) ✅
+- [x] Merge PR #52 (BUGS.md documentation update) ✅
 - [x] Clean up merged/closed branches ✅
 - [x] Update CHANGELOG, ROADMAP, and living docs ✅
+- [x] Fix ShaderRenderCLI compilation issues ✅
+- [x] Complete WARP after-action workflow ✅
 - [ ] Add CI status badges to README
 - [ ] Document merge policy: all tests must pass unless explicitly overridden
 - [ ] Create TASKS.md to track workflow validation
@@ -168,6 +174,12 @@ Acceptance notes (for early P0/P1 items)
 - Tests: at least one Swift test per MCPBridge entry point; Node tests for success and failure branches
 
 ## Recently completed
+- [x] **PR #52** (2025-10-08): WARP workflow BUGS.md documentation update for PR #51 fixes
+- [x] **PR #51** (2025-10-08): M1 Aesthetic Engine - CoreML metrics integration, Task Master GitHub sync, headless shader renderer CLI with fixes
+  - Fixed ShaderRenderCLI compilation: removed invalid `.blit` MTLTextureUsage, corrected string interpolation
+  - All CI checks passed: compilation, tests, visual testing, documentation validation
+  - Branch cleanup: feature/m1-aesthetic-engine-rebased merged and deleted
+- [x] **PR #49** (2025-09-29): MCP live client fixes and CI hardening
 - [x] **Epic 1 - Strict MCP Client** (2025-09-29): Full MCPLiveClient implementation with stdio JSON-RPC, MCPBridge protocol, error banner UI, and comprehensive tests
 - [x] CI modernization (PR #30): cancel-in-progress, paths/label gating, AGENT_HANDOFF
 - [x] Node/TS headless helpers & tests; YAML fix; simple-mcp.ts mkdir security tweak
