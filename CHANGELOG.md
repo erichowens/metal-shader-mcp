@@ -1,5 +1,35 @@
 # Changelog
 
+## 2025-10-02 - CI Fixes and Repository Cleanup
+### Fixed
+- **Single-Flight CI Check**: Added `GH_TOKEN` environment variable to single-flight job in docs-and-guard workflow
+  - Resolves authentication errors when enforcing single-flight PR policy
+  - Uses `github.token` automatically provided by GitHub Actions
+  
+- **Docs-Guard False Positive**: Fixed markdown link checker reporting false positives on code tokens
+  - Updated `docs/EPIC_2_PLAN.md` to use fenced code blocks instead of inline code for `req.id, req.method`
+  - Enhanced markdown link checker script to skip fenced code blocks and ignore `node_modules`
+  
+- **Jest Configuration**: Fixed test discovery issues
+  - Updated `jest.config.cjs` to correctly locate tests in `Tests` directory
+  - Created `tsconfig.test.json` with relaxed TypeScript config for test files
+  - Fixed TypeScript import issues (removed `.js` extensions, replaced `import.meta` with `__dirname`)
+  - Added missing `@types/pngjs` type declarations
+  
+- **CI Environment**: Added `Resources/screenshots` directory creation to visual-env check
+  - Prevents CI failures due to missing screenshot directory
+
+### Changed
+- **Branch Cleanup**: Removed merged and closed PR branches
+  - Deleted local and remote branches: ci/modernization, ci/coverage, ci/epic-progress-sync, build/spm-and-fast-visual-tests, chore/sync-hooks-session-browser, feature/shader-metadata-ui
+  - Deleted closed PR branches: feature/strict-mcp-client, feature/headless-mcp, feature/mcp-ui-client, policy/mcp-first-enforcement, copilot/fix-onchange-deprecation-issues
+  - Active branches remaining: main, chore/bg-launch-helpers, feature/m1-aesthetic-engine
+
+### Merged
+- **PR #49**: Merged `feature/mcp-live-client` to main with squash
+  - All CI checks passing
+  - Branch automatically deleted after merge
+
 ## 2025-10-01 - Bug Fix: CoreML Model Loading
 ### Fixed
 - **CoreML Model Loading Error**: App no longer shows error on startup for missing StyleTransfer.mlmodelc

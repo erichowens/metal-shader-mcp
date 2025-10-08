@@ -3,9 +3,9 @@
 This file enumerates the major epics and concrete tasks ahead. We operate with a single-flight PR policy for core work: only one active (non-draft) PR at a time; others remain draft and are rebased after merge.
 
 Links
-- Active PR: #29 (headless MCP helpers, fast Node CI, priorities review)
-- Next PR (draft): #32 (strict MCP client groundwork)
-- Branch protection update: issue #31
+- Latest Merged: PR #49 (MCP live client fixes and CI hardening)
+- Active branches: main, chore/bg-launch-helpers, feature/m1-aesthetic-engine
+- Branch protection: enforced via single-flight policy
 - PRIORITIES.md: required checks and process policy
 - AGENT_HANDOFF.md: current state and continuity plan
 
@@ -15,6 +15,8 @@ Links
 - [x] Remove polling loop (`checkForCommands`); use event/callbacks from MCP client (disabled when live client active)
 - [x] Add robust error handling + retries; surface structured errors in UI (error banner)
 - [x] Swift unit tests to assert UI actions call `MCPBridge` methods
+- [x] CI hardening: fixed single-flight GH_TOKEN, docs-guard false positives, jest config
+- [x] Branch cleanup: removed all merged and closed PR branches
 - [ ] Deprecate/retire file-bridge paths and docs (kept as fallback)
 - [ ] Update README/CONTRIBUTING with final deprecation details
 
@@ -87,10 +89,14 @@ Links
 ---
 
 ## Near-term checklist (next 1–2 PRs)
-- [ ] Merge PR #29 (headless helpers + fast Node CI + priorities review)
-- [ ] Implement MCPLiveClient and swap `FileBridgeMCP` (start with REPL + History)
-- [ ] Add Swift tests for MCPBridge calls; basic error handling surfacing
-- [ ] Remove polling where replaced; document final bridge removal
+- [x] Merge PR #49 (MCP live client fixes and CI hardening) ✅
+- [x] Clean up merged/closed branches ✅
+- [x] Update CHANGELOG, ROADMAP, and living docs ✅
+- [ ] Add CI status badges to README
+- [ ] Document merge policy: all tests must pass unless explicitly overridden
+- [ ] Create TASKS.md to track workflow validation
+- [ ] Deprecate/retire file-bridge paths and docs (kept as fallback)
+- [ ] Update README/CONTRIBUTING with final deprecation details
 
 ---
 
