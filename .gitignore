@@ -82,3 +82,8 @@ DerivedData/
 *.app
 # Local MCP/agent config with secrets (do not commit)
 warp_drive_mcp_import.json
+
+# Archived dead code/docs
+archive/
+# Build artifacts
+.derived/
