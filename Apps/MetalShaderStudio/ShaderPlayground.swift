@@ -67,6 +67,7 @@ struct ContentView: View {
                 
 TextEditor(text: $shaderCode)
                     .font(.system(.body, design: .monospaced))
+                    .disabled(false)
                     .onChange(of: shaderCode) { newCode in
                         renderer.updateShader(newCode)
                         shaderMeta = ShaderMetadata.from(code: newCode, path: shaderStateFile)
@@ -303,7 +304,14 @@ case "get_shader_meta":
                 case "export_frame":
                     let description = command?["description"] as? String ?? "mcp_export"
                     let time = command?["time"] as? Float
+                    let noSnapshot = (command?["no_snapshot"] as? Bool) ?? false
                     renderer.exportFrame(description: description, time: time)
+                    // Record snapshot unless explicitly suppressed
+                    if !noSnapshot {
+                        DispatchQueue.main.async {
+                            self.session.recordSnapshot(code: self.shaderCode, renderer: self.renderer, label: description)
+                        }
+                    }
                     
                 case "set_tab":
                     if let tabName = command?["tab"] as? String {
@@ -493,6 +501,8 @@ extension ContentView {
             try bridge.exportFrame(description: description, time: nil)
             // Also tell renderer to save screenshot for consistency
             renderer.saveScreenshot()
+            // Record snapshot in session history
+            session.recordSnapshot(code: shaderCode, renderer: renderer, label: "Export Frame")
         } catch {
             errorMessage = "Failed to export frame: \(error.localizedDescription)"
             showError = true
