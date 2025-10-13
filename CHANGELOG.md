@@ -1,5 +1,37 @@
 # Changelog
 
+## 2025-10-13 - Visual Testing Infrastructure Hardening
+### Added
+- **Enhanced find_window_id.py**: Production-grade window detection with resilience features
+  - Retries with exponential backoff for app initialization (configurable via env vars)
+  - Multiple search criteria: bundle ID, app name, and window title
+  - Selection strategies: frontmost, largest, or first matching window
+  - JSON output format for scripting integration
+  - Proper exit codes: 0=success, 2=not found, 3=ambiguous (reserved), 4=dependency error
+  - Environment configuration: `FIND_WINDOW_MAX_RETRIES`, `FIND_WINDOW_RETRY_DELAY`, `FIND_WINDOW_BACKOFF`
+  - Comprehensive CLI with help, examples, and usage documentation
+  - Structured stderr logging with verbose/quiet modes
+  
+- **VISUAL_TESTING.md**: Comprehensive visual testing documentation
+  - Complete overview of visual testing system architecture
+  - Quick start guide and dependency installation instructions
+  - Detailed screenshot capture documentation with environment variables
+  - CI integration guide covering all three workflows (visual-tests, nightly, smoke)
+  - Test suites documentation (VisualRegressionTests and GradientTests)
+  - Golden image update process with PR review checklist
+  - Extensive troubleshooting guide for common issues
+  - Best practices for visual testing and maintenance
+  - Secrets/authentication clarification (no external keys required)
+  - Quick reference command glossary
+  - Support and contributing guidelines
+
+### Changed
+- **find_window_id.py**: Complete rewrite from basic Swift wrapper to robust production tool
+  - Replaced simple AppleScript fallback with comprehensive Swift/CoreGraphics enumeration
+  - Added window metadata extraction (bounds, layer, owner, title)
+  - Improved error handling and dependency checking
+  - Enhanced timeout and retry logic with configurable backoff
+
 ## 2025-10-02 - CI Fixes and Repository Cleanup
 ### Fixed
 - **Single-Flight CI Check**: Added `GH_TOKEN` environment variable to single-flight job in docs-and-guard workflow
