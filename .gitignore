@@ -87,3 +87,7 @@ warp_drive_mcp_import.json
 archive/
 # Build artifacts
 .derived/
+
+# Archived legacy projects
+Archived/**
+!Archived/XcodeProjects/README.md

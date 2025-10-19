@@ -53,6 +53,9 @@ final class VisualRegressionGradientTests: XCTestCase {
         tex.getBytes(bytes, bytesPerRow: bpr, from: MTLRegionMake2D(0, 0, w, h), mipmapLevel: 0)
 
         // Prefer computed expectation for gradient to avoid color space flakiness in PNG decoders
+        let tolCfg = TestImageUtils.resolveTolerance(width: w, height: h, testName: "VisualRegressionGradientTests.testGradientMatchesGoldenWithinTolerance")
+        let tol = tolCfg.global // Use global tolerance for gradient comparison
+        
         var failures = 0
         var missUpLeft = 0, missUpRight = 0, missDownLeft = 0, missDownRight = 0
         for y in 0..<h {
@@ -76,10 +79,10 @@ final class VisualRegressionGradientTests: XCTestCase {
                 let rDownLeft = UInt8((uLeft * 255.0).rounded())
                 let gDownRight = UInt8((vDown * 255.0).rounded())
                 let rDownRight = UInt8((uRight * 255.0).rounded())
-                if abs(Int(b) - Int(expB)) > 12 || abs(Int(g) - Int(gUpLeft)) > 12 || abs(Int(r) - Int(rUpLeft)) > 12 || abs(Int(a) - Int(expA)) > 12 { missUpLeft += 1 }
-                if abs(Int(b) - Int(expB)) > 12 || abs(Int(g) - Int(gUpRight)) > 12 || abs(Int(r) - Int(rUpRight)) > 12 || abs(Int(a) - Int(expA)) > 12 { missUpRight += 1 }
-                if abs(Int(b) - Int(expB)) > 12 || abs(Int(g) - Int(gDownLeft)) > 12 || abs(Int(r) - Int(rDownLeft)) > 12 || abs(Int(a) - Int(expA)) > 12 { missDownLeft += 1 }
-                if abs(Int(b) - Int(expB)) > 12 || abs(Int(g) - Int(gDownRight)) > 12 || abs(Int(r) - Int(rDownRight)) > 12 || abs(Int(a) - Int(expA)) > 12 { missDownRight += 1 }
+                if abs(Int(b) - Int(expB)) > tol || abs(Int(g) - Int(gUpLeft)) > tol || abs(Int(r) - Int(rUpLeft)) > tol || abs(Int(a) - Int(expA)) > tol { missUpLeft += 1 }
+                if abs(Int(b) - Int(expB)) > tol || abs(Int(g) - Int(gUpRight)) > tol || abs(Int(r) - Int(rUpRight)) > tol || abs(Int(a) - Int(expA)) > tol { missUpRight += 1 }
+                if abs(Int(b) - Int(expB)) > tol || abs(Int(g) - Int(gDownLeft)) > tol || abs(Int(r) - Int(rDownLeft)) > tol || abs(Int(a) - Int(expA)) > tol { missDownLeft += 1 }
+                if abs(Int(b) - Int(expB)) > tol || abs(Int(g) - Int(gDownRight)) > tol || abs(Int(r) - Int(rDownRight)) > tol || abs(Int(a) - Int(expA)) > tol { missDownRight += 1 }
             }
         }
         failures = min(min(missUpLeft, missUpRight), min(missDownLeft, missDownRight))
@@ -87,6 +90,21 @@ final class VisualRegressionGradientTests: XCTestCase {
             let outDir = URL(fileURLWithPath: FileManager.default.currentDirectoryPath).appendingPathComponent("Resources/screenshots/tests", isDirectory: true)
             try? FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
             try TestImageUtils.saveBGRA8(bytes: bytes, width: w, height: h, to: outDir.appendingPathComponent("actual_gradient_\(w)x\(h).png"))
+            // Write summary JSON with tolerance info
+            let summaryURL = outDir.appendingPathComponent("gradient_summary_\(w)x\(h).json")
+            let payload: [String: Any] = [
+                "test": "gradient",
+                "timestamp": Date().timeIntervalSince1970,
+                "tolerance": ["r": tolCfg.r, "g": tolCfg.g, "b": tolCfg.b, "a": tolCfg.a, "global": tolCfg.global],
+                "mismatches": failures,
+                "width": w,
+                "height": h,
+                "actual_path": outDir.appendingPathComponent("actual_gradient_\(w)x\(h).png").path,
+                "heatmap_path": outDir.appendingPathComponent("heatmap_gradient_\(w)x\(h).png").path
+            ]
+            if let data = try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted]) {
+                try? data.write(to: summaryURL)
+            }
             // Generate a simple heatmap based on expected vs actual for visualization
             let bpr = w * 4
             var heat = [UInt8](repeating: 0, count: bpr * h)

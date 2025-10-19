@@ -181,6 +181,15 @@ swift run MetalShaderStudio --tab history
 # Run Swift visual tests (now implemented)
 swift test --filter VisualRegressionTests
 
+# Run with custom resolution
+VIS_RES_W=256 VIS_RES_H=256 swift test --filter VisualRegressionTests
+
+# Run with relaxed tolerance (debugging)
+VIS_TOL_GLOBAL=10 swift test --filter VisualRegressionTests
+
+# Run golden image integrity checks
+swift test --filter GoldenImageIntegrityTests
+
 # If a legitimate change is approved, regenerate goldens
 make regen-goldens
 
@@ -191,6 +200,9 @@ python3 scripts/find_window_id.py
 Notes:
 - Visual test diffs and actuals are saved under `Resources/screenshots/tests/` on failure.
 - Golden images are bundled as processed test resources under `Tests/MetalShaderTests/Fixtures/` and accessed via `Bundle.module`.
+- Tolerance configuration: `Resources/communication/visual_test_config.json`
+- Environment variables override config: `VIS_TOL_R`, `VIS_TOL_G`, `VIS_TOL_B`, `VIS_TOL_A`, `VIS_TOL_GLOBAL`
+- See `docs/VISUAL_TESTING_GUIDE.md` for comprehensive testing documentation
 
 ## 🚨 Critical Failure Points
 
