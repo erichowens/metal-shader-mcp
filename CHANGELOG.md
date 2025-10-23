@@ -1,5 +1,12 @@
 # Changelog
 
+## 2025-10-23 - Shell Tests for Background Launch Helpers
+### Added
+- Bats test suite for `open_bg.sh`, `open_fg.sh`, and `focus_app.sh` under `scripts/tests/bg_launch_helpers.bats`
+  - Verifies executables exist and are no-op safe when app is not running
+  - Ensures `.runlogs` is created and log path is reported
+- CI: Added step to run Bats tests in `.github/workflows/test.yml`
+
 ## 2025-10-13 - Visual Testing Infrastructure Hardening
 ### Added
 - **Enhanced find_window_id.py**: Production-grade window detection with resilience features

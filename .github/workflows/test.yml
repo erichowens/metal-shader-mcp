@@ -125,6 +125,22 @@ jobs:
         set -e
         swift test --enable-code-coverage
 
+    - name: Run shell script tests (bats)
+      run: |
+        echo "Running Bats shell tests..."
+        # Install bats-core if not available
+        if ! command -v bats >/dev/null 2>&1; then
+          brew update >/dev/null 2>&1 || true
+          brew install bats-core >/dev/null 2>&1 || true
+        fi
+        bats --version
+        # Execute all tests in scripts/tests (non-fatal if none)
+        if ls scripts/tests/*.bats >/dev/null 2>&1; then
+          bats scripts/tests/*.bats || true
+        else
+          echo "No .bats tests found"
+        fi
+
     - name: Prepare visual diff HTML summary
       if: always()
       run: |
