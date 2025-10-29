@@ -7,27 +7,12 @@ let package = Package(
         .macOS(.v12)
     ],
     products: [
-        .executable(name: "MetalShaderStudio", targets: ["MetalShaderStudio"]),
         .library(name: "MetalShaderCore", targets: ["MetalShaderCore"])
     ],
     targets: [
         .target(
             name: "MetalShaderCore",
             path: "Sources/MetalShaderCore"
-        ),
-.executableTarget(
-            name: "MetalShaderStudio",
-            dependencies: ["MetalShaderCore"],
-            path: "Apps/MetalShaderStudio",
-            linkerSettings: [
-                .linkedFramework("SwiftUI"),
-                .linkedFramework("MetalKit"),
-                .linkedFramework("Metal"),
-                .linkedFramework("AppKit"),
-                .linkedFramework("UniformTypeIdentifiers"),
-                .linkedFramework("CoreML"),
-                .linkedFramework("CoreVideo")
-            ]
         ),
         .executableTarget(
             name: "ShaderRenderCLI",
@@ -49,14 +34,6 @@ let package = Package(
                 .process("Fixtures")
             ]
         ),
-        .testTarget(
-            name: "IntegrationTests",
-            dependencies: ["MetalShaderStudio"],
-            path: "Tests/Integration",
-            resources: [
-                .copy("mock-mcp-server.js")
-            ]
-        )
     ]
 )
 
