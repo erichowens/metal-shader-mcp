@@ -49,6 +49,8 @@ struct ContentView: View {
     @State private var isMonitoringStarted = false
     @State private var errorMessage: String? = nil
     @State private var showError = false
+    @State private var showMagicMoment: MagicMoment.MagicMomentType? = nil
+    @State private var isFirstShader = true
     
     let communicationDir = "Resources/communication"
     let shaderStateFile = "Resources/communication/current_shader.metal"

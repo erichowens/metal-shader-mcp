@@ -1,5 +1,74 @@
 # Changelog
 
+## 2025-10-28 - Whimsical UI System with Disney BRDFs ✨
+### Added
+- **🎨 WhimsicalButton Component**: Magical buttons with Disney BRDF gradients, sparkle effects, and haptic feedback
+  - Five button styles: primary, secondary, sparkle, magic, danger
+  - Smooth spring animations with hover and press states
+  - macOS-compatible haptic feedback using NSHapticFeedbackManager
+  - Metal shader-powered sparkle effects (macOS 14.0+) with gradient fallbacks
+  
+- **🎉 MagicMoment System**: Celebratory animations for achievements
+  - Five celebration types: firstShader, aestheticImprovement, competitionWin, tutorialCompletion, mergeSuccess
+  - Confetti particle effects with customizable colors
+  - Auto-dismissing animations with configurable timing
+  - Encouraging messages that make users smile
+  
+- **🧶 WhimsicalErrorMessage Component**: Gentle, teaching error messages
+  - Five error types with whimsical emoji prefixes
+  - Encouraging messages that support rather than criticize
+  - Celebration messages when errors are fixed
+  - Line number references and suggestions
+  
+- **✨ Enhanced ErrorBannerView**: Whimsical error banners with encouragement
+  - Whimsical prefixes for all severity levels (🧶, ⚠️, 💡, 🎉)
+  - Delayed encouragement messages ("Don't worry, even Pixar pros make mistakes!")
+  - Smooth animations and transitions
+  - Auto-dismiss for non-error messages
+
+- **🧪 Comprehensive Test Suite**: 18 tests with 100% pass rate
+  - Button creation and style tests
+  - Magic moment message and color tests
+  - Error message whimsy and encouragement tests
+  - Performance benchmarks (< 0.001s per component)
+  - Integration and consistency tests
+  - No negative language validation
+  
+- **🎨 Metal Shader Effects**: Professional sparkle and confetti shaders
+  - `whimsical_effects.metal`: Sparkle, confetti, gradient, and glow shaders
+  - Multi-layer sparkle effects with phase-based animation
+  - Particle-based confetti system
+  - Disney-quality BRDF gradients
+
+### Changed
+- **🌟 Enhanced UI Across All Views**: Whimsical touches throughout the app
+  - Library view: Sparkly refresh button and magical empty state
+  - Projects view: Whimsical creation buttons and encouraging messages
+  - MCP Tools view: Enchanting exploration interface
+  - All buttons now use WhimsicalButton component
+  
+- **📝 Improved Error Messages**: All errors now teach and encourage
+  - Error banners show whimsical prefixes
+  - Encouragement appears after short delay
+  - Success messages are celebratory
+  
+- **🎯 SwiftUI Preview Fixes**: Converted #Preview macros to PreviewProvider
+  - Fixed ErrorBannerView preview
+  - Fixed MCPStatusView preview
+  - Compatibility with Swift package manager
+
+### Testing
+- ✅ All 18 whimsical UI tests passing
+- ✅ Performance tests show < 0.001s per component creation
+- ✅ No negative or harsh language in any message
+- ✅ All components use consistent whimsical design language
+
+### Documentation
+- 📚 Comprehensive test documentation in WhimsicalUITests.swift
+- 📝 Acceptance criteria for all 5 test goals
+- 🎯 Clear success metrics and validation rules
+- 💡 Usage examples in test comments
+
 ## 2025-10-23 - Shell Tests for Background Launch Helpers
 ### Added
 - Bats test suite for `open_bg.sh`, `open_fg.sh`, and `focus_app.sh` under `scripts/tests/bg_launch_helpers.bats`

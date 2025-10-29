@@ -310,28 +310,32 @@ struct MCPStatusBar: View {
     }
 }
 
-#Preview {
-    VStack(spacing: 20) {
-        let statusManager = MCPStatusManager()
-        
-        MCPStatusIndicator(statusManager: statusManager)
-        
-        MCPStatusBar(
-            statusManager: statusManager,
-            errorManager: ErrorManager()
-        )
-        
-        MCPStatusDetailView(statusManager: statusManager)
-            .frame(width: 320, height: 240)
-            .border(Color.gray.opacity(0.3))
-    }
-    .padding()
-    .onAppear {
-        let statusManager = MCPStatusManager()
-        statusManager.status = .connected
-        statusManager.bridgeType = .liveClient(serverCommand: "node mcp-server.js")
-        statusManager.requestCount = 42
-        statusManager.errorCount = 3
-        statusManager.lastActivity = Date().addingTimeInterval(-120)
+#if DEBUG
+struct MCPStatusView_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack(spacing: 20) {
+            let statusManager = MCPStatusManager()
+            
+            MCPStatusIndicator(statusManager: statusManager)
+            
+            MCPStatusBar(
+                statusManager: statusManager,
+                errorManager: ErrorManager()
+            )
+            
+            MCPStatusDetailView(statusManager: statusManager)
+                .frame(width: 320, height: 240)
+                .border(Color.gray.opacity(0.3))
+        }
+        .padding()
+        .onAppear {
+            let statusManager = MCPStatusManager()
+            statusManager.status = .connected
+            statusManager.bridgeType = .liveClient(serverCommand: "node mcp-server.js")
+            statusManager.requestCount = 42
+            statusManager.errorCount = 3
+            statusManager.lastActivity = Date().addingTimeInterval(-120)
+        }
     }
 }
+#endif
