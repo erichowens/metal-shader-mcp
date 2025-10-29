@@ -1,0 +1,63 @@
+name: MetalShaderStudio
+options:
+  minimumXcodeGenVersion: 2.37.0
+settings:
+  BASE_SDK: macosx
+  SWIFT_VERSION: 5.10
+
+targets:
+  MetalShaderStudio:
+    type: application
+    platform: macOS
+    deploymentTarget: "15.4"
+    sources:
+      - path: Sources/MetalShaderStudio
+    resources:
+      - path: ../Resources/Assets.xcassets
+    info:
+      path: Info.plist
+      properties:
+        CFBundleIdentifier: com.erichowens.metalshaderstudio
+        CFBundleName: Metal Shader Studio
+        CFBundleDisplayName: Metal Shader Studio
+        CFBundleIconName: AppIcon
+        NSPrincipalClass: NSApplication
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.erichowens.metalshaderstudio
+      CODE_SIGN_STYLE: Automatic
+      INFOPLIST_FILE: Info.plist
+
+  MetalShaderStudioTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "15.3"
+    sources:
+      - path: Tests/MetalShaderStudioTests
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      CODE_SIGN_STYLE: Automatic
+    dependencies:
+      - target: MetalShaderStudio
+
+  MetalShaderStudioUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    deploymentTarget: "15.3"
+    sources:
+      - path: Tests/MetalShaderStudioUITests
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+      CODE_SIGN_STYLE: Automatic
+    dependencies:
+      - target: MetalShaderStudio
+
+schemes:
+  MetalShaderStudio:
+    build:
+      targets:
+        MetalShaderStudio: all
+    test:
+      gatherCoverageData: false
+      targets:
+        - name: MetalShaderStudioTests
+        - name: MetalShaderStudioUITests

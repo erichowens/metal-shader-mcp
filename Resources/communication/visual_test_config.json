@@ -1,12 +1,57 @@
 {
-  "default": { "global": 2, "r": 2, "g": 2, "b": 2, "a": 0 },
-  "byResolution": {
-    "64x64": { "global": 2 },
-    "128x128": { "global": 3 },
-    "256x256": { "global": 4 }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_comment": "Visual regression test tolerance configuration",
+  "_documentation": {
+    "purpose": "Configure per-channel color difference tolerances (0-255) for visual regression tests",
+    "precedence": "byTest > byResolution > default. Environment variables (VIS_TOL_*) override all",
+    "toleranceValues": "0=exact match required, 255=any value accepted. Typical: 2-4 for strict, 8-16 for gradients",
+    "environmentVariables": [
+      "VIS_TOL_R: Override red channel tolerance",
+      "VIS_TOL_G: Override green channel tolerance",
+      "VIS_TOL_B: Override blue channel tolerance",
+      "VIS_TOL_A: Override alpha channel tolerance",
+      "VIS_TOL_GLOBAL: Override global fallback tolerance"
+    ],
+    "resolutionKeys": "Format: 'WIDTHxHEIGHT' (e.g., '1920x1080')",
+    "testKeys": "Format: 'TestClassName.testMethodName'"
   },
+  
+  "default": { 
+    "global": 2, 
+    "r": 2, 
+    "g": 2, 
+    "b": 2, 
+    "a": 0,
+    "_rationale": "Strict tolerance for regression detection. Alpha must match exactly. Global provides fallback."
+  },
+  
+  "byResolution": {
+    "64x64": { 
+      "global": 2,
+      "_rationale": "Small test images: strict tolerance, minimal GPU interpolation variance"
+    },
+    "128x128": { 
+      "global": 3,
+      "_rationale": "Medium test images: slightly relaxed for interpolation effects"
+    },
+    "256x256": { 
+      "global": 4,
+      "_rationale": "Larger test images: account for cumulative rendering variance"
+    }
+  },
+  
   "byTest": {
-    "VisualRegressionTests.testConstantColorImageMatchesGoldenWithinTolerance": { "global": 2 },
-    "VisualRegressionGradientTests.testGradientMatchesGoldenWithinTolerance": { "global": 12 }
+    "VisualRegressionTests.testConstantColorImageMatchesGoldenWithinTolerance": { 
+      "global": 2,
+      "_rationale": "Constant color test: highly deterministic, strict tolerance appropriate"
+    },
+    "VisualRegressionGradientTests.testGradientMatchesGoldenWithinTolerance": { 
+      "global": 12,
+      "r": 12,
+      "g": 12,
+      "b": 12,
+      "a": 12,
+      "_rationale": "Gradient test: relaxed to handle interpolation across devices and color spaces"
+    }
   }
 }
