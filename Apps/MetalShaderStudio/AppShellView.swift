@@ -89,19 +89,33 @@ struct LibraryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Shader Library").font(.title2).bold()
+                Text("✨ Shader Library ✨").font(.title2).bold()
                 Spacer()
-                Button("Refresh") { loadEntries() }
+                WhimsicalButton(title: "🔄 Refresh", action: { loadEntries() }, style: .secondary)
             }
             if isLoading {
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else if entries.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "doc.text.magnifyingglass").font(.largeTitle)
-                    Text("No shaders found").font(.headline)
-                    Text("Place .metal files under ./shaders").font(.caption).foregroundStyle(.secondary)
+                VStack(spacing: 16) {
+                    Image(systemName: "sparkles").font(.largeTitle)
+                        .foregroundColor(.blue)
+                    Text("✨ No shaders found yet! ✨").font(.headline)
+                    Text("Let's create some magical shaders together!")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                    
+                    VStack(spacing: 12) {
+                        WhimsicalButton(title: "🎨 Create First Shader", action: { 
+                            // TODO: Open shader creation wizard
+                        }, style: .magic)
+                        
+                        WhimsicalButton(title: "📚 Browse Examples", action: { 
+                            // TODO: Open example library
+                        }, style: .primary)
+                    }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else {
                 ScrollView {
                     let columns = [GridItem(.adaptive(minimum: 240), spacing: 16)]
@@ -217,7 +231,7 @@ private struct LibraryCard: View {
                 Text((entry.path as NSString).lastPathComponent)
                     .font(.caption2).foregroundStyle(.secondary)
                 Spacer()
-                Button("Open", action: onOpen)
+                WhimsicalButton(title: "✨ Open", action: onOpen, style: .primary)
             }
         }
         .padding(10)
@@ -227,25 +241,71 @@ private struct LibraryCard: View {
 
 struct ProjectsView: View {
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Projects")
+        VStack(spacing: 20) {
+            Text("🌳 Projects 🌳")
                 .font(.title2)
-            Text("Track snapshots, variants, and generational progress. Coming soon.")
-                .foregroundStyle(.secondary)
+                .bold()
+            
+            VStack(spacing: 12) {
+                Text("Track snapshots, variants, and generational progress")
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                
+                Text("Coming soon with magical project management! ✨")
+                    .font(.caption)
+                    .foregroundStyle(.blue)
+                    .multilineTextAlignment(.center)
+            }
+            
+            VStack(spacing: 16) {
+                WhimsicalButton(title: "🎨 Create New Project", action: { 
+                    // TODO: Open project creation wizard
+                }, style: .magic)
+                
+                WhimsicalButton(title: "📊 View Analytics", action: { 
+                    // TODO: Open analytics dashboard
+                }, style: .secondary)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding()
     }
 }
 
 struct MCPToolsView: View {
     var body: some View {
-        VStack(spacing: 16) {
-            Text("MCP Tool Explorer")
+        VStack(spacing: 20) {
+            Text("🛠️ MCP Tool Explorer 🛠️")
                 .font(.title2)
-            Text("Browse tools, view JSON schemas, run tools with arguments. Coming soon.")
-                .foregroundStyle(.secondary)
+                .bold()
+            
+            VStack(spacing: 12) {
+                Text("Browse tools, view JSON schemas, run tools with arguments")
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                
+                Text("Coming soon with magical tool exploration! ✨")
+                    .font(.caption)
+                    .foregroundStyle(.blue)
+                    .multilineTextAlignment(.center)
+            }
+            
+            VStack(spacing: 16) {
+                WhimsicalButton(title: "🔍 Explore Tools", action: { 
+                    // TODO: Open tool explorer
+                }, style: .primary)
+                
+                WhimsicalButton(title: "📋 View Schemas", action: { 
+                    // TODO: Open schema viewer
+                }, style: .secondary)
+                
+                WhimsicalButton(title: "⚡ Run Tool", action: { 
+                    // TODO: Open tool runner
+                }, style: .magic)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding()
     }
 }
 
