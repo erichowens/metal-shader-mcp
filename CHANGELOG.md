@@ -1,5 +1,40 @@
 # Changelog
 
+## 2025-10-29 - Repository Cleanup and App Consolidation
+
+### Removed
+- **Deleted Apps/MetalShaderStudio** - SPM executable that ran as background-only process
+  - Could not display in foreground or dock
+  - All UI was invisible despite building successfully
+  - Whimsical UI additions were not functional in this context
+  
+- **Deleted aspirational documentation** - VISION_AND_ROADMAP.md, TECHNICAL_WIREFRAMES.md, COMPETITIVE_ANALYSIS.md, IMPLEMENTATION_PLAN.md
+  - Created plans before verifying base functionality
+  - Distracted from fixing fundamental issues
+
+### Fixed
+- **MacApp deployment target** - Changed from 15.4 to 15.0 for compatibility
+- **Package.swift cleanup** - Removed references to deleted Apps/MetalShaderStudio
+- **Removed IntegrationTests** - Depended on deleted executable target
+
+### Current State
+- **MacApp works** - Proper .app bundle with dock icon, foreground UI, FPS counter
+- **Shader rendering works** - Shows blue/purple gradient at 60 FPS
+- **Ready for verification** - Need to test shader loading, text editing, core functionality
+
+### Lessons Learned
+- Verify app launches and displays BEFORE adding features
+- Don't add polish to broken foundations  
+- Integration tests must verify end-to-end functionality, not just isolated components
+- One working app is better than two broken ones
+
+## 2025-10-23 - Shell Tests for Background Launch Helpers
+### Added
+- Bats test suite for `open_bg.sh`, `open_fg.sh`, and `focus_app.sh` under `scripts/tests/bg_launch_helpers.bats`
+  - Verifies executables exist and are no-op safe when app is not running
+  - Ensures `.runlogs` is created and log path is reported
+- CI: Added step to run Bats tests in `.github/workflows/test.yml`
+
 ## 2025-10-13 - Visual Testing Infrastructure Hardening
 ### Added
 - **Enhanced find_window_id.py**: Production-grade window detection with resilience features
